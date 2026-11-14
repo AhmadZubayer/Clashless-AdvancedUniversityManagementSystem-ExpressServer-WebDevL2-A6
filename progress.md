@@ -1,7 +1,7 @@
 # Clashless — Progress
 
 > ## Overall: 6% complete (6 of 100 points)
-> **In progress:** nothing · **Next:** F1 Auth
+> **In progress:** F1 Auth · **Next:** F2 User management
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -15,7 +15,7 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | ID | Feature | Points | Status | Needs | requirement.md |
 |---|---|---:|---|---|---|
 | F0 | Project setup | 6 | ✅ Completed | — | 5, 9.1–9.4, 10.2 |
-| F1 | Auth | 7 | ⏭️ Next | F0 | 6.3 |
+| F1 | Auth | 7 | 🔄 In progress | F0 | 6.3 |
 | F2 | User management | 5 | ⬜ Not started | F1 | 6.4 |
 | F3 | Academic setup | 6 | ⬜ Not started | F1 | 6.5 |
 | F4 | Semesters and registration windows | 4 | ⬜ Not started | F3 | 6.6 |
@@ -44,7 +44,14 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 
 ## 🔄 In progress
 
-_Nothing is in progress._
+### F1 — Auth
+Started: 14 Nov 2026 10:49 Asia/Dhaka by Codex
+Handoff notes:
+- Done: F0 complete and pushed; baseline smoke test green.
+- Half-done: F1 implementation beginning.
+- Next step: remove self-registration and implement token-version guards and activation.
+- Traps: shared test services require isolated schema/prefix; external calls mocked.
+
 
 ## ⏭️ Next
 
