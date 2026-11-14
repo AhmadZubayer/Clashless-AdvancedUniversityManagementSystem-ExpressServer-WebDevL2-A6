@@ -14,6 +14,7 @@ import { swaggerDocument } from "./app/lib/swagger";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { authRoutes } from "./app/module/auth/auth.route";
+import { userRoutes, adminUserRoutes } from "./app/module/user/user.route";
 import { paymentRoutes } from "./app/module/payment/payment.route";
 import { bkashRoutes } from "./app/module/payment/providers/bkash/bkash.route";
 
@@ -44,6 +45,8 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/payments/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
 

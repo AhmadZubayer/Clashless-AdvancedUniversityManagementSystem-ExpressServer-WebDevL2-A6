@@ -7,7 +7,7 @@ export const uploadToCloudinary = (
 	buffer: Buffer,
 	options: UploadApiOptions = { resource_type: "auto" },
 ) => {
-	return new Promise<UploadApiResponse>((resolve, reject) => {
+	return new Promise<UploadApiResponse & { url: string; publicId: string }>((resolve, reject) => {
 		cloudinary.uploader
 			.upload_stream(options, (error, result) => {
 				if (error) {
@@ -23,7 +23,7 @@ export const uploadToCloudinary = (
 					);
 				}
 
-				resolve(result);
+				resolve({ ...result, url: result.secure_url, publicId: result.public_id });
 			})
 			.end(buffer);
 	});
