@@ -49,8 +49,8 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 11:14 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F2 complete and pushed; 27 tests green.
-- Half-done: department endpoints/Swagger complete; T-ACAD-01/02 and T-AUTH-12/13 passed against real department route (4 focused tests). Programs/curriculum next.
-- Next step: programs/curriculum, then batches, courses/prerequisites, rooms, time grid and result import.
+- Half-done: department endpoints/Swagger complete; T-ACAD-01/02 and T-AUTH-12/13 passed against real department route (4 focused tests). Programs/curriculum implemented with exact Decimal fees, registration fee protection, full transactional curriculum replacement and Swagger; T-ACAD-09 running. Batches next.
+- Next step: finish focused program test, then batches, courses/prerequisites, rooms, time grid and result import.
 - Traps: auth tests now use production department route; all test data must remain in isolated schema/prefix.
 
 
@@ -108,7 +108,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ### F3 — Academic setup (6 points)
 
 - [x] Departments
-- [ ] Programs and curriculum
+- [x] Programs and curriculum
 - [ ] Batches (code parsing)
 - [ ] Courses and prerequisites (cycle check)
 - [ ] Rooms

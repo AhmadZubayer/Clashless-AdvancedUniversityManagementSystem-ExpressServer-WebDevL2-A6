@@ -14,6 +14,10 @@ import { swaggerDocument } from "./app/lib/swagger";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { authRoutes } from "./app/module/auth/auth.route";
+import {
+	programRoutes,
+	adminProgramRoutes,
+} from "./app/module/program/program.route";
 import { userRoutes, adminUserRoutes } from "./app/module/user/user.route";
 import {
 	departmentRoutes,
@@ -53,6 +57,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/admin/departments", adminDepartmentRoutes);
+app.use("/api/programs", programRoutes);
+app.use("/api/admin/programs", adminProgramRoutes);
 app.use("/api/payments/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
 

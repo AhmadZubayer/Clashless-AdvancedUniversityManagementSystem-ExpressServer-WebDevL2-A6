@@ -57,3 +57,73 @@ it("T-ACAD-02 cannot delete a department with a course", async () => {
 		).status,
 	).toBe(409);
 });
+
+it("T-ACAD-09 curriculum replacement removes previous rows and program fees obey phase", async () => {
+	const world = await createAcademicWorld();
+	const created = await request(app)
+		.post("/api/admin/programs")
+		.set("Authorization", authorization())
+		.send({
+			code: "TESTPROGRAM",
+			name: "Test program",
+			departmentId: world.department.id,
+			totalCreditsRequired: 148,
+			perCreditFee: "6500.00",
+			semesterFee: "12000.00",
+		});
+	expect(created.status).toBe(201);
+	const id = created.body.data.id;
+	const first = await prisma.course.create({
+		data: {
+			code: "CURR101",
+			title: "First course",
+			credits: 3,
+			type: "THEORY",
+			departmentId: world.department.id,
+		},
+	});
+	const second = await prisma.course.create({
+		data: {
+			code: "CURR102",
+			title: "Second course",
+			credits: 3,
+			type: "THEORY",
+			departmentId: world.department.id,
+		},
+	});
+	const initial = await request(app)
+		.put(`/api/admin/programs/${id}/curriculum`)
+		.set("Authorization", authorization())
+		.send([
+			{ courseId: first.id, term: 1 },
+			{ courseId: second.id, term: 2 },
+		]);
+	expect(initial.status).toBe(200);
+	expect(initial.body.data).toHaveLength(2);
+	const replacement = await request(app)
+		.put(`/api/admin/programs/${id}/curriculum`)
+		.set("Authorization", authorization())
+		.send([{ courseId: second.id, term: 3 }]);
+	expect(replacement.status).toBe(200);
+	expect(replacement.body.data).toHaveLength(1);
+	expect(replacement.body.data[0].term).toBe(3);
+	const detail = await request(app)
+		.get(`/api/programs/${id}`)
+		.set("Authorization", authorization());
+	expect(detail.status).toBe(200);
+	expect(detail.body.data.curriculum).toHaveLength(1);
+	expect(detail.body.data.curriculum[0].course.id).toBe(second.id);
+	const semester = await prisma.semester.create({
+		data: { code: "FEE-TEST", name: "Fee test", phase: "REGISTRATION" },
+	});
+	const feeChange = await request(app)
+		.patch(`/api/admin/programs/${id}`)
+		.set("Authorization", authorization())
+		.send({ perCreditFee: "7000.00" });
+	expect(feeChange.status).toBe(409);
+	expect(feeChange.body.errorDetails.code).toBe("PHASE_NOT_ALLOWED");
+	await prisma.semester.update({
+		where: { id: semester.id },
+		data: { phase: "CLOSED" },
+	});
+});
