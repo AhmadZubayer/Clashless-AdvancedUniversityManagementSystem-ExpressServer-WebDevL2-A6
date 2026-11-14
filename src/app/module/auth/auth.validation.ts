@@ -15,6 +15,9 @@ const loginUserSchema = z.object({
 	password: z.string().min(1, "Password is required"),
 });
 
+const requestActivationSchema = z.object({ email: emailSchema });
+const activateSchema = z.object({ email: emailSchema, otp: z.string().trim().regex(/^\d{6}$/), password: passwordSchema });
+
 const googleLoginSchema = z.object({
 	idToken: z.string().min(1, "Google ID token is required"),
 });
@@ -35,6 +38,8 @@ const changePasswordSchema = z.object({
 });
 
 export const authValidation = {
+	requestActivationSchema,
+	activateSchema,
 
 
 	loginUserSchema,

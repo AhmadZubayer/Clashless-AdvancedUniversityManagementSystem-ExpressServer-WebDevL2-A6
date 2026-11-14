@@ -16,6 +16,7 @@ import { jwtUtils } from "../../utils/jwt";
 import { sendEmail } from "../../utils/sendEmail";
 import type {
 	IChangePasswordPayload,
+	IActivationPayload,
 	IForgotPasswordPayload,
 	IGoogleLoginPayload,
 	ILoginUserPayload,
@@ -27,6 +28,35 @@ import type {
 const OTP_EXPIRATION_SECONDS = 5 * 60;
 
 const generateOtp = () => crypto.randomInt(100000, 1000000).toString();
+
+const checkOtpSendLimit = async (email: string) => {
+	const count = await redisClient.eval(`local count = redis.call('INCR', KEYS[1]); if count == 1 then redis.call('EXPIRE', KEYS[1], 900) end; return count`, { keys: [redisKey(`otp-send-count:${email}`)], arguments: [] });
+	if (Number(count) > 3) throw new AppError(httpStatus.TOO_MANY_REQUESTS, "Too many OTP requests", { code: "RATE_LIMITED" });
+};
+
+const requestActivationOtp = async ({ email }: IForgotPasswordPayload) => {
+	await checkOtpSendLimit(email);
+	const user = await prisma.user.findFirst({ where: { email, role: UserRole.STUDENT, emailVerified: false, status: UserStatus.ACTIVE, isDeleted: false } });
+	if (!user) return;
+	const otp = generateOtp();
+	await redisClient.set(redisKey(`activation-otp:${email}`), JSON.stringify({ otp, attempts: 0 }), { expiration: { type: "EX", value: 600 } });
+	try {
+		await sendEmail({ to: email, subject: "Activate your account", templateName: "registration-otp", templateData: { name: user.name, email, otp, expirationMinutes: 10 } });
+	} catch { logger.error({ userId: user.id }, "Activation email failed"); }
+};
+
+const activateUser = async ({ email, otp, password }: IActivationPayload) => {
+	const verified = await redisClient.eval(`local value = redis.call('GET', KEYS[1]); if not value then return 0 end; local item = cjson.decode(value); if item.otp == ARGV[1] then redis.call('DEL', KEYS[1]); return 1 end; item.attempts = item.attempts + 1; if item.attempts >= 5 then redis.call('DEL', KEYS[1]) else redis.call('SET', KEYS[1], cjson.encode(item), 'KEEPTTL') end; return 0`, { keys: [redisKey(`activation-otp:${email}`)], arguments: [otp] });
+	if (Number(verified) !== 1) throw new AppError(httpStatus.BAD_REQUEST, "The OTP is wrong or has expired", { code: "INVALID_OTP" });
+	const hash = await bcrypt.hash(password, Number(config.bcrypt_salt_rounds));
+	const user = await prisma.$transaction(async (tx) => {
+		const updated = await tx.user.updateMany({ where: { email, role: UserRole.STUDENT, emailVerified: false, status: UserStatus.ACTIVE, isDeleted: false }, data: { password: hash, emailVerified: true } });
+		if (updated.count !== 1) throw new AppError(httpStatus.BAD_REQUEST, "The OTP is wrong or has expired", { code: "INVALID_OTP" });
+		return tx.user.findUniqueOrThrow({ where: { email }, omit: { password: true } });
+	});
+	try { await sendEmail({ to: email, subject: `Welcome to ${config.app_name}`, templateName: "welcome", templateData: { name: user.name } }); } catch { logger.error({ userId: user.id }, "Welcome email failed"); }
+	return { ...createAuthTokens(user), user };
+};
 
 const createAuthTokens = (user: {
 	id: string;
@@ -407,6 +437,8 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 const logoutUser = (user: RequestUser) => prisma.user.update({ where: { id: user.id }, data: { tokenVersion: { increment: 1 } }, select: { id: true } });
 
 export const authService = {
+	requestActivationOtp,
+	activateUser,
 	logoutUser,
 
 

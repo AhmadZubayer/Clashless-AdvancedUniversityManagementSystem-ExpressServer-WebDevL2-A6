@@ -6,6 +6,9 @@ import { authValidation } from "./auth.validation";
 
 export const authRoutes = Router();
 
+authRoutes.post("/activate/request-otp", validateRequest(authValidation.requestActivationSchema), authController.requestActivationOtp);
+authRoutes.post("/activate/verify", validateRequest(authValidation.activateSchema), authController.activateUser);
+
 authRoutes.post(
 	"/login",
 	validateRequest(authValidation.loginUserSchema),
