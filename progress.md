@@ -1,7 +1,7 @@
 # Clashless — Progress
 
-> ## Overall: 6% complete (6 of 100 points)
-> **In progress:** F1 Auth · **Next:** F2 User management
+> ## Overall: 13% complete (13 of 100 points)
+> **In progress:** nothing · **Next:** F2 User management
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -15,8 +15,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | ID | Feature | Points | Status | Needs | requirement.md |
 |---|---|---:|---|---|---|
 | F0 | Project setup | 6 | ✅ Completed | — | 5, 9.1–9.4, 10.2 |
-| F1 | Auth | 7 | 🔄 In progress | F0 | 6.3 |
-| F2 | User management | 5 | ⬜ Not started | F1 | 6.4 |
+| F1 | Auth | 7 | ✅ Completed | F0 | 6.3 |
+| F2 | User management | 5 | ⏭️ Next | F1 | 6.4 |
 | F3 | Academic setup | 6 | ⬜ Not started | F1 | 6.5 |
 | F4 | Semesters and registration windows | 4 | ⬜ Not started | F3 | 6.6 |
 | F5 | Offerings, sections and teacher preferences | 6 | ⬜ Not started | F2, F4 | 6.7 |
@@ -42,19 +42,15 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 
 | F0 Project setup | 14 Nov 2026 | Codex | 1 | All setup checks and manual HTTP pass; demo seed rerun verified |
 
+| F1 Auth | 14 Nov 2026 | Codex | 15 (16 total) | All auth flows, Swagger, static checks and manual HTTP pass |
+
 ## 🔄 In progress
 
-### F1 — Auth
-Started: 14 Nov 2026 10:49 Asia/Dhaka by Codex
-Handoff notes:
-- Done: all 10 auth endpoints, Swagger, and 15 required auth tests; all 16 tests passed including F0 smoke. Targeted normalization login test also passed after final validation cleanup.
-- Half-done: none; completion commit and push next.
-- Next step: finish F1 completion records and begin F2.
-- Traps: T-AUTH-12/13 use a test-only department route with the real auth guard until the production department endpoint is built in F3.
+_Nothing is in progress._
 
 ## ⏭️ Next
 
-1. **F1 Auth**: implement requirement.md 6.3.
+1. **F2 User management**: implement requirement.md 6.4.
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -92,7 +88,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Google login: students only, university domain, never creates users
 - [x] Forgot, reset and change password changes
 - [x] Tests T-AUTH-01 … T-AUTH-15
-- [ ] Definition of done → commit → push
+- [x] Definition of done → commit → push
 
 ### F2 — User management (5 points)
 
