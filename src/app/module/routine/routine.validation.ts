@@ -33,6 +33,27 @@ const viewQuerySchema = z
 		"Program view requires programId and term",
 	);
 export const routineValidation = {
+	publishedQuerySchema: z
+		.object({
+			semesterId: z.uuid().optional(),
+			programId: z.uuid().optional(),
+			term: z.coerce.number().int().min(1).optional(),
+			departmentId: z.uuid().optional(),
+			facultyId: z.uuid().optional(),
+			roomId: z.uuid().optional(),
+		})
+		.refine(
+			(query) =>
+				(!query.programId && !query.term) ||
+				(!!query.programId && !!query.term),
+			"Program filtering requires programId and term together",
+		),
+	exportQuerySchema: z.object({
+		semesterId: z.uuid().optional(),
+		view: z.enum(["master", "faculty", "room"]).default("master"),
+		facultyId: z.uuid().optional(),
+		roomId: z.uuid().optional(),
+	}),
 	entryParamsSchema: z.object({ id: z.uuid(), entryId: z.uuid() }),
 	moveSchema: z
 		.object({

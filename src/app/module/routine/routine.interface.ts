@@ -22,3 +22,17 @@ export interface IRoutineEntryChange {
 	dayPatternId?: string;
 	timeSlotId?: string;
 }
+export interface IPublishedRoutineQuery {
+	semesterId?: string;
+	programId?: string;
+	term?: number;
+	departmentId?: string;
+	facultyId?: string;
+	roomId?: string;
+}
+export interface IRoutineExportQuery {
+	semesterId?: string;
+	view: "master" | "faculty" | "room";
+	facultyId?: string;
+	roomId?: string;
+}

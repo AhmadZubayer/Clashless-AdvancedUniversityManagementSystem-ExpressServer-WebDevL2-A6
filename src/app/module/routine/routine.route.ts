@@ -8,6 +8,23 @@ import { routineController } from "./routine.controller";
 import { routineValidation } from "./routine.validation";
 export const routineRoutes = Router();
 export const adminRoutineRoutes = Router();
+routineRoutes.get(
+	"/published/export",
+	auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.FACULTY),
+	validateQuery(routineValidation.exportQuerySchema),
+	routineController.exportPublishedRoutine,
+);
+routineRoutes.get(
+	"/published",
+	auth(),
+	validateQuery(routineValidation.publishedQuerySchema),
+	routineController.getPublishedRoutine,
+);
+routineRoutes.get(
+	"/me",
+	auth(UserRole.STUDENT, UserRole.FACULTY),
+	routineController.getMyRoutine,
+);
 adminRoutineRoutes.use(auth(UserRole.ADMIN, UserRole.SUPER_ADMIN));
 adminRoutineRoutes.get(
 	"/",
@@ -29,6 +46,12 @@ adminRoutineRoutes.get(
 	"/:id/report",
 	validateParams(routineValidation.idSchema),
 	routineController.getRoutineReport,
+);
+adminRoutineRoutes.get(
+	"/:id/export",
+	validateParams(routineValidation.idSchema),
+	validateQuery(routineValidation.exportQuerySchema),
+	routineController.exportRoutineVersion,
 );
 adminRoutineRoutes.post(
 	"/:id/publish",

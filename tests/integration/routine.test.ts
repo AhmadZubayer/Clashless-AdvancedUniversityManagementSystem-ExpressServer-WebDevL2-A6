@@ -7,6 +7,7 @@ import {
 	createAcademicWorld,
 	createAdmin,
 	createFaculty,
+	createStudent,
 } from "../helpers/factory";
 
 let admin: Awaited<ReturnType<typeof createAdmin>>;
@@ -375,4 +376,94 @@ it("T-ROUT-11 publication copies schedules and archives the previous published v
 		)
 		.set("Authorization", authorization());
 	expect(pin.status).toBe(409);
+});
+
+it("T-ROUT-13 teacher weekly grid contains only their own sections", async () => {
+	const response = await request(app)
+		.get("/api/routines/me")
+		.set("Authorization", `Bearer ${tokenFor(teacher)}`);
+	expect(response.status).toBe(200);
+	expect(
+		response.body.data.entries.map(
+			(row: { sectionId: string }) => row.sectionId,
+		),
+	).toEqual([sectionId]);
+	const values = Object.values(response.body.data.grid).flatMap((day) =>
+		Object.values(day as Record<string, { sectionId: string }[]>).flat(),
+	);
+	expect(values).toHaveLength(2);
+	expect(values.every((entry) => entry.sectionId === sectionId)).toBe(true);
+});
+
+it("F6 published filters, enrolled student grids and scoped PDF exports", async () => {
+	const student = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const section = await prisma.section.findUniqueOrThrow({
+		where: { id: sectionId },
+	});
+	const registration = await prisma.semesterRegistration.create({
+		data: {
+			semesterId,
+			studentId: student.student!.id,
+			paymentDeadline: new Date(Date.now() + 86400000),
+		},
+	});
+	await prisma.enrollment.create({
+		data: {
+			semesterId,
+			studentId: student.student!.id,
+			registrationId: registration.id,
+			sectionId,
+			offeringId: section.offeringId,
+			credits: 3,
+		},
+	});
+	const mine = await request(app)
+		.get("/api/routines/me")
+		.set("Authorization", `Bearer ${tokenFor(student)}`);
+	expect(mine.status).toBe(200);
+	expect(
+		mine.body.data.entries.map((row: { sectionId: string }) => row.sectionId),
+	).toEqual([sectionId]);
+	const published = await request(app)
+		.get(
+			`/api/routines/published?semesterId=${semesterId}&facultyId=${teacher.faculty!.id}`,
+		)
+		.set("Authorization", `Bearer ${tokenFor(student)}`);
+	expect(published.status).toBe(200);
+	expect(published.body.data.entries).toHaveLength(1);
+	const empty = await request(app)
+		.get(
+			`/api/routines/published?semesterId=${semesterId}&departmentId=${crypto.randomUUID()}`,
+		)
+		.set("Authorization", authorization());
+	expect(empty.status).toBe(200);
+	expect(empty.body.data.entries).toEqual([]);
+	const pdf = await request(app)
+		.get("/api/routines/published/export?view=faculty")
+		.set("Authorization", `Bearer ${tokenFor(teacher)}`);
+	expect(pdf.status).toBe(200);
+	expect(pdf.headers["content-type"]).toContain("application/pdf");
+	expect(pdf.body.subarray(0, 4).toString()).toBe("%PDF");
+	const forbidden = await request(app)
+		.get("/api/routines/published/export?view=master")
+		.set("Authorization", `Bearer ${tokenFor(teacher)}`);
+	expect(forbidden.status).toBe(403);
+	const other = await request(app)
+		.get(
+			`/api/routines/published/export?view=faculty&facultyId=${crypto.randomUUID()}`,
+		)
+		.set("Authorization", `Bearer ${tokenFor(teacher)}`);
+	expect(other.status).toBe(403);
+	const version = await request(app)
+		.get(`/api/admin/routines/${routineId}/export?view=master`)
+		.set("Authorization", authorization());
+	expect(version.status).toBe(200);
+	expect(version.body.subarray(0, 4).toString()).toBe("%PDF");
+	const denied = await request(app)
+		.get(`/api/admin/routines/${routineId}/export`)
+		.set("Authorization", `Bearer ${tokenFor(teacher)}`);
+	expect(denied.status).toBe(403);
 });

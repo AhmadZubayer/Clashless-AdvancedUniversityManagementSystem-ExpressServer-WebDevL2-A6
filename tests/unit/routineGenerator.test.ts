@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import {
 	generateRoutine,
 	scoreRoutine,
@@ -124,6 +125,23 @@ it("T-ROUT-06 same-term courses retain at least one clash-free section pair", ()
 	expect(scoreRoutine(input, result.entries).breakdown.curriculumClashes).toBe(
 		0,
 	);
+});
+it("T-ROUT-14 places the actual demo's 264 sections across 38 rooms and 72 teachers in under 30 seconds", () => {
+	const input = JSON.parse(
+		readFileSync(
+			new URL("../fixtures/routineDemo.json", import.meta.url),
+			"utf8",
+		),
+	) as IRoutineGenerationInput;
+	expect(input.sections).toHaveLength(264);
+	expect(input.rooms).toHaveLength(38);
+	expect(new Set(input.sections.map((row) => row.facultyId)).size).toBe(72);
+	const started = performance.now();
+	const result = generateRoutine(input);
+	expect(performance.now() - started).toBeLessThan(30000);
+	expect(result.entries).toHaveLength(264);
+	expect(result.report.unplaced).toEqual([]);
+	expect(validateRoutine({ ...input, entries: result.entries }).ok).toBe(true);
 });
 it("F6 pinned entries survive generation and invalid pins are rejected", () => {
 	const input = fixture();

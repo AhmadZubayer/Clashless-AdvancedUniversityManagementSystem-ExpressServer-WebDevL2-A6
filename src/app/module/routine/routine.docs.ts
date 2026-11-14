@@ -1,5 +1,82 @@
 /**
  * @openapi
+ * /api/routines/published:
+ *   get:
+ *     tags: [Routine]
+ *     summary: Published semester routine with optional academic and resource filters
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: query, name: semesterId, schema: { type: string, format: uuid }, description: Defaults to current semester }
+ *       - { in: query, name: programId, schema: { type: string, format: uuid } }
+ *       - { in: query, name: term, schema: { type: integer, minimum: 1 }, description: Required together with programId }
+ *       - { in: query, name: departmentId, schema: { type: string, format: uuid } }
+ *       - { in: query, name: facultyId, schema: { type: string, format: uuid } }
+ *       - { in: query, name: roomId, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200: { description: Published version, entries and weekly grid }
+ *       400: { description: Invalid query }
+ *       401: { description: Authentication required }
+ *       404: { description: No current semester or published routine }
+ */
+/**
+ * @openapi
+ * /api/routines/me:
+ *   get:
+ *     tags: [Routine]
+ *     summary: Current weekly grid for a student's enrolled classes or a teacher's assigned sections
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Own entries and grid indexed by weekday then HH:MM }
+ *       401: { description: Authentication required }
+ *       403: { description: Student or faculty access required }
+ *       404: { description: Profile, current semester or published routine not found }
+ */
+/**
+ * @openapi
+ * /api/routines/published/export:
+ *   get:
+ *     tags: [Routine]
+ *     summary: Download published weekly PDF grids; teachers may export only themselves
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: query, name: semesterId, schema: { type: string, format: uuid }, description: Defaults to current semester }
+ *       - { in: query, name: view, schema: { type: string, enum: [master, faculty, room], default: master } }
+ *       - { in: query, name: facultyId, schema: { type: string, format: uuid }, description: Required for faculty view; defaults to self for teachers }
+ *       - { in: query, name: roomId, schema: { type: string, format: uuid }, description: Required for room view }
+ *     responses:
+ *       200:
+ *         description: Weekly grid PDF; master contains a grid per room
+ *         content:
+ *           application/pdf: { schema: { type: string, format: binary } }
+ *       400: { description: Invalid query or missing export filter }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin or own published faculty export required }
+ *       404: { description: Published routine or current semester not found }
+ */
+/**
+ * @openapi
+ * /api/admin/routines/{id}/export:
+ *   get:
+ *     tags: [Routine]
+ *     summary: Download weekly PDF grids for any version, including drafts
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *       - { in: query, name: view, schema: { type: string, enum: [master, faculty, room], default: master } }
+ *       - { in: query, name: facultyId, schema: { type: string, format: uuid } }
+ *       - { in: query, name: roomId, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Weekly grid PDF
+ *         content:
+ *           application/pdf: { schema: { type: string, format: binary } }
+ *       400: { description: Invalid query or missing view filter }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin access required }
+ *       404: { description: Routine not found }
+ */
+/**
+ * @openapi
  * /api/admin/routines/{id}/publish:
  *   post:
  *     tags: [Routine]

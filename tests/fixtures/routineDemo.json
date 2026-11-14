@@ -1,0 +1,2762 @@
+{
+  "semesterId": "demo-2027-1",
+  "sections": [
+    {
+      "id": "BAE2101-1",
+      "courseId": "BAE2101",
+      "label": "BAE2101 section 1",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-24"
+    },
+    {
+      "id": "BAE2101-2",
+      "courseId": "BAE2101",
+      "label": "BAE2101 section 2",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-17"
+    },
+    {
+      "id": "BAE2101-3",
+      "courseId": "BAE2101",
+      "label": "BAE2101 section 3",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-35"
+    },
+    {
+      "id": "BAE2101-4",
+      "courseId": "BAE2101",
+      "label": "BAE2101 section 4",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-45"
+    },
+    {
+      "id": "BAE2101-5",
+      "courseId": "BAE2101",
+      "label": "BAE2101 section 5",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-31"
+    },
+    {
+      "id": "BAE2101-6",
+      "courseId": "BAE2101",
+      "label": "BAE2101 section 6",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-19"
+    },
+    {
+      "id": "BAE2101-7",
+      "courseId": "BAE2101",
+      "label": "BAE2101 section 7",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-34"
+    },
+    {
+      "id": "BAE2101-8",
+      "courseId": "BAE2101",
+      "label": "BAE2101 section 8",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-14"
+    },
+    {
+      "id": "BAS2101-1",
+      "courseId": "BAS2101",
+      "label": "BAS2101 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-66"
+    },
+    {
+      "id": "BAS2101-2",
+      "courseId": "BAS2101",
+      "label": "BAS2101 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-70"
+    },
+    {
+      "id": "BAS2101-3",
+      "courseId": "BAS2101",
+      "label": "BAS2101 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-52"
+    },
+    {
+      "id": "BAS2101-4",
+      "courseId": "BAS2101",
+      "label": "BAS2101 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-66"
+    },
+    {
+      "id": "BAS2101-5",
+      "courseId": "BAS2101",
+      "label": "BAS2101 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-70"
+    },
+    {
+      "id": "BAS2101-6",
+      "courseId": "BAS2101",
+      "label": "BAS2101 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-52"
+    },
+    {
+      "id": "BAS2101-7",
+      "courseId": "BAS2101",
+      "label": "BAS2101 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-66"
+    },
+    {
+      "id": "BAS2101-8",
+      "courseId": "BAS2101",
+      "label": "BAS2101 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-70"
+    },
+    {
+      "id": "BAS2101-9",
+      "courseId": "BAS2101",
+      "label": "BAS2101 section 9",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-52"
+    },
+    {
+      "id": "BAS2101-10",
+      "courseId": "BAS2101",
+      "label": "BAS2101 section 10",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-66"
+    },
+    {
+      "id": "BBA1102-1",
+      "courseId": "BBA1102",
+      "label": "BBA1102 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-55"
+    },
+    {
+      "id": "BBA1102-2",
+      "courseId": "BBA1102",
+      "label": "BBA1102 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-51"
+    },
+    {
+      "id": "BBA1102-3",
+      "courseId": "BBA1102",
+      "label": "BBA1102 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-63"
+    },
+    {
+      "id": "BBA1102-4",
+      "courseId": "BBA1102",
+      "label": "BBA1102 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-16"
+    },
+    {
+      "id": "BBA1102-5",
+      "courseId": "BBA1102",
+      "label": "BBA1102 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-55"
+    },
+    {
+      "id": "BBA1102-6",
+      "courseId": "BBA1102",
+      "label": "BBA1102 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-51"
+    },
+    {
+      "id": "BBA1102-7",
+      "courseId": "BBA1102",
+      "label": "BBA1102 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-63"
+    },
+    {
+      "id": "BBA1102-8",
+      "courseId": "BBA1102",
+      "label": "BBA1102 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-16"
+    },
+    {
+      "id": "CHEM1101-1",
+      "courseId": "CHEM1101",
+      "label": "CHEM1101 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-44"
+    },
+    {
+      "id": "CHEM1101-2",
+      "courseId": "CHEM1101",
+      "label": "CHEM1101 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-13"
+    },
+    {
+      "id": "CHEM1101-3",
+      "courseId": "CHEM1101",
+      "label": "CHEM1101 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-9"
+    },
+    {
+      "id": "CHEM1101-4",
+      "courseId": "CHEM1101",
+      "label": "CHEM1101 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-33"
+    },
+    {
+      "id": "CHEM1101-5",
+      "courseId": "CHEM1101",
+      "label": "CHEM1101 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-26"
+    },
+    {
+      "id": "CHEM1101-6",
+      "courseId": "CHEM1101",
+      "label": "CHEM1101 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-60"
+    },
+    {
+      "id": "CHEM1101-7",
+      "courseId": "CHEM1101",
+      "label": "CHEM1101 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-39"
+    },
+    {
+      "id": "CHEM1101-8",
+      "courseId": "CHEM1101",
+      "label": "CHEM1101 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-4"
+    },
+    {
+      "id": "COE3103-1",
+      "courseId": "COE3103",
+      "label": "COE3103 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-22"
+    },
+    {
+      "id": "COE3103-2",
+      "courseId": "COE3103",
+      "label": "COE3103 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-10"
+    },
+    {
+      "id": "COE3103-3",
+      "courseId": "COE3103",
+      "label": "COE3103 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-3"
+    },
+    {
+      "id": "COE3103-4",
+      "courseId": "COE3103",
+      "label": "COE3103 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-46"
+    },
+    {
+      "id": "COE3103-5",
+      "courseId": "COE3103",
+      "label": "COE3103 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-6"
+    },
+    {
+      "id": "COE3103-6",
+      "courseId": "COE3103",
+      "label": "COE3103 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-43"
+    },
+    {
+      "id": "COE3103-7",
+      "courseId": "COE3103",
+      "label": "COE3103 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-41"
+    },
+    {
+      "id": "COE3103-8",
+      "courseId": "COE3103",
+      "label": "COE3103 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-64"
+    },
+    {
+      "id": "COE3104-1",
+      "courseId": "COE3104",
+      "label": "COE3104 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-68"
+    },
+    {
+      "id": "COE3104-2",
+      "courseId": "COE3104",
+      "label": "COE3104 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-47"
+    },
+    {
+      "id": "COE3104-3",
+      "courseId": "COE3104",
+      "label": "COE3104 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-15"
+    },
+    {
+      "id": "COE3104-4",
+      "courseId": "COE3104",
+      "label": "COE3104 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-38"
+    },
+    {
+      "id": "COE3104-5",
+      "courseId": "COE3104",
+      "label": "COE3104 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-56"
+    },
+    {
+      "id": "COE3104-6",
+      "courseId": "COE3104",
+      "label": "COE3104 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-61"
+    },
+    {
+      "id": "COE3104-7",
+      "courseId": "COE3104",
+      "label": "COE3104 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-69"
+    },
+    {
+      "id": "COE3104-8",
+      "courseId": "COE3104",
+      "label": "COE3104 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-53"
+    },
+    {
+      "id": "COE3205-1",
+      "courseId": "COE3205",
+      "label": "COE3205 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-22"
+    },
+    {
+      "id": "COE3205-2",
+      "courseId": "COE3205",
+      "label": "COE3205 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-10"
+    },
+    {
+      "id": "COE3205-3",
+      "courseId": "COE3205",
+      "label": "COE3205 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-3"
+    },
+    {
+      "id": "COE3205-4",
+      "courseId": "COE3205",
+      "label": "COE3205 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-46"
+    },
+    {
+      "id": "COE3205-5",
+      "courseId": "COE3205",
+      "label": "COE3205 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-6"
+    },
+    {
+      "id": "COE3205-6",
+      "courseId": "COE3205",
+      "label": "COE3205 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-43"
+    },
+    {
+      "id": "COE3205-7",
+      "courseId": "COE3205",
+      "label": "COE3205 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-41"
+    },
+    {
+      "id": "COE3205-8",
+      "courseId": "COE3205",
+      "label": "COE3205 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-64"
+    },
+    {
+      "id": "COE3206-1",
+      "courseId": "COE3206",
+      "label": "COE3206 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-28"
+    },
+    {
+      "id": "COE3206-2",
+      "courseId": "COE3206",
+      "label": "COE3206 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-48"
+    },
+    {
+      "id": "COE3206-3",
+      "courseId": "COE3206",
+      "label": "COE3206 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-23"
+    },
+    {
+      "id": "COE3206-4",
+      "courseId": "COE3206",
+      "label": "COE3206 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-7"
+    },
+    {
+      "id": "COE3206-5",
+      "courseId": "COE3206",
+      "label": "COE3206 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-1"
+    },
+    {
+      "id": "COE3206-6",
+      "courseId": "COE3206",
+      "label": "COE3206 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-27"
+    },
+    {
+      "id": "COE3206-7",
+      "courseId": "COE3206",
+      "label": "COE3206 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-62"
+    },
+    {
+      "id": "COE3206-8",
+      "courseId": "COE3206",
+      "label": "COE3206 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-18"
+    },
+    {
+      "id": "CSC2106-1",
+      "courseId": "CSC2106",
+      "label": "CSC2106 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-32"
+    },
+    {
+      "id": "CSC2106-2",
+      "courseId": "CSC2106",
+      "label": "CSC2106 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-49"
+    },
+    {
+      "id": "CSC2106-3",
+      "courseId": "CSC2106",
+      "label": "CSC2106 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-40"
+    },
+    {
+      "id": "CSC2106-4",
+      "courseId": "CSC2106",
+      "label": "CSC2106 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-2"
+    },
+    {
+      "id": "CSC2106-5",
+      "courseId": "CSC2106",
+      "label": "CSC2106 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-21"
+    },
+    {
+      "id": "CSC2106-6",
+      "courseId": "CSC2106",
+      "label": "CSC2106 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-59"
+    },
+    {
+      "id": "CSC2106-7",
+      "courseId": "CSC2106",
+      "label": "CSC2106 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-28"
+    },
+    {
+      "id": "CSC2106-8",
+      "courseId": "CSC2106",
+      "label": "CSC2106 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-48"
+    },
+    {
+      "id": "CSC2107-1",
+      "courseId": "CSC2107",
+      "label": "CSC2107 section 1",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-23"
+    },
+    {
+      "id": "CSC2107-2",
+      "courseId": "CSC2107",
+      "label": "CSC2107 section 2",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-7"
+    },
+    {
+      "id": "CSC2107-3",
+      "courseId": "CSC2107",
+      "label": "CSC2107 section 3",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-1"
+    },
+    {
+      "id": "CSC2107-4",
+      "courseId": "CSC2107",
+      "label": "CSC2107 section 4",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-27"
+    },
+    {
+      "id": "CSC2107-5",
+      "courseId": "CSC2107",
+      "label": "CSC2107 section 5",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-62"
+    },
+    {
+      "id": "CSC2107-6",
+      "courseId": "CSC2107",
+      "label": "CSC2107 section 6",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-18"
+    },
+    {
+      "id": "CSC2107-7",
+      "courseId": "CSC2107",
+      "label": "CSC2107 section 7",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-22"
+    },
+    {
+      "id": "CSC2107-8",
+      "courseId": "CSC2107",
+      "label": "CSC2107 section 8",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-10"
+    },
+    {
+      "id": "CSC2108-1",
+      "courseId": "CSC2108",
+      "label": "CSC2108 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-11"
+    },
+    {
+      "id": "CSC2108-2",
+      "courseId": "CSC2108",
+      "label": "CSC2108 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-5"
+    },
+    {
+      "id": "CSC2108-3",
+      "courseId": "CSC2108",
+      "label": "CSC2108 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-50"
+    },
+    {
+      "id": "CSC2108-4",
+      "courseId": "CSC2108",
+      "label": "CSC2108 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-29"
+    },
+    {
+      "id": "CSC2108-5",
+      "courseId": "CSC2108",
+      "label": "CSC2108 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-58"
+    },
+    {
+      "id": "CSC2108-6",
+      "courseId": "CSC2108",
+      "label": "CSC2108 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-57"
+    },
+    {
+      "id": "CSC2108-7",
+      "courseId": "CSC2108",
+      "label": "CSC2108 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-36"
+    },
+    {
+      "id": "CSC2108-8",
+      "courseId": "CSC2108",
+      "label": "CSC2108 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-20"
+    },
+    {
+      "id": "CSC2209-1",
+      "courseId": "CSC2209",
+      "label": "CSC2209 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-58"
+    },
+    {
+      "id": "CSC2209-2",
+      "courseId": "CSC2209",
+      "label": "CSC2209 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-57"
+    },
+    {
+      "id": "CSC2209-3",
+      "courseId": "CSC2209",
+      "label": "CSC2209 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-36"
+    },
+    {
+      "id": "CSC2209-4",
+      "courseId": "CSC2209",
+      "label": "CSC2209 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-20"
+    },
+    {
+      "id": "CSC2209-5",
+      "courseId": "CSC2209",
+      "label": "CSC2209 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-32"
+    },
+    {
+      "id": "CSC2209-6",
+      "courseId": "CSC2209",
+      "label": "CSC2209 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-49"
+    },
+    {
+      "id": "CSC2209-7",
+      "courseId": "CSC2209",
+      "label": "CSC2209 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-40"
+    },
+    {
+      "id": "CSC2209-8",
+      "courseId": "CSC2209",
+      "label": "CSC2209 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-2"
+    },
+    {
+      "id": "CSC2209-9",
+      "courseId": "CSC2209",
+      "label": "CSC2209 section 9",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-21"
+    },
+    {
+      "id": "CSC2209-10",
+      "courseId": "CSC2209",
+      "label": "CSC2209 section 10",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-59"
+    },
+    {
+      "id": "CSC2210-1",
+      "courseId": "CSC2210",
+      "label": "CSC2210 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-56"
+    },
+    {
+      "id": "CSC2210-2",
+      "courseId": "CSC2210",
+      "label": "CSC2210 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-61"
+    },
+    {
+      "id": "CSC2210-3",
+      "courseId": "CSC2210",
+      "label": "CSC2210 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-69"
+    },
+    {
+      "id": "CSC2210-4",
+      "courseId": "CSC2210",
+      "label": "CSC2210 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-53"
+    },
+    {
+      "id": "CSC2210-5",
+      "courseId": "CSC2210",
+      "label": "CSC2210 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-42"
+    },
+    {
+      "id": "CSC2210-6",
+      "courseId": "CSC2210",
+      "label": "CSC2210 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-37"
+    },
+    {
+      "id": "CSC2210-7",
+      "courseId": "CSC2210",
+      "label": "CSC2210 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-11"
+    },
+    {
+      "id": "CSC2210-8",
+      "courseId": "CSC2210",
+      "label": "CSC2210 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-5"
+    },
+    {
+      "id": "CSC2210-9",
+      "courseId": "CSC2210",
+      "label": "CSC2210 section 9",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-50"
+    },
+    {
+      "id": "CSC2210-10",
+      "courseId": "CSC2210",
+      "label": "CSC2210 section 10",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-29"
+    },
+    {
+      "id": "CSC2211-1",
+      "courseId": "CSC2211",
+      "label": "CSC2211 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-3"
+    },
+    {
+      "id": "CSC2211-2",
+      "courseId": "CSC2211",
+      "label": "CSC2211 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-46"
+    },
+    {
+      "id": "CSC2211-3",
+      "courseId": "CSC2211",
+      "label": "CSC2211 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-6"
+    },
+    {
+      "id": "CSC2211-4",
+      "courseId": "CSC2211",
+      "label": "CSC2211 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-43"
+    },
+    {
+      "id": "CSC2211-5",
+      "courseId": "CSC2211",
+      "label": "CSC2211 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-41"
+    },
+    {
+      "id": "CSC2211-6",
+      "courseId": "CSC2211",
+      "label": "CSC2211 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-64"
+    },
+    {
+      "id": "CSC2211-7",
+      "courseId": "CSC2211",
+      "label": "CSC2211 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-68"
+    },
+    {
+      "id": "CSC2211-8",
+      "courseId": "CSC2211",
+      "label": "CSC2211 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-47"
+    },
+    {
+      "id": "CSC2211-9",
+      "courseId": "CSC2211",
+      "label": "CSC2211 section 9",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-15"
+    },
+    {
+      "id": "CSC2211-10",
+      "courseId": "CSC2211",
+      "label": "CSC2211 section 10",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-38"
+    },
+    {
+      "id": "CSC3112-1",
+      "courseId": "CSC3112",
+      "label": "CSC3112 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-42"
+    },
+    {
+      "id": "CSC3112-2",
+      "courseId": "CSC3112",
+      "label": "CSC3112 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-37"
+    },
+    {
+      "id": "CSC3112-3",
+      "courseId": "CSC3112",
+      "label": "CSC3112 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-11"
+    },
+    {
+      "id": "CSC3112-4",
+      "courseId": "CSC3112",
+      "label": "CSC3112 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-5"
+    },
+    {
+      "id": "CSC3112-5",
+      "courseId": "CSC3112",
+      "label": "CSC3112 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-50"
+    },
+    {
+      "id": "CSC3112-6",
+      "courseId": "CSC3112",
+      "label": "CSC3112 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-29"
+    },
+    {
+      "id": "CSC3112-7",
+      "courseId": "CSC3112",
+      "label": "CSC3112 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-58"
+    },
+    {
+      "id": "CSC3112-8",
+      "courseId": "CSC3112",
+      "label": "CSC3112 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-57"
+    },
+    {
+      "id": "CSC3113-1",
+      "courseId": "CSC3113",
+      "label": "CSC3113 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-28"
+    },
+    {
+      "id": "CSC3113-2",
+      "courseId": "CSC3113",
+      "label": "CSC3113 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-48"
+    },
+    {
+      "id": "CSC3113-3",
+      "courseId": "CSC3113",
+      "label": "CSC3113 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-23"
+    },
+    {
+      "id": "CSC3113-4",
+      "courseId": "CSC3113",
+      "label": "CSC3113 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-7"
+    },
+    {
+      "id": "CSC3113-5",
+      "courseId": "CSC3113",
+      "label": "CSC3113 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-1"
+    },
+    {
+      "id": "CSC3113-6",
+      "courseId": "CSC3113",
+      "label": "CSC3113 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-27"
+    },
+    {
+      "id": "CSC3113-7",
+      "courseId": "CSC3113",
+      "label": "CSC3113 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-62"
+    },
+    {
+      "id": "CSC3113-8",
+      "courseId": "CSC3113",
+      "label": "CSC3113 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-18"
+    },
+    {
+      "id": "CSC3214-1",
+      "courseId": "CSC3214",
+      "label": "CSC3214 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-68"
+    },
+    {
+      "id": "CSC3214-2",
+      "courseId": "CSC3214",
+      "label": "CSC3214 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-47"
+    },
+    {
+      "id": "CSC3214-3",
+      "courseId": "CSC3214",
+      "label": "CSC3214 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-15"
+    },
+    {
+      "id": "CSC3214-4",
+      "courseId": "CSC3214",
+      "label": "CSC3214 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-38"
+    },
+    {
+      "id": "CSC3214-5",
+      "courseId": "CSC3214",
+      "label": "CSC3214 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-56"
+    },
+    {
+      "id": "CSC3214-6",
+      "courseId": "CSC3214",
+      "label": "CSC3214 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-61"
+    },
+    {
+      "id": "CSC3214-7",
+      "courseId": "CSC3214",
+      "label": "CSC3214 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-69"
+    },
+    {
+      "id": "CSC3214-8",
+      "courseId": "CSC3214",
+      "label": "CSC3214 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-53"
+    },
+    {
+      "id": "CSC3215-1",
+      "courseId": "CSC3215",
+      "label": "CSC3215 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-42"
+    },
+    {
+      "id": "CSC3215-2",
+      "courseId": "CSC3215",
+      "label": "CSC3215 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-37"
+    },
+    {
+      "id": "CSC3215-3",
+      "courseId": "CSC3215",
+      "label": "CSC3215 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-11"
+    },
+    {
+      "id": "CSC3215-4",
+      "courseId": "CSC3215",
+      "label": "CSC3215 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-5"
+    },
+    {
+      "id": "CSC3215-5",
+      "courseId": "CSC3215",
+      "label": "CSC3215 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-50"
+    },
+    {
+      "id": "CSC3215-6",
+      "courseId": "CSC3215",
+      "label": "CSC3215 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-29"
+    },
+    {
+      "id": "CSC3215-7",
+      "courseId": "CSC3215",
+      "label": "CSC3215 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-58"
+    },
+    {
+      "id": "CSC3215-8",
+      "courseId": "CSC3215",
+      "label": "CSC3215 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-57"
+    },
+    {
+      "id": "CSC3216-1",
+      "courseId": "CSC3216",
+      "label": "CSC3216 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-36"
+    },
+    {
+      "id": "CSC3216-2",
+      "courseId": "CSC3216",
+      "label": "CSC3216 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-20"
+    },
+    {
+      "id": "CSC3216-3",
+      "courseId": "CSC3216",
+      "label": "CSC3216 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-32"
+    },
+    {
+      "id": "CSC3216-4",
+      "courseId": "CSC3216",
+      "label": "CSC3216 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-49"
+    },
+    {
+      "id": "CSC3216-5",
+      "courseId": "CSC3216",
+      "label": "CSC3216 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-40"
+    },
+    {
+      "id": "CSC3216-6",
+      "courseId": "CSC3216",
+      "label": "CSC3216 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-2"
+    },
+    {
+      "id": "CSC3216-7",
+      "courseId": "CSC3216",
+      "label": "CSC3216 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-21"
+    },
+    {
+      "id": "CSC3216-8",
+      "courseId": "CSC3216",
+      "label": "CSC3216 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-59"
+    },
+    {
+      "id": "CSC3217-1",
+      "courseId": "CSC3217",
+      "label": "CSC3217 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-36"
+    },
+    {
+      "id": "CSC3217-2",
+      "courseId": "CSC3217",
+      "label": "CSC3217 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-20"
+    },
+    {
+      "id": "CSC3217-3",
+      "courseId": "CSC3217",
+      "label": "CSC3217 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-32"
+    },
+    {
+      "id": "CSC3217-4",
+      "courseId": "CSC3217",
+      "label": "CSC3217 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-49"
+    },
+    {
+      "id": "CSC3217-5",
+      "courseId": "CSC3217",
+      "label": "CSC3217 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-40"
+    },
+    {
+      "id": "CSC3217-6",
+      "courseId": "CSC3217",
+      "label": "CSC3217 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-2"
+    },
+    {
+      "id": "CSC3217-7",
+      "courseId": "CSC3217",
+      "label": "CSC3217 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-21"
+    },
+    {
+      "id": "CSC3217-8",
+      "courseId": "CSC3217",
+      "label": "CSC3217 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-59"
+    },
+    {
+      "id": "ECO3150-1",
+      "courseId": "ECO3150",
+      "label": "ECO3150 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-55"
+    },
+    {
+      "id": "ECO3150-2",
+      "courseId": "ECO3150",
+      "label": "ECO3150 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-51"
+    },
+    {
+      "id": "ECO3150-3",
+      "courseId": "ECO3150",
+      "label": "ECO3150 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-63"
+    },
+    {
+      "id": "ECO3150-4",
+      "courseId": "ECO3150",
+      "label": "ECO3150 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-16"
+    },
+    {
+      "id": "ECO3150-5",
+      "courseId": "ECO3150",
+      "label": "ECO3150 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-55"
+    },
+    {
+      "id": "ECO3150-6",
+      "courseId": "ECO3150",
+      "label": "ECO3150 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-51"
+    },
+    {
+      "id": "ECO3150-7",
+      "courseId": "ECO3150",
+      "label": "ECO3150 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-63"
+    },
+    {
+      "id": "ECO3150-8",
+      "courseId": "ECO3150",
+      "label": "ECO3150 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-16"
+    },
+    {
+      "id": "EEE2103-1",
+      "courseId": "EEE2103",
+      "label": "EEE2103 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-35"
+    },
+    {
+      "id": "EEE2103-2",
+      "courseId": "EEE2103",
+      "label": "EEE2103 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-45"
+    },
+    {
+      "id": "EEE2103-3",
+      "courseId": "EEE2103",
+      "label": "EEE2103 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-31"
+    },
+    {
+      "id": "EEE2103-4",
+      "courseId": "EEE2103",
+      "label": "EEE2103 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-19"
+    },
+    {
+      "id": "EEE2103-5",
+      "courseId": "EEE2103",
+      "label": "EEE2103 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-34"
+    },
+    {
+      "id": "EEE2103-6",
+      "courseId": "EEE2103",
+      "label": "EEE2103 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-14"
+    },
+    {
+      "id": "EEE2103-7",
+      "courseId": "EEE2103",
+      "label": "EEE2103 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-25"
+    },
+    {
+      "id": "EEE2103-8",
+      "courseId": "EEE2103",
+      "label": "EEE2103 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-72"
+    },
+    {
+      "id": "EEE2104-1",
+      "courseId": "EEE2104",
+      "label": "EEE2104 section 1",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-31"
+    },
+    {
+      "id": "EEE2104-2",
+      "courseId": "EEE2104",
+      "label": "EEE2104 section 2",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-19"
+    },
+    {
+      "id": "EEE2104-3",
+      "courseId": "EEE2104",
+      "label": "EEE2104 section 3",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-34"
+    },
+    {
+      "id": "EEE2104-4",
+      "courseId": "EEE2104",
+      "label": "EEE2104 section 4",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-14"
+    },
+    {
+      "id": "EEE2104-5",
+      "courseId": "EEE2104",
+      "label": "EEE2104 section 5",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-25"
+    },
+    {
+      "id": "EEE2104-6",
+      "courseId": "EEE2104",
+      "label": "EEE2104 section 6",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-72"
+    },
+    {
+      "id": "EEE2104-7",
+      "courseId": "EEE2104",
+      "label": "EEE2104 section 7",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-24"
+    },
+    {
+      "id": "EEE2104-8",
+      "courseId": "EEE2104",
+      "label": "EEE2104 section 8",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-17"
+    },
+    {
+      "id": "EEE2216-1",
+      "courseId": "EEE2216",
+      "label": "EEE2216 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-25"
+    },
+    {
+      "id": "EEE2216-2",
+      "courseId": "EEE2216",
+      "label": "EEE2216 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-72"
+    },
+    {
+      "id": "EEE2216-3",
+      "courseId": "EEE2216",
+      "label": "EEE2216 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-24"
+    },
+    {
+      "id": "EEE2216-4",
+      "courseId": "EEE2216",
+      "label": "EEE2216 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-17"
+    },
+    {
+      "id": "EEE2216-5",
+      "courseId": "EEE2216",
+      "label": "EEE2216 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-35"
+    },
+    {
+      "id": "EEE2216-6",
+      "courseId": "EEE2216",
+      "label": "EEE2216 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-45"
+    },
+    {
+      "id": "EEE2216-7",
+      "courseId": "EEE2216",
+      "label": "EEE2216 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-31"
+    },
+    {
+      "id": "EEE2216-8",
+      "courseId": "EEE2216",
+      "label": "EEE2216 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-19"
+    },
+    {
+      "id": "EEE3101-1",
+      "courseId": "EEE3101",
+      "label": "EEE3101 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-25"
+    },
+    {
+      "id": "EEE3101-2",
+      "courseId": "EEE3101",
+      "label": "EEE3101 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-72"
+    },
+    {
+      "id": "EEE3101-3",
+      "courseId": "EEE3101",
+      "label": "EEE3101 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-24"
+    },
+    {
+      "id": "EEE3101-4",
+      "courseId": "EEE3101",
+      "label": "EEE3101 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-17"
+    },
+    {
+      "id": "EEE3101-5",
+      "courseId": "EEE3101",
+      "label": "EEE3101 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-35"
+    },
+    {
+      "id": "EEE3101-6",
+      "courseId": "EEE3101",
+      "label": "EEE3101 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-45"
+    },
+    {
+      "id": "EEE3101-7",
+      "courseId": "EEE3101",
+      "label": "EEE3101 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-31"
+    },
+    {
+      "id": "EEE3101-8",
+      "courseId": "EEE3101",
+      "label": "EEE3101 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-19"
+    },
+    {
+      "id": "EEE3101-9",
+      "courseId": "EEE3101",
+      "label": "EEE3101 section 9",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-34"
+    },
+    {
+      "id": "EEE3101-10",
+      "courseId": "EEE3101",
+      "label": "EEE3101 section 10",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-14"
+    },
+    {
+      "id": "EEE3102-1",
+      "courseId": "EEE3102",
+      "label": "EEE3102 section 1",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-25"
+    },
+    {
+      "id": "EEE3102-2",
+      "courseId": "EEE3102",
+      "label": "EEE3102 section 2",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-72"
+    },
+    {
+      "id": "EEE3102-3",
+      "courseId": "EEE3102",
+      "label": "EEE3102 section 3",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-24"
+    },
+    {
+      "id": "EEE3102-4",
+      "courseId": "EEE3102",
+      "label": "EEE3102 section 4",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-17"
+    },
+    {
+      "id": "EEE3102-5",
+      "courseId": "EEE3102",
+      "label": "EEE3102 section 5",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-35"
+    },
+    {
+      "id": "EEE3102-6",
+      "courseId": "EEE3102",
+      "label": "EEE3102 section 6",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-45"
+    },
+    {
+      "id": "EEE3102-7",
+      "courseId": "EEE3102",
+      "label": "EEE3102 section 7",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-31"
+    },
+    {
+      "id": "EEE3102-8",
+      "courseId": "EEE3102",
+      "label": "EEE3102 section 8",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-19"
+    },
+    {
+      "id": "EEE3102-9",
+      "courseId": "EEE3102",
+      "label": "EEE3102 section 9",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-34"
+    },
+    {
+      "id": "EEE3102-10",
+      "courseId": "EEE3102",
+      "label": "EEE3102 section 10",
+      "type": "LAB",
+      "capacity": 40,
+      "facultyId": "teacher-14"
+    },
+    {
+      "id": "ENG2103-1",
+      "courseId": "ENG2103",
+      "label": "ENG2103 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-54"
+    },
+    {
+      "id": "ENG2103-2",
+      "courseId": "ENG2103",
+      "label": "ENG2103 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-12"
+    },
+    {
+      "id": "ENG2103-3",
+      "courseId": "ENG2103",
+      "label": "ENG2103 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-71"
+    },
+    {
+      "id": "ENG2103-4",
+      "courseId": "ENG2103",
+      "label": "ENG2103 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-54"
+    },
+    {
+      "id": "ENG2103-5",
+      "courseId": "ENG2103",
+      "label": "ENG2103 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-12"
+    },
+    {
+      "id": "ENG2103-6",
+      "courseId": "ENG2103",
+      "label": "ENG2103 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-71"
+    },
+    {
+      "id": "ENG2103-7",
+      "courseId": "ENG2103",
+      "label": "ENG2103 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-54"
+    },
+    {
+      "id": "ENG2103-8",
+      "courseId": "ENG2103",
+      "label": "ENG2103 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-12"
+    },
+    {
+      "id": "MAT2101-1",
+      "courseId": "MAT2101",
+      "label": "MAT2101 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-65"
+    },
+    {
+      "id": "MAT2101-2",
+      "courseId": "MAT2101",
+      "label": "MAT2101 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-30"
+    },
+    {
+      "id": "MAT2101-3",
+      "courseId": "MAT2101",
+      "label": "MAT2101 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-8"
+    },
+    {
+      "id": "MAT2101-4",
+      "courseId": "MAT2101",
+      "label": "MAT2101 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-67"
+    },
+    {
+      "id": "MAT2101-5",
+      "courseId": "MAT2101",
+      "label": "MAT2101 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-44"
+    },
+    {
+      "id": "MAT2101-6",
+      "courseId": "MAT2101",
+      "label": "MAT2101 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-13"
+    },
+    {
+      "id": "MAT2101-7",
+      "courseId": "MAT2101",
+      "label": "MAT2101 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-9"
+    },
+    {
+      "id": "MAT2101-8",
+      "courseId": "MAT2101",
+      "label": "MAT2101 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-33"
+    },
+    {
+      "id": "MAT2202-1",
+      "courseId": "MAT2202",
+      "label": "MAT2202 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-26"
+    },
+    {
+      "id": "MAT2202-2",
+      "courseId": "MAT2202",
+      "label": "MAT2202 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-60"
+    },
+    {
+      "id": "MAT2202-3",
+      "courseId": "MAT2202",
+      "label": "MAT2202 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-39"
+    },
+    {
+      "id": "MAT2202-4",
+      "courseId": "MAT2202",
+      "label": "MAT2202 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-4"
+    },
+    {
+      "id": "MAT2202-5",
+      "courseId": "MAT2202",
+      "label": "MAT2202 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-65"
+    },
+    {
+      "id": "MAT2202-6",
+      "courseId": "MAT2202",
+      "label": "MAT2202 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-30"
+    },
+    {
+      "id": "MAT2202-7",
+      "courseId": "MAT2202",
+      "label": "MAT2202 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-8"
+    },
+    {
+      "id": "MAT2202-8",
+      "courseId": "MAT2202",
+      "label": "MAT2202 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-67"
+    },
+    {
+      "id": "MAT2202-9",
+      "courseId": "MAT2202",
+      "label": "MAT2202 section 9",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-44"
+    },
+    {
+      "id": "MAT2202-10",
+      "courseId": "MAT2202",
+      "label": "MAT2202 section 10",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-13"
+    },
+    {
+      "id": "MAT3101-1",
+      "courseId": "MAT3101",
+      "label": "MAT3101 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-44"
+    },
+    {
+      "id": "MAT3101-2",
+      "courseId": "MAT3101",
+      "label": "MAT3101 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-13"
+    },
+    {
+      "id": "MAT3101-3",
+      "courseId": "MAT3101",
+      "label": "MAT3101 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-9"
+    },
+    {
+      "id": "MAT3101-4",
+      "courseId": "MAT3101",
+      "label": "MAT3101 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-33"
+    },
+    {
+      "id": "MAT3101-5",
+      "courseId": "MAT3101",
+      "label": "MAT3101 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-26"
+    },
+    {
+      "id": "MAT3101-6",
+      "courseId": "MAT3101",
+      "label": "MAT3101 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-60"
+    },
+    {
+      "id": "MAT3101-7",
+      "courseId": "MAT3101",
+      "label": "MAT3101 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-39"
+    },
+    {
+      "id": "MAT3101-8",
+      "courseId": "MAT3101",
+      "label": "MAT3101 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-4"
+    },
+    {
+      "id": "MAT3103-1",
+      "courseId": "MAT3103",
+      "label": "MAT3103 section 1",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-9"
+    },
+    {
+      "id": "MAT3103-2",
+      "courseId": "MAT3103",
+      "label": "MAT3103 section 2",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-33"
+    },
+    {
+      "id": "MAT3103-3",
+      "courseId": "MAT3103",
+      "label": "MAT3103 section 3",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-26"
+    },
+    {
+      "id": "MAT3103-4",
+      "courseId": "MAT3103",
+      "label": "MAT3103 section 4",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-60"
+    },
+    {
+      "id": "MAT3103-5",
+      "courseId": "MAT3103",
+      "label": "MAT3103 section 5",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-39"
+    },
+    {
+      "id": "MAT3103-6",
+      "courseId": "MAT3103",
+      "label": "MAT3103 section 6",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-4"
+    },
+    {
+      "id": "MAT3103-7",
+      "courseId": "MAT3103",
+      "label": "MAT3103 section 7",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-65"
+    },
+    {
+      "id": "MAT3103-8",
+      "courseId": "MAT3103",
+      "label": "MAT3103 section 8",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-30"
+    },
+    {
+      "id": "MAT3103-9",
+      "courseId": "MAT3103",
+      "label": "MAT3103 section 9",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-8"
+    },
+    {
+      "id": "MAT3103-10",
+      "courseId": "MAT3103",
+      "label": "MAT3103 section 10",
+      "type": "THEORY",
+      "capacity": 40,
+      "facultyId": "teacher-67"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "FUB-201",
+      "code": "FUB-201",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-202",
+      "code": "FUB-202",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-203",
+      "code": "FUB-203",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-204",
+      "code": "FUB-204",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-205",
+      "code": "FUB-205",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-206",
+      "code": "FUB-206",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-207",
+      "code": "FUB-207",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-208",
+      "code": "FUB-208",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-209",
+      "code": "FUB-209",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-210",
+      "code": "FUB-210",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-211",
+      "code": "FUB-211",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-212",
+      "code": "FUB-212",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-213",
+      "code": "FUB-213",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-214",
+      "code": "FUB-214",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-215",
+      "code": "FUB-215",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-216",
+      "code": "FUB-216",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-217",
+      "code": "FUB-217",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-218",
+      "code": "FUB-218",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-219",
+      "code": "FUB-219",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-220",
+      "code": "FUB-220",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-221",
+      "code": "FUB-221",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-222",
+      "code": "FUB-222",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-223",
+      "code": "FUB-223",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-224",
+      "code": "FUB-224",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-225",
+      "code": "FUB-225",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-226",
+      "code": "FUB-226",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-227",
+      "code": "FUB-227",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-228",
+      "code": "FUB-228",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-229",
+      "code": "FUB-229",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-230",
+      "code": "FUB-230",
+      "type": "CLASSROOM",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-LAB1",
+      "code": "FUB-LAB1",
+      "type": "LAB",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-LAB2",
+      "code": "FUB-LAB2",
+      "type": "LAB",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-LAB3",
+      "code": "FUB-LAB3",
+      "type": "LAB",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-LAB4",
+      "code": "FUB-LAB4",
+      "type": "LAB",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-LAB5",
+      "code": "FUB-LAB5",
+      "type": "LAB",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-LAB6",
+      "code": "FUB-LAB6",
+      "type": "LAB",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-LAB7",
+      "code": "FUB-LAB7",
+      "type": "LAB",
+      "capacity": 40,
+      "isActive": true
+    },
+    {
+      "id": "FUB-LAB8",
+      "code": "FUB-LAB8",
+      "type": "LAB",
+      "capacity": 40,
+      "isActive": true
+    }
+  ],
+  "timeSlots": [
+    {
+      "id": "THEORY-510-600",
+      "type": "THEORY",
+      "startMinute": 510,
+      "endMinute": 600,
+      "isActive": true
+    },
+    {
+      "id": "THEORY-610-700",
+      "type": "THEORY",
+      "startMinute": 610,
+      "endMinute": 700,
+      "isActive": true
+    },
+    {
+      "id": "THEORY-710-800",
+      "type": "THEORY",
+      "startMinute": 710,
+      "endMinute": 800,
+      "isActive": true
+    },
+    {
+      "id": "THEORY-810-900",
+      "type": "THEORY",
+      "startMinute": 810,
+      "endMinute": 900,
+      "isActive": true
+    },
+    {
+      "id": "THEORY-910-1000",
+      "type": "THEORY",
+      "startMinute": 910,
+      "endMinute": 1000,
+      "isActive": true
+    },
+    {
+      "id": "LAB-510-690",
+      "type": "LAB",
+      "startMinute": 510,
+      "endMinute": 690,
+      "isActive": true
+    },
+    {
+      "id": "LAB-710-890",
+      "type": "LAB",
+      "startMinute": 710,
+      "endMinute": 890,
+      "isActive": true
+    },
+    {
+      "id": "LAB-910-1090",
+      "type": "LAB",
+      "startMinute": 910,
+      "endMinute": 1090,
+      "isActive": true
+    }
+  ],
+  "dayPatterns": [
+    {
+      "id": "ST",
+      "type": "THEORY",
+      "days": [
+        "SUN",
+        "TUE"
+      ]
+    },
+    {
+      "id": "MW",
+      "type": "THEORY",
+      "days": [
+        "MON",
+        "WED"
+      ]
+    },
+    {
+      "id": "TR",
+      "type": "THEORY",
+      "days": [
+        "TUE",
+        "THU"
+      ]
+    },
+    {
+      "id": "S",
+      "type": "LAB",
+      "days": [
+        "SUN"
+      ]
+    },
+    {
+      "id": "M",
+      "type": "LAB",
+      "days": [
+        "MON"
+      ]
+    },
+    {
+      "id": "T",
+      "type": "LAB",
+      "days": [
+        "TUE"
+      ]
+    },
+    {
+      "id": "W",
+      "type": "LAB",
+      "days": [
+        "WED"
+      ]
+    },
+    {
+      "id": "R",
+      "type": "LAB",
+      "days": [
+        "THU"
+      ]
+    }
+  ],
+  "preferences": [],
+  "curriculum": [
+    {
+      "courseId": "MAT1102",
+      "programId": "BSCSE",
+      "term": 1
+    },
+    {
+      "courseId": "PHY1101",
+      "programId": "BSCSE",
+      "term": 1
+    },
+    {
+      "courseId": "PHY1102",
+      "programId": "BSCSE",
+      "term": 1
+    },
+    {
+      "courseId": "ENG1101",
+      "programId": "BSCSE",
+      "term": 1
+    },
+    {
+      "courseId": "CSC1101",
+      "programId": "BSCSE",
+      "term": 1
+    },
+    {
+      "courseId": "CSC1103",
+      "programId": "BSCSE",
+      "term": 1
+    },
+    {
+      "courseId": "CSC1102",
+      "programId": "BSCSE",
+      "term": 1
+    },
+    {
+      "courseId": "CSC1204",
+      "programId": "BSCSE",
+      "term": 2
+    },
+    {
+      "courseId": "MAT1205",
+      "programId": "BSCSE",
+      "term": 2
+    },
+    {
+      "courseId": "CSC1205",
+      "programId": "BSCSE",
+      "term": 2
+    },
+    {
+      "courseId": "PHY1203",
+      "programId": "BSCSE",
+      "term": 2
+    },
+    {
+      "courseId": "PHY1204",
+      "programId": "BSCSE",
+      "term": 2
+    },
+    {
+      "courseId": "ENG1202",
+      "programId": "BSCSE",
+      "term": 2
+    },
+    {
+      "courseId": "COE2101",
+      "programId": "BSCSE",
+      "term": 2
+    },
+    {
+      "courseId": "COE2102",
+      "programId": "BSCSE",
+      "term": 2
+    },
+    {
+      "courseId": "CHEM1101",
+      "programId": "BSCSE",
+      "term": 3
+    },
+    {
+      "courseId": "MAT2101",
+      "programId": "BSCSE",
+      "term": 3
+    },
+    {
+      "courseId": "CSC2108",
+      "programId": "BSCSE",
+      "term": 3
+    },
+    {
+      "courseId": "EEE2104",
+      "programId": "BSCSE",
+      "term": 3
+    },
+    {
+      "courseId": "BBA1102",
+      "programId": "BSCSE",
+      "term": 3
+    },
+    {
+      "courseId": "EEE2103",
+      "programId": "BSCSE",
+      "term": 3
+    },
+    {
+      "courseId": "CSC2106",
+      "programId": "BSCSE",
+      "term": 3
+    },
+    {
+      "courseId": "CSC2107",
+      "programId": "BSCSE",
+      "term": 3
+    },
+    {
+      "courseId": "BAE2101",
+      "programId": "BSCSE",
+      "term": 3
+    },
+    {
+      "courseId": "CSC2211",
+      "programId": "BSCSE",
+      "term": 4
+    },
+    {
+      "courseId": "MAT2202",
+      "programId": "BSCSE",
+      "term": 4
+    },
+    {
+      "courseId": "CSC2210",
+      "programId": "BSCSE",
+      "term": 4
+    },
+    {
+      "courseId": "CSC2209",
+      "programId": "BSCSE",
+      "term": 4
+    },
+    {
+      "courseId": "BAS2101",
+      "programId": "BSCSE",
+      "term": 4
+    },
+    {
+      "courseId": "EEE3101",
+      "programId": "BSCSE",
+      "term": 4
+    },
+    {
+      "courseId": "EEE3102",
+      "programId": "BSCSE",
+      "term": 4
+    },
+    {
+      "courseId": "MAT3103",
+      "programId": "BSCSE",
+      "term": 4
+    },
+    {
+      "courseId": "CSC3113",
+      "programId": "BSCSE",
+      "term": 5
+    },
+    {
+      "courseId": "ECO3150",
+      "programId": "BSCSE",
+      "term": 5
+    },
+    {
+      "courseId": "ENG2103",
+      "programId": "BSCSE",
+      "term": 5
+    },
+    {
+      "courseId": "MAT3101",
+      "programId": "BSCSE",
+      "term": 5
+    },
+    {
+      "courseId": "COE3103",
+      "programId": "BSCSE",
+      "term": 5
+    },
+    {
+      "courseId": "COE3104",
+      "programId": "BSCSE",
+      "term": 5
+    },
+    {
+      "courseId": "CSC3112",
+      "programId": "BSCSE",
+      "term": 5
+    },
+    {
+      "courseId": "CSC3217",
+      "programId": "BSCSE",
+      "term": 6
+    },
+    {
+      "courseId": "COE3206",
+      "programId": "BSCSE",
+      "term": 6
+    },
+    {
+      "courseId": "COE3205",
+      "programId": "BSCSE",
+      "term": 6
+    },
+    {
+      "courseId": "CSC3214",
+      "programId": "BSCSE",
+      "term": 6
+    },
+    {
+      "courseId": "CSC3215",
+      "programId": "BSCSE",
+      "term": 6
+    },
+    {
+      "courseId": "EEE2216",
+      "programId": "BSCSE",
+      "term": 6
+    },
+    {
+      "courseId": "CSC3216",
+      "programId": "BSCSE",
+      "term": 6
+    },
+    {
+      "courseId": "CSC4118",
+      "programId": "BSCSE",
+      "term": 7
+    },
+    {
+      "courseId": "MGT3202",
+      "programId": "BSCSE",
+      "term": 7
+    },
+    {
+      "courseId": "CSC4197",
+      "programId": "BSCSE",
+      "term": 7
+    },
+    {
+      "courseId": "CSC4298",
+      "programId": "BSCSE",
+      "term": 8
+    },
+    {
+      "courseId": "CSC4299",
+      "programId": "BSCSE",
+      "term": 8
+    }
+  ]
+}

@@ -5,12 +5,17 @@ import type { IRoutineGenerationInput } from "../../engine/routineGenerator";
 import { validateRoutine } from "../../engine/routineValidator";
 import { enqueueJob } from "../../lib/queue";
 import { prisma } from "../../lib/prisma";
+import type { RequestUser } from "../../middleware/checkAuth";
+import { routineGrid } from "../../utils/routineGrid";
+import { routinePdf } from "../../utils/routinePdf";
 import { AppError } from "../../utils/AppError";
 import type {
 	IGenerateRoutine,
 	IRoutineListQuery,
 	IRoutineViewQuery,
 	IRoutineEntryChange,
+	IPublishedRoutineQuery,
+	IRoutineExportQuery,
 } from "./routine.interface";
 import "../../jobs/routine";
 
@@ -582,7 +587,133 @@ const publishRoutineIntoDB = (id: string) =>
 		});
 	}, transactionOptions);
 
+async function currentSemesterIdFromDB() {
+	const semester = await prisma.semester.findFirst({
+		where: { phase: { not: "CLOSED" } },
+		select: { id: true },
+	});
+	if (!semester) throw new AppError(404, "No current semester");
+	return semester.id;
+}
+
+const getPublishedRoutineFromDB = async (query: IPublishedRoutineQuery) => {
+	const semesterId = query.semesterId ?? (await currentSemesterIdFromDB());
+	const routine = await prisma.routine.findFirst({
+		where: { semesterId, status: "PUBLISHED" },
+		include: routineInclude,
+	});
+	if (!routine) throw new AppError(404, "Published routine not found");
+	const courseIds = query.programId
+		? new Set(
+				(
+					await prisma.curriculumCourse.findMany({
+						where: { programId: query.programId, term: query.term },
+						select: { courseId: true },
+					})
+				).map((row) => row.courseId),
+			)
+		: undefined;
+	const entries = routine.entries.filter(
+		(entry) =>
+			entry.section.status !== "CANCELLED" &&
+			(!query.departmentId ||
+				entry.section.offering.course.departmentId === query.departmentId) &&
+			(!query.facultyId || entry.section.facultyId === query.facultyId) &&
+			(!query.roomId || entry.roomId === query.roomId) &&
+			(!courseIds || courseIds.has(entry.section.offering.courseId)),
+	);
+	return { ...routine, entries, grid: routineGrid(entries) };
+};
+
+const getMyRoutineFromDB = async (actor: RequestUser) => {
+	const semesterId = await currentSemesterIdFromDB();
+	const routine = await getPublishedRoutineFromDB({ semesterId });
+	let sectionIds: Set<string>;
+	if (actor.role === "FACULTY") {
+		const teacher = await prisma.faculty.findUnique({
+			where: { userId: actor.id },
+			select: { id: true },
+		});
+		if (!teacher) throw new AppError(404, "Faculty profile not found");
+		sectionIds = new Set(
+			routine.entries
+				.filter((entry) => entry.section.facultyId === teacher.id)
+				.map((entry) => entry.sectionId),
+		);
+	} else {
+		const student = await prisma.student.findUnique({
+			where: { userId: actor.id },
+			select: { id: true },
+		});
+		if (!student) throw new AppError(404, "Student profile not found");
+		sectionIds = new Set(
+			(
+				await prisma.enrollment.findMany({
+					where: { studentId: student.id, semesterId, status: "ENROLLED" },
+					select: { sectionId: true },
+				})
+			).map((row) => row.sectionId),
+		);
+	}
+	const entries = routine.entries.filter((entry) =>
+		sectionIds.has(entry.sectionId),
+	);
+	return {
+		semesterId,
+		routineId: routine.id,
+		entries,
+		grid: routineGrid(entries),
+	};
+};
+
+const exportRoutineFromDB = async (
+	actor: RequestUser,
+	query: IRoutineExportQuery,
+	versionId?: string,
+) => {
+	let facultyId = query.facultyId;
+	if (actor.role === "FACULTY") {
+		const teacher = await prisma.faculty.findUnique({
+			where: { userId: actor.id },
+			select: { id: true },
+		});
+		if (!teacher) throw new AppError(404, "Faculty profile not found");
+		if (
+			versionId ||
+			query.view !== "faculty" ||
+			(facultyId && facultyId !== teacher.id)
+		)
+			throw new AppError(
+				403,
+				"Teachers may export only their own published routine",
+			);
+		facultyId = teacher.id;
+	}
+	if (query.view === "faculty" && !facultyId)
+		throw new AppError(400, "Faculty export requires facultyId");
+	if (query.view === "room" && !query.roomId)
+		throw new AppError(400, "Room export requires roomId");
+	const filters = {
+		...(query.view === "faculty" ? { facultyId } : {}),
+		...(query.view === "room" ? { roomId: query.roomId } : {}),
+	};
+	const routine = versionId
+		? await getRoutineByIdFromDB(versionId, { view: "section", ...filters })
+		: await getPublishedRoutineFromDB({
+				semesterId: query.semesterId,
+				...filters,
+			});
+	return routinePdf(
+		`${routine.semester.name} — Version ${routine.version} (${routine.status})`,
+		routine.entries,
+		query.view === "master",
+	);
+};
+
 export const routineService = {
+	getPublishedRoutineFromDB,
+	getMyRoutineFromDB,
+	exportRoutineFromDB,
 	publishRoutineIntoDB,
 	moveRoutineEntryIntoDB,
 	swapRoutineEntriesIntoDB,
