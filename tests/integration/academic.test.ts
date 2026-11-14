@@ -196,6 +196,95 @@ it("T-ACAD-06 reject a course requiring itself", async () => {
 	).toBe(409);
 });
 
+it("T-ACAD-07 reject overlapping same-type slots and protect published slot times", async () => {
+	const created = await request(app)
+		.post("/api/admin/time-slots")
+		.set("Authorization", authorization())
+		.send({ type: "THEORY", startMinute: 510, endMinute: 600 });
+	expect(created.status).toBe(201);
+	expect(created.body.data.label).toBe("08:30-10:00");
+	expect(
+		(
+			await request(app)
+				.post("/api/admin/time-slots")
+				.set("Authorization", authorization())
+				.send({ type: "THEORY", startMinute: 550, endMinute: 640 })
+		).status,
+	).toBe(409);
+	expect(
+		(
+			await request(app)
+				.post("/api/admin/time-slots")
+				.set("Authorization", authorization())
+				.send({ type: "THEORY", startMinute: 600, endMinute: 690 })
+		).status,
+	).toBe(201);
+	expect(
+		(
+			await request(app)
+				.post("/api/admin/time-slots")
+				.set("Authorization", authorization())
+				.send({ type: "LAB", startMinute: 510, endMinute: 690 })
+		).status,
+	).toBe(201);
+	const world = await createRegistrationWorld({ students: 0 });
+	expect(
+		(
+			await request(app)
+				.patch(`/api/admin/time-slots/${world.timeSlot.id}`)
+				.set("Authorization", authorization())
+				.send({ startMinute: 500 })
+		).status,
+	).toBe(409);
+	const list = await request(app)
+		.get("/api/time-slots?type=THEORY")
+		.set("Authorization", authorization());
+	expect(list.status).toBe(200);
+	expect(list.body.data[0].startMinute).toBe(510);
+});
+
+it("T-ACAD-08 THEORY patterns require two distinct days and LAB one", async () => {
+	expect(
+		(
+			await request(app)
+				.post("/api/admin/day-patterns")
+				.set("Authorization", authorization())
+				.send({ code: "ONE", type: "THEORY", days: ["SUN"] })
+		).status,
+	).toBe(400);
+	expect(
+		(
+			await request(app)
+				.post("/api/admin/day-patterns")
+				.set("Authorization", authorization())
+				.send({ code: "DUP", type: "THEORY", days: ["SUN", "SUN"] })
+		).status,
+	).toBe(400);
+	expect(
+		(
+			await request(app)
+				.post("/api/admin/day-patterns")
+				.set("Authorization", authorization())
+				.send({ code: "VALIDPAIR", type: "THEORY", days: ["MON", "WED"] })
+		).status,
+	).toBe(201);
+	expect(
+		(
+			await request(app)
+				.post("/api/admin/day-patterns")
+				.set("Authorization", authorization())
+				.send({ code: "VALIDLAB", type: "LAB", days: ["THU"] })
+		).status,
+	).toBe(201);
+	expect(
+		(
+			await request(app)
+				.get("/api/day-patterns?type=LAB")
+				.set("Authorization", authorization())
+		).status,
+	).toBe(200);
+});
+
 it("T-ACAD-11 faculty cannot create rooms and published rooms cannot be deactivated", async () => {
 	const faculty = await createFaculty();
 	const payload = {

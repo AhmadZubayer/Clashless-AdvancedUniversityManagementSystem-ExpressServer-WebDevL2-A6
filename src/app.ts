@@ -14,6 +14,15 @@ import { swaggerDocument } from "./app/lib/swagger";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { authRoutes } from "./app/module/auth/auth.route";
+import { adminResultRoutes } from "./app/module/result/result.route";
+import {
+	timeSlotRoutes,
+	adminTimeSlotRoutes,
+} from "./app/module/timeSlot/timeSlot.route";
+import {
+	dayPatternRoutes,
+	adminDayPatternRoutes,
+} from "./app/module/dayPattern/dayPattern.route";
 import { roomRoutes, adminRoomRoutes } from "./app/module/room/room.route";
 import {
 	courseRoutes,
@@ -71,6 +80,11 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/admin/courses", adminCourseRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/admin/rooms", adminRoomRoutes);
+app.use("/api/time-slots", timeSlotRoutes);
+app.use("/api/admin/time-slots", adminTimeSlotRoutes);
+app.use("/api/day-patterns", dayPatternRoutes);
+app.use("/api/admin/day-patterns", adminDayPatternRoutes);
+app.use("/api/admin/results", adminResultRoutes);
 app.use("/api/payments/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
 
