@@ -48,11 +48,10 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 ### F3 — Academic setup
 Started: 14 Nov 2026 11:14 Asia/Dhaka by Codex
 Handoff notes:
-- Done: F0–F2 complete and pushed; 27 tests green.
-- Half-done: department endpoints/Swagger complete; T-ACAD-01/02 and T-AUTH-12/13 passed against real department route (4 focused tests). Programs/curriculum implemented with exact Decimal fees, registration fee protection, full transactional curriculum replacement and Swagger; T-ACAD-09 passed. Batches implemented with code parsing, uniqueness and Swagger; T-ACAD-03 passed. Courses/prerequisites implemented with Decimal credit increments, offered-course locks, serializable DFS cycle prevention and Swagger; T-ACAD-04/05/06 passed. Rooms implemented with role-restricted listing, filters, unique codes and published-routine deactivation guard; T-ACAD-11 passed. Time slots/day patterns implemented with serializable overlap protection, generated labels, published-slot guard and cardinality checks; T-ACAD-07/08 passed. Result import and T-ACAD-10 passed, including best retakes, F/W handling and Decimal rounding. Full suite found only a fixture search overlap in T-ACAD-01 (2 matching department names instead of 1); narrowed test search to its unique fixture and rerunning.
-- Next step: rerun full 39-test suite after queue runtime fix; manual F3 flow and all 26 Swagger endpoints already verified, then commit/push F3 completion.
-- Traps: auth tests now use production department route; all test data must remain in isolated schema/prefix.
-
+- Done: all endpoints, Swagger, required tests and manual verification; all 39 tests pass, static checks/build clean; real worker startup verified.
+- Half-done: none; completion commit and push next.
+- Next step: finish completion records and begin F4.
+- Traps: test schema/prefix isolation; ioredis must remain an explicit dependency and constructed client for ESM BullMQ workers.
 
 ## ⏭️ Next
 
@@ -114,7 +113,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Rooms
 - [x] Time slots (overlap check) and day patterns
 - [x] Results import, with CGPA and earned-credit recalculation
-- [ ] Tests T-ACAD-01 … T-ACAD-11
+- [x] Tests T-ACAD-01 … T-ACAD-11
 - [ ] Definition of done → commit → push
 
 ### F4 — Semesters and registration windows (4 points)
@@ -221,6 +220,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex, F3 verified:** All 26 academic endpoints and Swagger implemented: departments, programs/curriculum, batches, courses/prerequisites, rooms, time slots/day patterns, historical result import and Decimal best-attempt CGPA. Full suite now 39 passed (11 academic, 11 user, 15 auth, smoke and real broker regression). Type check, lint/format and build pass. Manual HTTP department create/update/delete, invalid credits, all academic list/detail routes and all 26 Swagger methods passed. Normal server startup with real email worker passed after confirming its queue and schedulers were empty. The retry loop is fixed; test timeouts disappeared with no timeout increase or omitted assertions. Synthetic manual department was soft-deleted. Auth tests now use the actual department endpoint. F4 is next; all schemas for its gates already exist. No unresolved user questions.
+
+
 - **14 Nov 2026, Codex, queue runtime fix during F3:** Normal server startup exposed BullMQ's optional ioredis loader failure under native ESM; its error loop flooded logs and caused two otherwise passing academic tests to time out. Stopped that process. Installed ioredis@5, now passes constructed clients, awaits worker readiness, throttles errors and sets run retry delay. Added a real broker regression on a UUID queue under the test prefix; it passed. A no-op probe on the real notification queue was rejected by automatic approval review, so diagnostics used an isolated empty queue instead. No real queued notifications were consumed by the probe. Rerun full suite after this fix before marking F3 done.
 
 
@@ -258,6 +260,8 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 
 - 14 Nov 2026, F2: manual HTTP create/activate/detail/block/delete/list and Swagger passed; blocking revoked old token (401); email delivery stubbed, synthetic student soft-deleted.
 
+- 14 Nov 2026, F3: manual academic setup create/update/delete and invalid-credit check passed; nine list/detail/docs requests returned 200; all 26 academic Swagger methods present. Normal server and email worker startup passed on empty queue.
+
 ## Environment notes (never write secrets here)
 
 | Item | Value |
@@ -269,4 +273,5 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Development database | Supplied hosted PostgreSQL; public schema migrated and seeded |
 | Test database | Same supplied PostgreSQL, isolated clashless_test schema |
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
+| Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
