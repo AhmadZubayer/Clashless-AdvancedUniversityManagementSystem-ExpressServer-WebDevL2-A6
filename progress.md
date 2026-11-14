@@ -1,7 +1,7 @@
 # Clashless — Progress
 
-> ## Overall: 0% complete (0 of 100 points)
-> **In progress:** F0 Project setup · **Next:** F1 Auth
+> ## Overall: 6% complete (6 of 100 points)
+> **In progress:** nothing · **Next:** F1 Auth
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -14,8 +14,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 
 | ID | Feature | Points | Status | Needs | requirement.md |
 |---|---|---:|---|---|---|
-| F0 | Project setup | 6 | 🔄 In progress | — | 5, 9.1–9.4, 10.2 |
-| F1 | Auth | 7 | ⬜ Not started | F0 | 6.3 |
+| F0 | Project setup | 6 | ✅ Completed | — | 5, 9.1–9.4, 10.2 |
+| F1 | Auth | 7 | ⏭️ Next | F0 | 6.3 |
 | F2 | User management | 5 | ⬜ Not started | F1 | 6.4 |
 | F3 | Academic setup | 6 | ⬜ Not started | F1 | 6.5 |
 | F4 | Semesters and registration windows | 4 | ⬜ Not started | F3 | 6.6 |
@@ -40,18 +40,15 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 |---|---|---|---|---|
 | Planning documents: requirement.md, AGENTS.md, progress.md, CLAUDE.md, GEMINI.md | 14 Nov 2026 | Claude Code | — | Not a feature (0 points). Nothing is scaffolded yet |
 
+| F0 Project setup | 14 Nov 2026 | Codex | 1 | All setup checks and manual HTTP pass; demo seed rerun verified |
+
 ## 🔄 In progress
 
-### F0 — Project setup
-Started: 14 Nov 2026 10:20 Asia/Dhaka by Codex
-Handoff notes:
-- Done: scaffold, exact schema/migration, seeds, audit/notification helpers, queues, seat events, grade/time helpers, test harness and README implemented. Static checks and build pass. Demo seed ran twice safely; aggregate counts match the requirements.
-- Half-done: none; F0 verification passed and completion commits are being prepared.
-- Next step: finish F0 verification and push, then begin F1 Auth.
-- Traps: shared services require clashless_test schema and clashless:test: Redis keys. Auth/payment code remains scaffold behavior pending F1/F8; payment changes so far only adapt deleted example models.
+_Nothing is in progress._
+
 ## ⏭️ Next
 
-1. Finish **F0 Project setup** verification, then **F1 Auth**.
+1. **F1 Auth**: implement requirement.md 6.3.
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -76,7 +73,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Test setup from 9.1–9.4: `vitest.config.ts`, `tests/` folders, `.env.test.example`, `.env.test` and `tests/load/tokens.json` added to `.gitignore`; a smoke test (`GET /` answers 200) passes
 - [x] README: install, configure, run, seed and test
 - [x] The skill's verify steps all pass (validate, migrate, generate, format, lint, type check, seed, dev, `/docs`)
-- [ ] Definition of done (10.3) → commit → push
+- [x] Definition of done (10.3) → commit → push
 
 ### F1 — Auth (7 points)
 
