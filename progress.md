@@ -50,7 +50,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 11:56 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F3 complete and pushed; all 39 tests pass and build/static checks clean.
-- Half-done: semester CRUD/current/detail endpoints and Swagger implemented. Serializable creation prevents concurrent open semesters; rule fields lock after PLANNING. Baseline 39 tests passed. All phase gates implemented with guarded serializable transitions and audit logs; Window endpoints and Swagger implemented with batch-scoped student visibility, audited running extensions, atomic deadline moves and future-only deletion. Required F4 tests next.
+- Half-done: semester CRUD/current/detail endpoints and Swagger implemented. Serializable creation prevents concurrent open semesters; rule fields lock after PLANNING. Baseline 39 tests passed. All phase gates implemented with guarded serializable transitions and audit logs; Window endpoints and Swagger implemented with batch-scoped student visibility, audited running extensions, atomic deadline moves and future-only deletion. All 14 focused F4 tests passed (9 required IDs plus 5 lifecycle/boundary tests). Manual HTTP pass and all 10 Swagger methods verified; full 53-test suite and final build next.
 - Next step: semester CRUD/current/detail and rule-field locks, lifecycle gates, then registration windows and T-SEM-01 through T-SEM-09.
 - Traps: use existing schema tables for all gates; no new schema field for published grades. Shared test schema/prefix; explicit ioredis clients for BullMQ. Real notification queue was empty during worker verification.
 
@@ -123,7 +123,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Semester create, list, current, detail, update (rule fields locked after PLANNING)
 - [x] Phase change with every gate from requirement.md section 3 (the gates read tables that already exist, even before their features are built)
 - [x] Registration windows: create, list (students see only theirs), change (extend only while running; moves `paymentDeadline`), delete
-- [ ] Tests T-SEM-01 … T-SEM-09
+- [x] Tests T-SEM-01 … T-SEM-09
 - [ ] Definition of done → commit → push
 
 ### F5 — Offerings, sections and teacher preferences (6 points)
@@ -222,6 +222,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex, F4 verification:** Semester CRUD/current/admin detail/rule locking, all audited forward-only lifecycle gates, and registration windows implemented. Focused F4 suite: 14 passed, covering every required T-SEM ID and additional gates/window boundaries. Manual HTTP demo-semester/current/counts/default rules/window create-edit-delete/student batch scope and all 10 Swagger methods passed; temporary window removed, demo phase remains PLANNING. No schema or secret changes. Full 53-test suite/build pending before F4 completion.
+
+
 - **14 Nov 2026, Codex, continuation checkpoint for F4:** F0–F3 are complete (24%) and pushed; F4 is claimed but no F4 application files have been created yet. Latest full suite: 39 passed in 82.44 seconds after the worker fix; type check, lint, format and build pass. Next: build semester module (create/list/current/admin detail/update), phase gates from section 3, then registrationWindow module and T-SEM-01 through T-SEM-09. Requirement 6.6 and lifecycle gates were read. Existing schema has no grades-published flag: inspect CourseResult rows for semester/student/course matches against ENROLLED enrollments when implementing the CLOSED gate, consistent with F11 publication; avoid adding schema fields. Keep all tests in clashless_test and all disposable Redis keys in clashless:test:. The domain chosen by the user is uni.edu; secrets and replacement working Redis values are only in ignored .env/.env.test. Use the skill checker rather than printing those files. Node/npm need elevated tool execution here. The diagnostic dev server has been stopped. No user input is pending. Read AGENTS.md and follow the session routine on continuation.
 
 
@@ -267,6 +270,8 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 - 14 Nov 2026, F2: manual HTTP create/activate/detail/block/delete/list and Swagger passed; blocking revoked old token (401); email delivery stubbed, synthetic student soft-deleted.
 
 - 14 Nov 2026, F3: manual academic setup create/update/delete and invalid-credit check passed; nine list/detail/docs requests returned 200; all 26 academic Swagger methods present. Normal server and email worker startup passed on empty queue.
+
+- 14 Nov 2026, F4: manual HTTP current/detail/date update, rejected duplicate semester, temporary future window create/edit/delete, student own window/serverTime, missing-routine phase gate and all 10 Swagger methods passed. Temporary window removed; demo remains PLANNING.
 
 ## Environment notes (never write secrets here)
 
