@@ -3,7 +3,12 @@ import { beforeAll, expect, it } from "vitest";
 import app from "../../src/app";
 import { prisma } from "../../src/app/lib/prisma";
 import { tokenFor } from "../helpers/auth";
-import { createAcademicWorld, createAdmin } from "../helpers/factory";
+import {
+	createAcademicWorld,
+	createAdmin,
+	createFaculty,
+	createRegistrationWorld,
+} from "../helpers/factory";
 
 let admin: Awaited<ReturnType<typeof createAdmin>>;
 beforeAll(async () => {
@@ -187,6 +192,43 @@ it("T-ACAD-06 reject a course requiring itself", async () => {
 				.put(`/api/admin/courses/${course.id}/prerequisites`)
 				.set("Authorization", authorization())
 				.send([{ prerequisiteId: course.id, minGrade: "D" }])
+		).status,
+	).toBe(409);
+});
+
+it("T-ACAD-11 faculty cannot create rooms and published rooms cannot be deactivated", async () => {
+	const faculty = await createFaculty();
+	const payload = {
+		code: "FUB-TEST",
+		building: "FUB",
+		roomNo: "TEST",
+		type: "CLASSROOM",
+		capacity: 40,
+	};
+	expect(
+		(
+			await request(app)
+				.post("/api/admin/rooms")
+				.set("Authorization", `Bearer ${tokenFor(faculty)}`)
+				.send(payload)
+		).status,
+	).toBe(403);
+	const created = await request(app)
+		.post("/api/admin/rooms")
+		.set("Authorization", authorization())
+		.send(payload);
+	expect(created.status).toBe(201);
+	const listed = await request(app)
+		.get("/api/rooms?building=FUB&minCapacity=40&isActive=true")
+		.set("Authorization", `Bearer ${tokenFor(faculty)}`);
+	expect(listed.status).toBe(200);
+	const world = await createRegistrationWorld({ students: 0 });
+	expect(
+		(
+			await request(app)
+				.patch(`/api/admin/rooms/${world.sections[0].roomId}`)
+				.set("Authorization", authorization())
+				.send({ isActive: false })
 		).status,
 	).toBe(409);
 });
