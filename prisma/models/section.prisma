@@ -1,0 +1,34 @@
+model Section {
+  id            String        @id @default(uuid())
+  sectionNo     Int // 1, 2, 3 ... within the offering
+  capacity      Int           @default(40)
+  enrolledCount Int           @default(0) // the migration adds CHECK (0 <= enrolledCount <= capacity)
+  status        SectionStatus @default(OPEN)
+
+  offeringId String
+  offering   CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Restrict)
+  facultyId  String?
+  faculty    Faculty?       @relation(fields: [facultyId], references: [id], onDelete: Restrict)
+
+  // Copied from the published routine, so registration checks clashes without extra joins
+  roomId       String?
+  room         Room?       @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  dayPatternId String?
+  dayPattern   DayPattern? @relation(fields: [dayPatternId], references: [id], onDelete: Restrict)
+  timeSlotId   String?
+  timeSlot     TimeSlot?   @relation(fields: [timeSlotId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enrollments    Enrollment[]
+  routineEntries RoutineEntry[]
+
+  @@unique([offeringId, sectionNo], name: "unique_section_no")
+  @@index([offeringId])
+  @@index([facultyId])
+  @@index([roomId])
+  @@index([dayPatternId])
+  @@index([timeSlotId])
+  @@map("sections")
+}

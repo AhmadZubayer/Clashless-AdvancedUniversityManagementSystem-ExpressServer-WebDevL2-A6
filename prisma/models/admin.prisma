@@ -1,0 +1,16 @@
+// Profile for SUPER_ADMIN and ADMIN users.
+model Admin {
+  id            String  @id @default(uuid())
+  name          String
+  email         String  @unique // organization email = login
+  personalEmail String // receives the welcome email with the generated password
+  contactNumber String?
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}

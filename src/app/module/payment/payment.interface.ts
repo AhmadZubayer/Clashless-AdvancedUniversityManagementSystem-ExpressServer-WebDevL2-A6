@@ -1,13 +1,13 @@
 import { PaymentProvider, PaymentStatus } from "../../../generated/prisma/enums";
 
 export interface ICreatePayment {
-    bookingId: string;
+    registrationId: string;
     provider?: PaymentProvider;
 }
 
 // Strategy pattern
 export interface ICreateCheckoutPayload {
-    bookingId: string;
+    registrationId: string;
     paymentId: string;
     amount: string;
     currency: string;
@@ -22,7 +22,7 @@ export interface ICheckoutResult {
 
 export interface ICompletePayment {
     paymentId: string;
-    bookingId: string;
+    registrationId: string;
     provider: PaymentProvider;
     providerTransactionId: string;
     amount: string;
@@ -31,7 +31,7 @@ export interface ICompletePayment {
 
 export interface IClosePayment {
     paymentId: string;
-    bookingId: string;
+    registrationId: string;
     provider: PaymentProvider;
     providerTransactionId: string;
     status: PaymentStatus;

@@ -1,0 +1,25 @@
+model Faculty {
+  id            String  @id @default(uuid())
+  name          String
+  email         String  @unique
+  personalEmail String
+  designation   String // Lecturer, Assistant Professor, ...
+  maxCreditLoad Decimal @default(12) @db.Decimal(4, 1)
+  contactNumber String?
+  isDeleted     Boolean @default(false)
+
+  userId       String     @unique
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sections        Section[]
+  slotPreferences FacultySlotPreference[]
+  invigilations   InvigilatorAssignment[]
+
+  @@index([departmentId])
+  @@map("faculties")
+}

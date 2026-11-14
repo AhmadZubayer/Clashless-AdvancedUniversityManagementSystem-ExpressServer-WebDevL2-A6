@@ -79,7 +79,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Scaffold into this folder with `--features google,uploads,pdf,bkash,cron`. Merge the skipped `.gitignore` and `README.md` by hand
 - [x] Install packages with the two pinned commands the scaffold prints; add Vitest, Supertest, BullMQ
 - [x] Fill `.env` using the skill's env checker; ask the user for missing values. Add `UNIVERSITY_EMAIL_DOMAIN` and `DEMO_PASSWORD` to `config/index.ts`, `.env.example` and `.env`
-- [ ] Replace the Prisma models with requirement.md section 5. Delete the example models (`booking`, `service`, `category`) and `BookingStatus`, and fix the code that used them
+- [x] Replace the Prisma models with requirement.md section 5. Delete the example models (`booking`, `service`, `category`) and `BookingStatus`, and fix the code that used them
 - [ ] First migration with the extra SQL from 5.3; `npx prisma generate`
 - [ ] `npm run db:seed` creates the first SUPER_ADMIN with an Admin profile
 - [ ] `prisma/seedDemo.ts` and the `db:seed:demo` script (requirement.md 9.6 and Appendix A, without `--registration-open`)
@@ -229,7 +229,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
-- **14 Nov 2026, Codex:** Planning documents pushed as 6f932c0. F0 claimed; express-super-skill downloaded into ignored .agents/skill-library. Node/npm are available only in elevated execution (restricted PATH cannot resolve them). Scaffold created with required flags; both pinned install commands and BullMQ/Vitest/Supertest installs completed. npm reports five dependency advisories (review pending). Initial scaffold client generation and type check pass. Environment checker reports only ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD missing from its groups; UNIVERSITY_EMAIL_DOMAIN and DEMO_PASSWORD also need user values. Asked user once to configure those plus a separate test PostgreSQL and disposable test Redis. Skill requires waiting for environment values before schema work. No schema replacement, migration, seed or tests implemented yet.
+- **14 Nov 2026, Codex:** Planning documents pushed as 6f932c0. F0 claimed; express-super-skill downloaded into ignored .agents/skill-library. Node/npm are available only in elevated execution (restricted PATH cannot resolve them). Scaffold created with required flags; both pinned install commands and BullMQ/Vitest/Supertest installs completed. npm reports five dependency advisories (review pending). Initial scaffold client generation and type check pass. Environment checker reports only ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD missing from its groups; UNIVERSITY_EMAIL_DOMAIN and DEMO_PASSWORD also need user values. Asked user once to configure those plus a separate test PostgreSQL and disposable test Redis. Skill requires waiting for environment values before schema work. Exact 36 Prisma files copied from requirements, validated and generated; example models removed; scaffold auth role and payment model references adapted for compilation only. Payment semantics still require full F8 implementation. No migration, seed or tests implemented yet.
 
 - **14 Nov 2026, Claude Code (planning session):** wrote the planning documents only; no code yet. The folder has a git-ignored `.env` (its values weren't checked), an untracked `.gitignore` (already ignores `.env`, `.agents`, `.claude`, `.windsurf`), a stub `README.md`, and one commit (`first commit`) on `main`, pushed to `origin`. Start with F0.
 

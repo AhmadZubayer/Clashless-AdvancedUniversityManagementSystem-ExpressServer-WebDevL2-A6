@@ -1,0 +1,21 @@
+model FacultySlotPreference {
+  id   String         @id @default(uuid())
+  day  Weekday
+  kind PreferenceKind
+
+  facultyId  String
+  faculty    Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  timeSlotId String
+  timeSlot   TimeSlot @relation(fields: [timeSlotId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([facultyId, semesterId, day, timeSlotId], name: "unique_slot_preference")
+  @@index([facultyId])
+  @@index([semesterId])
+  @@index([timeSlotId])
+  @@map("faculty_slot_preferences")
+}

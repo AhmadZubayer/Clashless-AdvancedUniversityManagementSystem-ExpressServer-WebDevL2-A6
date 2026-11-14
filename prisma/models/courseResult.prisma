@@ -1,0 +1,22 @@
+// Every finished course: imported history and published grades. Used for prerequisites and CGPA.
+model CourseResult {
+  id         String      @id @default(uuid())
+  grade      LetterGrade
+  gradePoint Decimal     @db.Decimal(3, 2)
+  credits    Decimal     @db.Decimal(3, 1)
+
+  studentId  String
+  student    Student   @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  courseId   String
+  course     Course    @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  semesterId String? // null for imported history
+  semester   Semester? @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId, courseId])
+  @@index([courseId])
+  @@index([semesterId])
+  @@map("course_results")
+}

@@ -1,0 +1,21 @@
+// Which exam slot one course sits in, in one exam routine version.
+model ExamRoutineEntry {
+  id       String  @id @default(uuid())
+  isPinned Boolean @default(false)
+
+  examRoutineId String
+  examRoutine   ExamRoutine    @relation(fields: [examRoutineId], references: [id], onDelete: Cascade)
+  offeringId    String
+  offering      CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Restrict)
+  examSlotId    String
+  examSlot      ExamSlot       @relation(fields: [examSlotId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([examRoutineId, offeringId], name: "unique_exam_entry")
+  @@index([examRoutineId])
+  @@index([offeringId])
+  @@index([examSlotId])
+  @@map("exam_routine_entries")
+}

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { PaymentProvider } from "../../../generated/prisma/enums";
 
 const createPaymentSchema = z.object({
-    bookingId: z.uuid("A valid booking ID is required"),
+    registrationId: z.uuid("A valid registration ID is required"),
     provider: z.enum(PaymentProvider).optional()
 });
 

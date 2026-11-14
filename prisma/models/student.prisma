@@ -1,0 +1,30 @@
+model Student {
+  id            String  @id @default(uuid())
+  universityId  String  @unique // e.g. 2023-3-60-001
+  name          String
+  email         String  @unique // university email
+  personalEmail String?
+  contactNumber String?
+  cgpa          Decimal @default(0) @db.Decimal(3, 2)
+  earnedCredits Decimal @default(0) @db.Decimal(5, 1)
+  isDeleted     Boolean @default(false)
+
+  userId    String  @unique
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programId String
+  program   Program @relation(fields: [programId], references: [id], onDelete: Restrict)
+  batchId   String
+  batch     Batch   @relation(fields: [batchId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  registrations SemesterRegistration[]
+  enrollments   Enrollment[]
+  results       CourseResult[]
+  seats         SeatAssignment[]
+
+  @@index([programId])
+  @@index([batchId])
+  @@map("students")
+}

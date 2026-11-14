@@ -1,6 +1,6 @@
 import httpStatus from "http-status";
 import {
-  BookingStatus,
+  RegistrationStatus,
   PaymentProvider,
   PaymentStatus,
 } from "../../../generated/prisma/enums";
@@ -15,27 +15,27 @@ import {
 import { getPaymentProvider } from "./providers/paymentProvider.factory";
 import { Prisma } from "../../../generated/prisma/client";
 
-const getPayableBookingFromDB = async (
+const getPayableRegistrationFromDB = async (
   customerId: string,
   payload: ICreatePayment,
 ) => {
-  const booking = await prisma.booking.findFirst({
+  const registration = await prisma.semesterRegistration.findFirst({
     where: {
-      id: payload.bookingId,
-      customerId,
+      id: payload.registrationId,
+      student: { userId: customerId },
     },
     select: {
       id: true,
       status: true,
-      priceAtBooking: true,
-      customer: {
+      totalFee: true,
+      student: {
         select: {
           email: true,
         },
       },
-      service: {
+      semester: {
         select: {
-          title: true,
+          name: true,
         },
       },
       payments: {
@@ -49,37 +49,37 @@ const getPayableBookingFromDB = async (
     },
   });
 
-  if (!booking) {
-    throw new AppError(httpStatus.NOT_FOUND, "Booking not found");
+  if (!registration) {
+    throw new AppError(httpStatus.NOT_FOUND, "Registration not found");
   }
 
-  if (booking.payments.length > 0) {
+  if (registration.payments.length > 0) {
     throw new AppError(
       httpStatus.CONFLICT,
-      "This booking has already been paid",
+      "This registration has already been paid",
     );
   }
 
-  if (booking.status !== BookingStatus.ACCEPTED) {
+  if (registration.status !== RegistrationStatus.ACTIVE) {
     throw new AppError(
       httpStatus.CONFLICT,
-      "Only accepted bookings can be paid",
+      "Only accepted registrations can be paid",
     );
   }
 
-  if (booking.priceAtBooking.lte(0)) {
-    throw new AppError(httpStatus.CONFLICT, "Booking price is invalid");
+  if (registration.totalFee.lte(0)) {
+    throw new AppError(httpStatus.CONFLICT, "Registration price is invalid");
   }
 
-  return booking;
+  return registration;
 };
 
 const createPaymentIntoDB = async (
   customerId: string,
   payload: ICreatePayment,
 ) => {
-  const booking = await getPayableBookingFromDB(customerId, payload);
-  const selectedProvider = payload.provider ?? PaymentProvider.STRIPE;
+  const registration = await getPayableRegistrationFromDB(customerId, payload);
+  const selectedProvider = payload.provider ?? PaymentProvider.BKASH;
   const provider = getPaymentProvider(selectedProvider);
 
   let payment: Awaited<ReturnType<typeof prisma.payment.create>>;
@@ -87,26 +87,26 @@ const createPaymentIntoDB = async (
   try {
     payment = await prisma.$transaction(
       async (transaction) => {
-        const acceptedBooking = await transaction.booking.findFirst({
+        const acceptedRegistration = await transaction.semesterRegistration.findFirst({
           where: {
-            id: booking.id,
-            status: BookingStatus.ACCEPTED,
+            id: registration.id,
+            status: RegistrationStatus.ACTIVE,
           },
           select: {
             id: true,
           },
         });
 
-        if (!acceptedBooking) {
+        if (!acceptedRegistration) {
           throw new AppError(
             httpStatus.CONFLICT,
-            "Booking is no longer accepted",
+            "Registration is no longer accepted",
           );
         }
 
         const pendingPayment = await transaction.payment.findFirst({
           where: {
-            bookingId: booking.id,
+            registrationId: registration.id,
             status: PaymentStatus.PENDING,
           },
           select: {
@@ -117,14 +117,14 @@ const createPaymentIntoDB = async (
         if (pendingPayment) {
           throw new AppError(
             httpStatus.CONFLICT,
-            "A payment is already in progress for this booking",
+            "A payment is already in progress for this registration",
           );
         }
 
         return transaction.payment.create({
           data: {
-            bookingId: booking.id,
-            amount: booking.priceAtBooking,
+            registrationId: registration.id,
+            amount: registration.totalFee,
             provider: selectedProvider,
             status: PaymentStatus.PENDING,
           },
@@ -152,12 +152,12 @@ const createPaymentIntoDB = async (
 
   try {
     checkout = await provider.createCheckoutSession({
-      bookingId: booking.id,
+      registrationId: registration.id,
       paymentId: payment.id,
-      amount: booking.priceAtBooking.toString(),
+      amount: registration.totalFee.toString(),
       currency: "bdt",
-      serviceTitle: booking.service.title,
-      customerEmail: booking.customer.email,
+      serviceTitle: registration.semester.name,
+      customerEmail: registration.student.email,
     });
   } catch (error) {
     await prisma.payment.update({
@@ -202,12 +202,12 @@ const completePaymentIntoDB = async (payload: ICompletePayment) => {
       },
       select: {
         id: true,
-        bookingId: true,
+        registrationId: true,
         provider: true,
         providerTransactionId: true,
         amount: true,
         status: true,
-        booking: {
+        registration: {
           select: {
             status: true,
           },
@@ -217,7 +217,7 @@ const completePaymentIntoDB = async (payload: ICompletePayment) => {
 
     if (
       !payment ||
-      payment.bookingId !== payload.bookingId ||
+      payment.registrationId !== payload.registrationId ||
       payment.provider !== payload.provider
     ) {
       throw new AppError(
@@ -245,9 +245,7 @@ const completePaymentIntoDB = async (payload: ICompletePayment) => {
 
     if (
       payment.status === PaymentStatus.COMPLETED &&
-      (payment.booking.status === BookingStatus.PAID ||
-        payment.booking.status === BookingStatus.IN_PROGRESS ||
-        payment.booking.status === BookingStatus.COMPLETED)
+      payment.registration.status === RegistrationStatus.ACTIVE
     ) {
       return transaction.payment.findUniqueOrThrow({
         where: {
@@ -258,11 +256,11 @@ const completePaymentIntoDB = async (payload: ICompletePayment) => {
 
     if (
       payment.status !== PaymentStatus.PENDING ||
-      payment.booking.status !== BookingStatus.ACCEPTED
+      payment.registration.status !== RegistrationStatus.ACTIVE
     ) {
       throw new AppError(
         httpStatus.CONFLICT,
-        "This booking cannot be marked as paid",
+        "This registration cannot be marked as paid",
       );
     }
 
@@ -289,20 +287,20 @@ const completePaymentIntoDB = async (payload: ICompletePayment) => {
       );
     }
 
-    const updatedBooking = await transaction.booking.updateMany({
+    const updatedRegistration = await transaction.semesterRegistration.updateMany({
       where: {
-        id: payment.bookingId,
-        status: BookingStatus.ACCEPTED,
+        id: payment.registrationId,
+        status: RegistrationStatus.ACTIVE,
       },
       data: {
-        status: BookingStatus.PAID,
+        status: RegistrationStatus.ACTIVE,
       },
     });
 
-    if (updatedBooking.count === 0) {
+    if (updatedRegistration.count === 0) {
       throw new AppError(
         httpStatus.CONFLICT,
-        "Booking status changed. Please try again",
+        "Registration status changed. Please try again",
       );
     }
 
@@ -328,7 +326,7 @@ const closePendingPaymentIntoDB = async (payload: IClosePayment) => {
     },
     select: {
       id: true,
-      bookingId: true,
+      registrationId: true,
       provider: true,
       providerTransactionId: true,
       status: true,
@@ -337,7 +335,7 @@ const closePendingPaymentIntoDB = async (payload: IClosePayment) => {
 
   if (
     !payment ||
-    payment.bookingId !== payload.bookingId ||
+    payment.registrationId !== payload.registrationId ||
     payment.provider !== payload.provider ||
     (payment.providerTransactionId &&
       payment.providerTransactionId !== payload.providerTransactionId)
@@ -378,7 +376,7 @@ const closePendingPaymentIntoDB = async (payload: IClosePayment) => {
   });
 };
 
-const refundCancelledBookingPaymentIntoDB = async (
+const refundCancelledRegistrationPaymentIntoDB = async (
   payload: ICompletePayment,
 ) => {
   if (payload.currency.toLowerCase() !== "bdt") {
@@ -394,13 +392,13 @@ const refundCancelledBookingPaymentIntoDB = async (
     },
     select: {
       id: true,
-      bookingId: true,
+      registrationId: true,
       provider: true,
       providerTransactionId: true,
       amount: true,
       status: true,
       paidAt: true,
-      booking: {
+      registration: {
         select: {
           status: true,
         },
@@ -410,7 +408,7 @@ const refundCancelledBookingPaymentIntoDB = async (
 
   if (
     !payment ||
-    payment.bookingId !== payload.bookingId ||
+    payment.registrationId !== payload.registrationId ||
     payment.provider !== payload.provider ||
     (payment.providerTransactionId &&
       payment.providerTransactionId !== payload.providerTransactionId)
@@ -422,10 +420,10 @@ const refundCancelledBookingPaymentIntoDB = async (
     throw new AppError(httpStatus.BAD_REQUEST, "Payment amount does not match");
   }
 
-  if (payment.booking.status !== BookingStatus.CANCELLED) {
+  if (payment.registration.status !== RegistrationStatus.DISCARDED) {
     throw new AppError(
       httpStatus.CONFLICT,
-      "This booking has not been cancelled",
+      "This registration has not been cancelled",
     );
   }
 
@@ -457,8 +455,8 @@ const refundCancelledBookingPaymentIntoDB = async (
   const updatedPayment = await prisma.payment.updateMany({
     where: {
       id: payment.id,
-      booking: {
-        status: BookingStatus.CANCELLED,
+      registration: {
+        status: RegistrationStatus.DISCARDED,
       },
       status: {
         in: [
@@ -554,25 +552,25 @@ const updateRefundStatusIntoDB = async (
 const getMyPaymentsFromDB = async (customerId: string) => {
   return prisma.payment.findMany({
     where: {
-      booking: {
-        customerId,
+      registration: {
+        student: { userId: customerId },
       },
     },
     select: {
       id: true,
       transactionId: true,
-      bookingId: true,
+      registrationId: true,
       amount: true,
       provider: true,
       status: true,
       paidAt: true,
       createdAt: true,
-      booking: {
+      registration: {
         select: {
           status: true,
-          service: {
+          semester: {
             select: {
-              title: true,
+              name: true,
             },
           },
         },
@@ -588,14 +586,14 @@ const getPaymentByIdFromDB = async (id: string, customerId: string) => {
   const payment = await prisma.payment.findFirst({
     where: {
       id,
-      booking: {
-        customerId,
+      registration: {
+        student: { userId: customerId },
       },
     },
     select: {
       id: true,
       transactionId: true,
-      bookingId: true,
+      registrationId: true,
       amount: true,
       method: true,
       provider: true,
@@ -603,14 +601,14 @@ const getPaymentByIdFromDB = async (id: string, customerId: string) => {
       paidAt: true,
       createdAt: true,
       updatedAt: true,
-      booking: {
+      registration: {
         select: {
           status: true,
-          startAt: true,
-          endAt: true,
-          service: {
+          
+          
+          semester: {
             select: {
-              title: true,
+              name: true,
             },
           },
         },
@@ -625,10 +623,10 @@ const getPaymentByIdFromDB = async (id: string, customerId: string) => {
   return payment;
 };
 
-const refundCancelledPaidBookingIntoDB = async (bookingId: string) => {
+const refundCancelledPaidRegistrationIntoDB = async (registrationId: string) => {
   const payment = await prisma.payment.findFirst({
     where: {
-      bookingId,
+      registrationId,
       status: {
         in: [
           PaymentStatus.COMPLETED,
@@ -651,13 +649,13 @@ const refundCancelledPaidBookingIntoDB = async (bookingId: string) => {
   if (!payment || !payment.providerTransactionId) {
     throw new AppError(
       httpStatus.CONFLICT,
-      "Paid booking payment was not found",
+      "Paid registration payment was not found",
     );
   }
 
-  return refundCancelledBookingPaymentIntoDB({
+  return refundCancelledRegistrationPaymentIntoDB({
     paymentId: payment.id,
-    bookingId,
+    registrationId,
     provider: payment.provider,
     providerTransactionId: payment.providerTransactionId,
     amount: payment.amount.toString(),
@@ -666,13 +664,13 @@ const refundCancelledPaidBookingIntoDB = async (bookingId: string) => {
 };
 
 export const paymentService = {
-  getPayableBookingFromDB,
+  getPayableRegistrationFromDB,
   createPaymentIntoDB,
   completePaymentIntoDB,
   closePendingPaymentIntoDB,
-  refundCancelledBookingPaymentIntoDB,
+  refundCancelledRegistrationPaymentIntoDB,
   updateRefundStatusIntoDB,
   getMyPaymentsFromDB,
   getPaymentByIdFromDB,
-  refundCancelledPaidBookingIntoDB
+  refundCancelledPaidRegistrationIntoDB
 };

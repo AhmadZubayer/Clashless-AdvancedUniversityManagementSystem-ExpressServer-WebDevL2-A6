@@ -1,0 +1,20 @@
+// One version of the exam routine. Only one version per semester can be PUBLISHED.
+model ExamRoutine {
+  id          String     @id @default(uuid())
+  version     Int
+  status      PlanStatus @default(DRAFT)
+  report      Json? // unplaced courses, students with 3+ exams a day, back-to-back counts
+  publishedAt DateTime?
+
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries ExamRoutineEntry[]
+
+  @@unique([semesterId, version], name: "unique_exam_routine_version")
+  @@index([semesterId])
+  @@map("exam_routines")
+}

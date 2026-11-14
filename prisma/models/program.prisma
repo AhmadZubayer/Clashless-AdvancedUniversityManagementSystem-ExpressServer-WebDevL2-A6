@@ -1,0 +1,20 @@
+model Program {
+  id                   String  @id @default(uuid())
+  code                 String  @unique // BSCSE
+  name                 String
+  totalCreditsRequired Decimal @db.Decimal(5, 1)
+  perCreditFee         Decimal @db.Decimal(10, 2)
+  semesterFee          Decimal @db.Decimal(10, 2) // fixed fee, charged once per semester when the student has at least one course
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  students   Student[]
+  curriculum CurriculumCourse[]
+
+  @@index([departmentId])
+  @@map("programs")
+}

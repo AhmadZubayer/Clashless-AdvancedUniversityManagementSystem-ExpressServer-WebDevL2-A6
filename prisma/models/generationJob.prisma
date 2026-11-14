@@ -1,0 +1,24 @@
+// Tracks a background generation job (class routine or exam routine).
+model GenerationJob {
+  id         String    @id @default(uuid())
+  type       JobType
+  status     JobStatus @default(QUEUED)
+  progress   Int       @default(0) // 0-100
+  input      Json? // options, e.g. { "keepPinnedFrom": "<routineId>" } or { "maxStudentsPerSlot": 1200 }
+  resultId   String? // Routine.id or ExamRoutine.id when SUCCEEDED
+  error      String?
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  semesterId  String
+  semester    Semester @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([semesterId, type])
+  @@index([createdById])
+  @@map("generation_jobs")
+}

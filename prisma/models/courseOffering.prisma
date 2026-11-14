@@ -1,0 +1,25 @@
+// A course offered in a semester. It has one or more sections.
+model CourseOffering {
+  id String @id @default(uuid())
+
+  semesterId String
+  semester   Semester  @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+  courseId   String
+  course     Course    @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  examSlotId String? // copied from the published exam routine
+  examSlot   ExamSlot? @relation(fields: [examSlotId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sections    Section[]
+  enrollments Enrollment[]
+  examEntries ExamRoutineEntry[]
+  seats       SeatAssignment[]
+
+  @@unique([semesterId, courseId], name: "unique_offering")
+  @@index([semesterId])
+  @@index([courseId])
+  @@index([examSlotId])
+  @@map("course_offerings")
+}

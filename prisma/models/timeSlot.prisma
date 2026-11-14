@@ -1,0 +1,19 @@
+// Weekly time grid. Times are minutes from midnight: 510 = 8:30 AM.
+model TimeSlot {
+  id          String   @id @default(uuid())
+  label       String // "08:30-10:00"
+  type        SlotType
+  startMinute Int
+  endMinute   Int
+  isActive    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sections       Section[]
+  routineEntries RoutineEntry[]
+  preferences    FacultySlotPreference[]
+
+  @@unique([type, startMinute], name: "unique_time_slot")
+  @@map("time_slots")
+}

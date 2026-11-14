@@ -1,0 +1,21 @@
+// One version of the class routine. Only one version per semester can be PUBLISHED.
+model Routine {
+  id          String     @id @default(uuid())
+  version     Int // 1, 2, 3 ... per semester
+  status      PlanStatus @default(DRAFT)
+  score       Int? // total soft-rule penalty, lower is better
+  report      Json? // unplaced sections with reasons, soft-rule violations
+  publishedAt DateTime?
+
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries RoutineEntry[]
+
+  @@unique([semesterId, version], name: "unique_routine_version")
+  @@index([semesterId])
+  @@map("routines")
+}

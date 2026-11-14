@@ -1,0 +1,19 @@
+model InvigilatorAssignment {
+  id String @id @default(uuid())
+
+  seatPlanId     String
+  seatPlan       SeatPlan     @relation(fields: [seatPlanId], references: [id], onDelete: Cascade)
+  seatPlanRoomId String
+  room           SeatPlanRoom @relation(fields: [seatPlanRoomId], references: [id], onDelete: Cascade)
+  facultyId      String
+  faculty        Faculty      @relation(fields: [facultyId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([seatPlanId, facultyId], name: "unique_invigilator_per_slot") // one room per teacher per exam slot
+  @@index([seatPlanId])
+  @@index([seatPlanRoomId])
+  @@index([facultyId])
+  @@map("invigilator_assignments")
+}

@@ -1,0 +1,27 @@
+// Where and when one section meets in one routine version.
+model RoutineEntry {
+  id       String  @id @default(uuid())
+  isPinned Boolean @default(false)
+
+  routineId    String
+  routine      Routine    @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  sectionId    String
+  section      Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  roomId       String
+  room         Room       @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  dayPatternId String
+  dayPattern   DayPattern @relation(fields: [dayPatternId], references: [id], onDelete: Restrict)
+  timeSlotId   String
+  timeSlot     TimeSlot   @relation(fields: [timeSlotId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([routineId, sectionId], name: "unique_routine_section")
+  @@index([routineId])
+  @@index([sectionId])
+  @@index([roomId])
+  @@index([dayPatternId])
+  @@index([timeSlotId])
+  @@map("routine_entries")
+}

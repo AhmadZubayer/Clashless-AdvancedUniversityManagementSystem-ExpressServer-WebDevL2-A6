@@ -1,0 +1,26 @@
+model SeatAssignment {
+  id     String @id @default(uuid())
+  column Int // 1-based. Odd columns hold group A, even columns hold group B
+  seatNo Int // position in the column, 1 = front
+  label  String // "301-C3-S5"
+
+  seatPlanId     String
+  seatPlan       SeatPlan       @relation(fields: [seatPlanId], references: [id], onDelete: Cascade)
+  seatPlanRoomId String
+  room           SeatPlanRoom   @relation(fields: [seatPlanRoomId], references: [id], onDelete: Cascade)
+  studentId      String
+  student        Student        @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  offeringId     String
+  offering       CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([seatPlanRoomId, column, seatNo], name: "unique_seat")
+  @@unique([seatPlanId, studentId], name: "unique_student_seat")
+  @@index([seatPlanId])
+  @@index([seatPlanRoomId])
+  @@index([studentId])
+  @@index([offeringId])
+  @@map("seat_assignments")
+}

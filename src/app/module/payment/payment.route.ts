@@ -10,20 +10,20 @@ export const paymentRoutes = Router();
 
 paymentRoutes.post(
     "/create",
-    auth(UserRole.USER),
+    auth(UserRole.STUDENT),
     validateRequest(paymentValidation.createPaymentSchema),
     paymentController.createPayment
 );
 
 paymentRoutes.get(
     "/",
-    auth(UserRole.USER),
+    auth(UserRole.STUDENT),
     paymentController.getMyPayments
 );
 
 paymentRoutes.get(
     "/:id",
-    auth(UserRole.USER),
+    auth(UserRole.STUDENT),
     validateParams(paymentValidation.getPaymentParamsSchema),
     paymentController.getPaymentById
 );

@@ -452,7 +452,7 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 		if (isUserExistWithEmail) {
 			// 2. same email registered with a password: link the Google account
 			// Google login is only for the default self-registered role.
-			if (isUserExistWithEmail.role !== UserRole.USER) {
+			if (isUserExistWithEmail.role !== UserRole.STUDENT) {
 				throw new AppError(
 					httpStatus.FORBIDDEN,
 					"This account must log in with email and password",

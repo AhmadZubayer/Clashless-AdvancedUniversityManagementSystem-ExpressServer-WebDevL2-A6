@@ -1,0 +1,15 @@
+// THEORY patterns have two days (ST = Sunday + Tuesday). LAB patterns have one day (S = Sunday).
+model DayPattern {
+  id   String    @id @default(uuid())
+  code String    @unique // "ST", "MW", "S"
+  type SlotType
+  days Weekday[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sections       Section[]
+  routineEntries RoutineEntry[]
+
+  @@map("day_patterns")
+}

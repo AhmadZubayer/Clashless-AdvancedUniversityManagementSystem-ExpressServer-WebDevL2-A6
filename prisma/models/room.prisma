@@ -1,0 +1,18 @@
+// Rooms used by the CLASS routine. Exam rooms are typed in per seat plan (SeatPlanRoom).
+model Room {
+  id       String   @id @default(uuid())
+  code     String   @unique // "FUB-301"
+  building String
+  roomNo   String
+  type     RoomType
+  capacity Int
+  isActive Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sections       Section[]
+  routineEntries RoutineEntry[]
+
+  @@map("rooms")
+}

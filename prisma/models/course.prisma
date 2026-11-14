@@ -1,0 +1,23 @@
+model Course {
+  id        String     @id @default(uuid())
+  code      String     @unique // CSE215
+  title     String
+  credits   Decimal    @db.Decimal(3, 1)
+  type      CourseType
+  isDeleted Boolean    @default(false)
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prerequisites CoursePrerequisite[] @relation("CourseToPrerequisites")
+  requiredFor   CoursePrerequisite[] @relation("PrerequisiteToCourses")
+  curriculum    CurriculumCourse[]
+  offerings     CourseOffering[]
+  results       CourseResult[]
+
+  @@index([departmentId])
+  @@map("courses")
+}

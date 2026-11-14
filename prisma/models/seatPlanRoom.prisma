@@ -1,0 +1,23 @@
+// A room the admin typed in for one exam slot, in fill order.
+model SeatPlanRoom {
+  id             String @id @default(uuid())
+  roomNo         String // "301"
+  totalSeats     Int // 40
+  seatsPerColumn Int // 8
+  columns        Int // ceil(totalSeats / seatsPerColumn) = 5
+  fillOrder      Int // 1, 2, 3 ... the order the admin listed the rooms in
+
+  seatPlanId String
+  seatPlan   SeatPlan @relation(fields: [seatPlanId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  seats        SeatAssignment[]
+  invigilators InvigilatorAssignment[]
+
+  @@unique([seatPlanId, roomNo], name: "unique_plan_room")
+  @@unique([seatPlanId, fillOrder], name: "unique_plan_fill_order")
+  @@index([seatPlanId])
+  @@map("seat_plan_rooms")
+}

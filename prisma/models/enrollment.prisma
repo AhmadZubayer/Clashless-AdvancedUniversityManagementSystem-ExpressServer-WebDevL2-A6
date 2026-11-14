@@ -1,0 +1,34 @@
+// A student holding (or having held) a seat in a section.
+model Enrollment {
+  id               String           @id @default(uuid())
+  status           EnrollmentStatus @default(ENROLLED)
+  credits          Decimal          @db.Decimal(3, 1) // copied from the course when selected
+  enrolledAt       DateTime         @default(now())
+  droppedAt        DateTime?
+  grade            LetterGrade? // draft grade entered by the teacher
+  gradeSubmittedAt DateTime?
+
+  registrationId String
+  registration   SemesterRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  studentId      String
+  student        Student              @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  sectionId      String
+  section        Section              @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  offeringId     String // copied from the section; used by the one-section-per-course index
+  offering       CourseOffering       @relation(fields: [offeringId], references: [id], onDelete: Restrict)
+  semesterId     String
+  semester       Semester             @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // The migration also adds a partial unique index:
+  // one ENROLLED row per (studentId, offeringId). See section 5.3.
+  @@unique([studentId, sectionId], name: "unique_student_section")
+  @@index([registrationId])
+  @@index([studentId])
+  @@index([sectionId, status])
+  @@index([offeringId, status])
+  @@index([semesterId])
+  @@map("enrollments")
+}

@@ -4,7 +4,7 @@
  *   post:
  *     tags:
  *       - Payment
- *     summary: Create a checkout session for an accepted booking
+ *     summary: Create a checkout session for an accepted registration
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -13,9 +13,9 @@
  *         application/json:
  *           schema:
  *             type: object
- *             required: [bookingId]
+ *             required: [registrationId]
  *             properties:
- *               bookingId:
+ *               registrationId:
  *                 type: string
  *                 format: uuid
  *               provider:
@@ -32,9 +32,9 @@
  *       403:
  *         description: User is not a customer or account is blocked
  *       404:
- *         description: Booking not found for this customer
+ *         description: Registration not found for this customer
  *       409:
- *         description: Booking is not payable or a payment is already in progress
+ *         description: Registration is not payable or a payment is already in progress
  */
 
 /**
@@ -48,7 +48,7 @@
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Returns the customer's payments with booking status and service title, newest first
+ *         description: Returns the customer's payments with registration status and service title, newest first
  *       401:
  *         description: Access token is missing or invalid
  *       403:
@@ -74,7 +74,7 @@
  *           format: uuid
  *     responses:
  *       200:
- *         description: Returns the payment with its amount, provider, status, and booking details
+ *         description: Returns the payment with its amount, provider, status, and registration details
  *       400:
  *         description: Invalid payment ID
  *       401:

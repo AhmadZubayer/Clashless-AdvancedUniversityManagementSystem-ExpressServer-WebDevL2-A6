@@ -1,14 +1,16 @@
+// Scaffolded by the skill. Added for this project: role values, tokenVersion and the relations.
 model User {
   id                 String       @id @default(uuid())
   name               String
-  email              String       @unique
-  password           String?
+  email              String       @unique // login email (university or organization email)
+  password           String? // null until a student activates with a password
   googleId           String?      @unique
   authProvider       AuthProvider @default(CREDENTIAL)
-  emailVerified      Boolean      @default(false)
-  role               UserRole     @default(USER)
+  emailVerified      Boolean      @default(false) // students: true after activation
+  role               UserRole     @default(STUDENT)
   status             UserStatus   @default(ACTIVE)
-  needPasswordChange Boolean      @default(false)
+  needPasswordChange Boolean      @default(false) // admins and faculty: true until their first password change
+  tokenVersion       Int          @default(0) // put in every token; bump it to log the user out everywhere
   imageUrl           String       @default("")
   imagePublicId      String       @default("")
   isDeleted          Boolean      @default(false)
@@ -16,7 +18,13 @@ model User {
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
-  customerBookings Booking[]
+  admin         Admin?
+  faculty       Faculty?
+  student       Student?
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  jobs          GenerationJob[]
 
+  @@index([role, status])
   @@map("users")
 }

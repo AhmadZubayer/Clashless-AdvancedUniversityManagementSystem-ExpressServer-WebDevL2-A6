@@ -27,7 +27,7 @@ const handleCallback = async (query: Record<string, unknown>) => {
     },
     select: {
       id: true,
-      bookingId: true,
+      registrationId: true,
       provider: true,
       status: true,
     },
@@ -44,7 +44,7 @@ const handleCallback = async (query: Record<string, unknown>) => {
 
   const paymentInfo = {
     paymentId: payment.id,
-    bookingId: payment.bookingId,
+    registrationId: payment.registrationId,
     provider: PaymentProvider.BKASH,
     providerTransactionId: paymentID,
   };
@@ -93,8 +93,8 @@ const handleCallback = async (query: Record<string, unknown>) => {
       throw error;
     }
 
-    // the booking was cancelled while the customer was paying
-    await paymentService.refundCancelledBookingPaymentIntoDB(paidPayment);
+    // the registration was cancelled while the customer was paying
+    await paymentService.refundCancelledRegistrationPaymentIntoDB(paidPayment);
 
     return { redirectUrl: getRedirectUrl("cancelled") };
   }

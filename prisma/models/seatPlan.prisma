@@ -1,0 +1,24 @@
+// One seat plan per exam slot. Regenerating a DRAFT replaces all of its seats.
+model SeatPlan {
+  id          String     @id @default(uuid())
+  status      PlanStatus @default(DRAFT)
+  orderBy     SeatOrder  @default(STUDENT_ID)
+  report      Json? // per room and column: course, first and last ID, count; empty seats; unused rooms
+  generatedAt DateTime?
+  publishedAt DateTime?
+
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+  examSlotId String   @unique
+  examSlot   ExamSlot @relation(fields: [examSlotId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rooms        SeatPlanRoom[]
+  seats        SeatAssignment[]
+  invigilators InvigilatorAssignment[]
+
+  @@index([semesterId])
+  @@map("seat_plans")
+}

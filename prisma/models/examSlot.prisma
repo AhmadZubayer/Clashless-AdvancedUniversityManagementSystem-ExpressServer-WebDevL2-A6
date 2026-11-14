@@ -1,0 +1,20 @@
+model ExamSlot {
+  id          String   @id @default(uuid())
+  date        DateTime @db.Date
+  startMinute Int // 540 = 9:00 AM
+  endMinute   Int
+
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  offerings   CourseOffering[]
+  examEntries ExamRoutineEntry[]
+  seatPlan    SeatPlan?
+
+  @@unique([semesterId, date, startMinute], name: "unique_exam_slot")
+  @@index([semesterId])
+  @@map("exam_slots")
+}

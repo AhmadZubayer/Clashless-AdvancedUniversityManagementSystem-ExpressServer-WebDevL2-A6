@@ -1,6 +1,10 @@
+// ---- Scaffolded by the skill, changed for this project ----
+
 enum UserRole {
-  USER
+  SUPER_ADMIN
   ADMIN
+  FACULTY
+  STUDENT
 }
 
 enum UserStatus {
@@ -15,7 +19,6 @@ enum AuthProvider {
 }
 
 enum PaymentProvider {
-  STRIPE
   BKASH
 }
 
@@ -29,13 +32,105 @@ enum PaymentStatus {
   REFUNDED
 }
 
-// Example payable status. Rename to the project's own (ACCEPTED = ready to pay, PAID = paid).
-enum BookingStatus {
-  REQUESTED
-  ACCEPTED
-  DECLINED
-  PAID
-  IN_PROGRESS
-  COMPLETED
+// ---- Project enums ----
+
+enum Weekday {
+  SAT
+  SUN
+  MON
+  TUE
+  WED
+  THU
+  FRI
+}
+
+enum CourseType {
+  THEORY
+  LAB
+}
+
+enum RoomType {
+  CLASSROOM
+  LAB
+}
+
+enum SlotType {
+  THEORY
+  LAB
+}
+
+enum SemesterPhase {
+  PLANNING
+  REGISTRATION
+  CLASSES
+  EXAMS
+  GRADING
+  CLOSED
+}
+
+enum SectionStatus {
+  OPEN
+  CLOSED
   CANCELLED
+}
+
+enum PlanStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PreferenceKind {
+  UNAVAILABLE
+  PREFERRED
+}
+
+enum RegistrationStatus {
+  ACTIVE
+  DISCARDED
+}
+
+enum RegistrationPaymentStatus {
+  UNPAID // less than the minimum (40%) paid: "ready to be paid"
+  MINIMUM_PAID // at least 40% paid: safe from the discard job
+  FULLY_PAID // everything paid
+}
+
+enum EnrollmentStatus {
+  ENROLLED
+  DROPPED
+  DISCARDED
+  CANCELLED
+}
+
+enum SeatOrder {
+  STUDENT_ID
+  NAME
+}
+
+enum JobType {
+  CLASS_ROUTINE
+  EXAM_ROUTINE
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum LetterGrade {
+  A
+  A_MINUS
+  B_PLUS
+  B
+  B_MINUS
+  C_PLUS
+  C
+  C_MINUS
+  D_PLUS
+  D
+  F
+  W
 }

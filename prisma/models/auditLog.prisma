@@ -1,0 +1,19 @@
+model AuditLog {
+  id       String  @id @default(uuid())
+  action   String // SECTION_CAPACITY_CHANGED, MANUAL_ENROLL, REGISTRATION_DISCARDED, ...
+  entity   String // Section, Enrollment, Routine, SeatPlan, User ...
+  entityId String
+  before   Json?
+  after    Json?
+  reason   String?
+
+  actorId String? // null = the system (a cron job)
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entity, entityId])
+  @@index([actorId])
+  @@map("audit_logs")
+}

@@ -1,0 +1,28 @@
+// One student's registration and fee bill for one semester. This is the payable of the payment module.
+model SemesterRegistration {
+  id              String                    @id @default(uuid())
+  status          RegistrationStatus        @default(ACTIVE)
+  paymentStatus   RegistrationPaymentStatus @default(UNPAID)
+  totalCredits    Decimal                   @default(0) @db.Decimal(4, 1)
+  totalFee        Decimal                   @default(0) @db.Decimal(10, 2)
+  paidAmount      Decimal                   @default(0) @db.Decimal(10, 2)
+  paymentDeadline DateTime // batch window end + semester.paymentDeadlineDays
+  discardedAt     DateTime?
+
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enrollments Enrollment[]
+  payments    Payment[]
+
+  @@unique([studentId, semesterId], name: "unique_student_semester")
+  @@index([studentId])
+  @@index([semesterId])
+  @@index([status, paymentDeadline])
+  @@map("semester_registrations")
+}

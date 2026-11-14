@@ -1,0 +1,18 @@
+// "courseId needs prerequisiteId, passed with at least minGrade"
+model CoursePrerequisite {
+  id       String      @id @default(uuid())
+  minGrade LetterGrade @default(D)
+
+  courseId       String
+  course         Course @relation("CourseToPrerequisites", fields: [courseId], references: [id], onDelete: Cascade)
+  prerequisiteId String
+  prerequisite   Course @relation("PrerequisiteToCourses", fields: [prerequisiteId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([courseId, prerequisiteId], name: "unique_prerequisite")
+  @@index([courseId])
+  @@index([prerequisiteId])
+  @@map("course_prerequisites")
+}

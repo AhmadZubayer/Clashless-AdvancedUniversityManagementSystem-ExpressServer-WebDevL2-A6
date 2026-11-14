@@ -1,0 +1,31 @@
+// At most one semester is not CLOSED at any time: that one is "the current semester".
+model Semester {
+  id                  String        @id @default(uuid())
+  code                String        @unique // "2027-1"
+  name                String // "Spring 2027"
+  phase               SemesterPhase @default(PLANNING)
+  classStartDate      DateTime?
+  examStartDate       DateTime?
+  examEndDate         DateTime?
+  gradeDeadline       DateTime?
+  maxCredits          Decimal       @default(15) @db.Decimal(4, 1)
+  minPaymentPercent   Int           @default(40)
+  paymentDeadlineDays Int           @default(12)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  registrationWindows RegistrationWindow[]
+  offerings           CourseOffering[]
+  routines            Routine[]
+  slotPreferences     FacultySlotPreference[]
+  registrations       SemesterRegistration[]
+  enrollments         Enrollment[]
+  examSlots           ExamSlot[]
+  examRoutines        ExamRoutine[]
+  seatPlans           SeatPlan[]
+  results             CourseResult[]
+  jobs                GenerationJob[]
+
+  @@map("semesters")
+}
