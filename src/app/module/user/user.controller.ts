@@ -27,4 +27,11 @@ const createStudent = catchAsync(async (req: Request, res: Response) => {
 	sendResponse(res, { success: true, statusCode: httpStatus.CREATED, message: "Student created", data: user });
 });
 
-export const userController = { updateProfile, createAdmin, createFaculty, createStudent };
+const importUsers = catchAsync(async (req: Request, res: Response) => {
+	if (!req.user) throw new AppError(httpStatus.UNAUTHORIZED, "Please log in");
+	if (!req.file) throw new AppError(httpStatus.BAD_REQUEST, "CSV file is required");
+	const result = await userService.importUsersIntoDB(req.user, req.body.type, req.file.buffer);
+	sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "Import completed", data: result });
+});
+
+export const userController = { updateProfile, createAdmin, createFaculty, createStudent, importUsers };

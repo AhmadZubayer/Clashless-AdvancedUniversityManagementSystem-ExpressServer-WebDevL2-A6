@@ -1,5 +1,6 @@
 import httpStatus from "http-status";
 import bcrypt from "bcryptjs";
+import { randomUUID } from "node:crypto";
 import { Prisma as PrismaRuntime } from "../../../generated/prisma/client";
 import type { Prisma } from "../../../generated/prisma/client";
 import { UserRole } from "../../../generated/prisma/enums";
@@ -9,6 +10,9 @@ import config from "../../config";
 import type { RequestUser } from "../../middleware/checkAuth";
 import { generatePassword } from "../../utils/password";
 import { sendEmail } from "../../utils/sendEmail";
+import { parseCsv } from "../../utils/csv";
+import { queueAccountEmail } from "../../jobs/accountEmail";
+import { userValidation } from "./user.validation";
 import { createAuditLogIntoDB } from "../auditLog/auditLog.service";
 import { AppError } from "../../utils/AppError";
 import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/uploadToCloudinary";
@@ -65,6 +69,65 @@ const createStudentIntoDB = async (actor: RequestUser, payload: ICreateStudent) 
 	return user;
 };
 
+interface IImportItem { row: number; userId: string; payload: ICreateStudent | ICreateFaculty; password?: string; hash?: string }
+const importUsersIntoDB = async (actor: RequestUser, type: "student" | "faculty", csv: Buffer) => {
+	const failed: { row: number; reason: string }[] = [];
+	const prepared: IImportItem[] = [];
+	const emails = new Set<string>(); const universityIds = new Set<string>();
+	for (const row of parseCsv(csv.toString("utf8"))) {
+		if (row.error) { failed.push({ row: row.row, reason: row.error }); continue; }
+		const values = Object.fromEntries(Object.entries(row.values).filter(([, value]) => value.trim() !== ""));
+		const result = (type === "student" ? userValidation.studentSchema : userValidation.facultySchema).safeParse(values);
+		if (!result.success) { failed.push({ row: row.row, reason: result.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ") }); continue; }
+		const payload = result.data;
+		const universityId = "universityId" in payload ? payload.universityId : undefined;
+		if (emails.has(payload.email) || (universityId && universityIds.has(universityId))) { failed.push({ row: row.row, reason: "Duplicate email or university ID in CSV" }); continue; }
+		emails.add(payload.email); if (universityId) universityIds.add(universityId);
+		prepared.push({ row: row.row, userId: randomUUID(), payload });
+	}
+	let created = 0;
+	for (let offset = 0; offset < prepared.length; offset += 500) {
+		const chunk = prepared.slice(offset, offset + 500);
+		if (type === "faculty") for (const item of chunk) { item.password = generatePassword(); item.hash = await bcrypt.hash(item.password, Number(config.bcrypt_salt_rounds)); }
+		let inserted: IImportItem[] = [];
+		// Serializable retries re-read collisions if another import creates the same account.
+		for (let attempt = 0; attempt < 4; attempt++) {
+			try {
+				const outcome = await prisma.$transaction(async (tx) => {
+					const existing = await tx.user.findMany({ where: { email: { in: chunk.map((item) => item.payload.email) } }, select: { email: true } });
+					const existingIds = type === "student" ? await tx.student.findMany({ where: { universityId: { in: chunk.map((item) => (item.payload as ICreateStudent).universityId) } }, select: { universityId: true } }) : [];
+					const deptIds = type === "faculty" ? (await tx.department.findMany({ where: { id: { in: chunk.map((item) => (item.payload as ICreateFaculty).departmentId) }, isDeleted: false }, select: { id: true } })).map((row) => row.id) : [];
+					const programIds = type === "student" ? (await tx.program.findMany({ where: { id: { in: chunk.map((item) => (item.payload as ICreateStudent).programId) } }, select: { id: true } })).map((row) => row.id) : [];
+					const batchIds = type === "student" ? (await tx.batch.findMany({ where: { id: { in: chunk.map((item) => (item.payload as ICreateStudent).batchId) } }, select: { id: true } })).map((row) => row.id) : [];
+					const accepted: IImportItem[] = []; const rejected: { row: number; reason: string }[] = [];
+					for (const item of chunk) {
+						const student = item.payload as ICreateStudent; const faculty = item.payload as ICreateFaculty;
+						let reason: string | undefined;
+						if (existing.some((row) => row.email === item.payload.email) || existingIds.some((row) => row.universityId === student.universityId)) reason = "Email or university ID already exists";
+						else if (type === "student" && (!programIds.includes(student.programId) || !batchIds.includes(student.batchId))) reason = "Program or batch not found";
+						else if (type === "faculty" && !deptIds.includes(faculty.departmentId)) reason = "Department not found";
+						if (reason) rejected.push({ row: item.row, reason }); else accepted.push(item);
+					}
+					if (accepted.length) {
+						await tx.user.createMany({ data: accepted.map((item) => ({ id: item.userId, name: item.payload.name, email: item.payload.email, password: item.hash ?? null, role: type === "student" ? UserRole.STUDENT : UserRole.FACULTY, emailVerified: type === "faculty", needPasswordChange: type === "faculty" })) });
+						if (type === "student") await tx.student.createMany({ data: accepted.map((item) => ({ ...item.payload as ICreateStudent, userId: item.userId })) });
+						else await tx.faculty.createMany({ data: accepted.map((item) => ({ ...item.payload as ICreateFaculty, userId: item.userId, maxCreditLoad: new PrismaRuntime.Decimal((item.payload as ICreateFaculty).maxCreditLoad.toString()) })) });
+						await createAuditLogIntoDB(tx, { actorId: actor.id, action: "USERS_IMPORTED", entity: "User", entityId: actor.id, after: { userIds: accepted.map((item) => item.userId), type } });
+					}
+					return { accepted, rejected };
+				}, { isolationLevel: PrismaRuntime.TransactionIsolationLevel.Serializable, timeout: 30000 });
+				inserted = outcome.accepted; failed.push(...outcome.rejected); break;
+			} catch (error) {
+				if (attempt < 3 && error instanceof PrismaRuntime.PrismaClientKnownRequestError && ["P2034", "P2002"].includes(error.code)) continue;
+				throw error;
+			}
+		}
+		created += inserted.length;
+		for (const item of inserted) await queueAccountEmail({ to: "personalEmail" in item.payload && type === "faculty" ? item.payload.personalEmail! : item.payload.email, name: item.payload.name, email: item.payload.email, ...(item.password ? { password: item.password } : {}) }).catch(() => logger.error({ userId: item.userId }, "Account email could not be queued"));
+	}
+	return { created, failed: failed.sort((a, b) => a.row - b.row) };
+};
+
 const updateProfileIntoDB = async (userId: string, payload: IUpdateProfile, photo?: Buffer) => {
 	const uploaded = photo ? await uploadToCloudinary(photo) : undefined;
 	let oldImage: string | undefined;
@@ -88,4 +151,4 @@ const updateProfileIntoDB = async (userId: string, payload: IUpdateProfile, phot
 	return user;
 };
 
-export const userService = { updateProfileIntoDB, createAdminIntoDB, createFacultyIntoDB, createStudentIntoDB };
+export const userService = { updateProfileIntoDB, createAdminIntoDB, createFacultyIntoDB, createStudentIntoDB, importUsersIntoDB };

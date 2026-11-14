@@ -14,6 +14,7 @@ adminUserRoutes.use(auth(UserRole.ADMIN, UserRole.SUPER_ADMIN));
 adminUserRoutes.post("/admins", validateRequest(userValidation.adminSchema), userController.createAdmin);
 adminUserRoutes.post("/faculties", validateRequest(userValidation.facultySchema), userController.createFaculty);
 adminUserRoutes.post("/students", validateRequest(userValidation.studentSchema), userController.createStudent);
+adminUserRoutes.post("/import", upload.single("file"), validateRequest(userValidation.importSchema), userController.importUsers);
 const parseMultipartData: RequestHandler = (req, _res, next) => {
 	try { if (req.body.data !== undefined) req.body = JSON.parse(req.body.data); next(); }
 	catch { next(new AppError(httpStatus.BAD_REQUEST, "Invalid multipart JSON data")); }

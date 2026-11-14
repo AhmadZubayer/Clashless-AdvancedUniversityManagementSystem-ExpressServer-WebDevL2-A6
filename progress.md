@@ -50,7 +50,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 11:00 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0/F1 complete and pushed; 16 tests green.
-- Half-done: profile update endpoint implemented with safe image replacement and role-profile updates; staff/student creation implemented with role checks, transactional profiles and audit logs, generated passwords and welcome/invite emails; CSV import next.
+- Half-done: profile update endpoint implemented with safe image replacement and role-profile updates; staff/student creation implemented with role checks, transactional profiles and audit logs, generated passwords and welcome/invite emails; CSV parser/import implemented: per-row validation and duplicate reporting, 500-row createMany chunks, serializable collision retries and queued emails. List/detail/status/delete next.
 - Next step: profile updates, then account creation and CSV import.
 - Traps: guard must check revoked tokenVersion before BLOCKED status for T-USER-07's required 401.
 
@@ -101,7 +101,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 - [x] `PATCH /api/users/me` with photo upload
 - [x] Create admins (Super Admin rule), teachers and students; welcome and invite emails
-- [ ] CSV import with the per-row report
+- [x] CSV import with the per-row report
 - [ ] List, detail, block/unblock (permission rules, `tokenVersion`), soft delete; audit rows
 - [ ] Tests T-USER-01 … T-USER-11
 - [ ] Definition of done → commit → push
