@@ -46,7 +46,14 @@ export default function () {
 	} catch (_) {}
 	if (response.status === 201) created.add(1);
 	else if (response.status === 409 && code === "SECTION_FULL") full.add(1);
-	else other.add(1);
+	else {
+		other.add(1);
+		// Sample a few unexpected responses so the cause is visible in the output.
+		if (__VU % 40 === 0)
+			console.error(
+				`unexpected: status=${response.status} error=${response.error} code=${response.error_code}`,
+			);
+	}
 	check(response, {
 		"201 or SECTION_FULL": (r) => r.status === 201 || code === "SECTION_FULL",
 	});

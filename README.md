@@ -63,9 +63,19 @@ npx tsx tests/load/makeTokens.ts
 npm run test:load
 ```
 
-k6 is a separate program (`winget install k6` on Windows) and was **not installed on the development machine, so `npm run test:load` has not been run**. Pass criteria: exactly 40 responses 201, 960 responses 409 `SECTION_FULL`, `enrolledCount` 40, p95 under 500 ms.
+k6 is a separate program (`winget install k6` on Windows). Pass criteria: exactly 40 responses 201, 960 responses 409 `SECTION_FULL`, `enrolledCount` 40, p95 under 500 ms.
 
-What was measured instead (a Node HTTP client, the real production build, the supplied hosted PostgreSQL and Redis, 1,000 real demo students of batch 23-3 selecting CSC2211 section 1):
+### Result on the development machine (14 Nov 2026) — NOT a pass
 
-- Every run enrolled **exactly 40** students and never more. The seat guard held in all runs, including runs where requests failed.
-- The 960-rejection and p95 numbers could **not** be reproduced on this machine. The database is remote (about 56 ms per round trip) and every select holds the hot section row lock for about three round trips, so 1,000 contenders serialise to tens of seconds; the Windows loopback additionally timed out many of the 1,000 simultaneous connections (`ETIMEDOUT`) on the client side. With 200 requests in flight one run recorded 40 created, 609 `SECTION_FULL` and 351 client connection timeouts; no server error was caused by the seat logic. The p95 target assumes a database close to the API (for example PostgreSQL on the same host); please run `npm run test:load` there and record the numbers here.
+Real `npm run test:load` (k6 2.4.0, 1,000 VUs at once, production build, `DATABASE_POOL_MAX=35`, one API instance, 1,000 real demo students of batch 23-3 selecting CSC2211 section 1) against the supplied hosted PostgreSQL (about 56 ms per round trip) on Windows. Two runs:
+
+| | Run 1 | Run 2 | Required |
+|---|---|---|---|
+| `selected_201` | **40** | **40** | exactly 40 |
+| `section_full_409` | 552 | 614 | 960 |
+| other (client could not connect) | 408 | 346 | 0 |
+| p95 | 44.2 s | 45.6 s | under 500 ms |
+
+- **The core guarantee held:** exactly 40 students were enrolled in both runs (never more), and the API logged zero errors.
+- **The other targets failed on this setup, for environmental reasons:** every "other" response is a TCP failure before the request reached the API (`dial: connection refused` and Windows error 10060). The Windows loopback accept queue cannot take 1,000 simultaneous connections, so those requests never arrived. The latency is the remote database: each select takes about a dozen round trips of about 56 ms, and the guarded seat update holds the hot section row for about three of them, so contenders queue for tens of seconds.
+- **To get a real pass,** run the same five steps on a machine where PostgreSQL is local (or on the same host as the API) and preferably on Linux, then record the numbers here. Nothing in the specified locking flow was changed to chase the number.

@@ -220,7 +220,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ### F13 — Load test, performance and delivery (5 points)
 
 - [x] `tests/load/makeTokens.ts` and `tests/load/select-section.k6.js` written (k6 is missing: user asked to install it, see Questions)
-- [ ] Run the load test (requirement.md 9.7); exactly 40 × 201 and 960 × 409. **Not done**: k6 not installed; a Node client always got exactly 40 × 201 but could not reach 960 × 409 or p95 < 500 ms here (remote DB + Windows loopback timeouts). Needs k6 on a machine near the database
+- [ ] Run the load test (requirement.md 9.7); exactly 40 × 201 and 960 × 409. **Ran twice with k6, not a pass**: exactly 40 × 201 both times, but 552/614 × 409 and 346/408 TCP dial failures, p95 about 45 s (remote DB + Windows accept queue). Needs Linux / a local database
 - [x] T-ROUT-14 and T-SEAT-13 pass on this machine
 - [x] README: architecture, design decisions (why the guarded update, why column groups), load test and performance results
 - [x] Swagger review: all 134 endpoints of requirement.md are documented (checked by script), plus the health check
@@ -230,6 +230,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ---
 
 ## Handoff notes (newest first)
+
+- **14 Nov 2026 18:50, Claude Code, k6 load test run (not a pass):** database access was restored, k6 2.4.0 ran twice (see README). Both runs enrolled exactly 40 students (guard holds, zero API errors), but 552/614 SECTION_FULL instead of 960, 408/346 TCP dial failures (Windows accept queue, requests never reached the API) and p95 about 45 s (remote DB, ~56 ms per round trip). Demo section CSC2211-1 was cleaned afterwards (enrolledCount 0). Docker Desktop exists but its daemon was not running; I did not start it or download images. Not marked complete because the spec's pass criteria are not met.
+- **To finish F13:** run the five load-test steps on Linux or a machine with a local PostgreSQL (or ask me to try Docker: Linux containers for Postgres, API and k6; needs Docker Desktop started and image downloads), then record the numbers and mark F13 ✅.
 
 - **14 Nov 2026 18:35, Claude Code, k6 installed but DB blocked:** the user approved the load test, so k6 v2.4.0 was installed (winget; binary `C:\Program Files\k6\k6.exe`, may need a new terminal for PATH). Before it could run, the hosted Prisma Postgres (db.prisma.io) started rejecting every connection with `Your account has restrictions: planLimitReached` (login returns 500, `makeTokens` fails). That is an account/plan limit, probably from the many full test runs and load experiments today; it cannot be fixed from code. Nothing was run, no data changed. A stray `npm run dev` watcher (tsx watch) on port 5000 had to be stopped to free the single allowed Redis worker connection set; restart it if needed.
 - **To finish F13:** (1) resolve the Prisma plan limit (upgrade/reset the plan, or point `DATABASE_URL` and `.env.test` at a local PostgreSQL, which also gives realistic latency; run `npm run db:deploy` and `npm run db:seed` then `npm run db:seed:demo -- --registration-open`); (2) run ONE API instance (`npm run build`, `npm start`); (3) `npx tsx tests/load/makeTokens.ts`; (4) `npm run test:load` (open a new terminal so k6 is on PATH); (5) write counts and p95 into the README, tick the F13 box, mark F13 ✅ and set progress to 100%.
@@ -291,9 +294,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Questions for the user
 
-1. **The hosted Prisma Postgres database reports `planLimitReached`** and refuses all connections, so the load test (and any test run) is blocked. Please fix the plan, or give me a different `DATABASE_URL` (a local PostgreSQL is best for the load test). Put it only in the ignored `.env` and `.env.test`; I will not print it.
+1. The k6 load test ran but did **not** pass on this machine (hosted DB latency and the Windows accept queue; details in the README). To close F13, either run the README's five steps on Linux or against a local PostgreSQL, or tell me to try Docker (Linux containers; needs Docker Desktop started and about 1 GB of image downloads) and I will run it there.
 
-Previously answered: k6 install approved and done; first-admin/demo credentials supplied; uni.edu; shared database/Redis for this assignment.
+Previously answered: k6 install approved and done; database access restored for 24 h; first-admin/demo credentials supplied; uni.edu; shared database/Redis for this assignment.
 
 ## Decisions log
 
@@ -351,7 +354,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Test database | Same supplied PostgreSQL, isolated clashless_test schema |
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
-| k6 installed | Yes, v2.4.0 (installed 14 Nov 2026 18:33 with the user's approval); not yet run |
+| k6 installed | Yes, v2.4.0 (`C:\Program Files\k6\k6.exe`); run twice on 14 Nov 2026, see README |
 | PostgreSQL max_connections | 50 (hosted); ~56 ms round trip from this machine |
 
 
