@@ -231,6 +231,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026 18:35, Claude Code, k6 installed but DB blocked:** the user approved the load test, so k6 v2.4.0 was installed (winget; binary `C:\Program Files\k6\k6.exe`, may need a new terminal for PATH). Before it could run, the hosted Prisma Postgres (db.prisma.io) started rejecting every connection with `Your account has restrictions: planLimitReached` (login returns 500, `makeTokens` fails). That is an account/plan limit, probably from the many full test runs and load experiments today; it cannot be fixed from code. Nothing was run, no data changed. A stray `npm run dev` watcher (tsx watch) on port 5000 had to be stopped to free the single allowed Redis worker connection set; restart it if needed.
+- **To finish F13:** (1) resolve the Prisma plan limit (upgrade/reset the plan, or point `DATABASE_URL` and `.env.test` at a local PostgreSQL, which also gives realistic latency; run `npm run db:deploy` and `npm run db:seed` then `npm run db:seed:demo -- --registration-open`); (2) run ONE API instance (`npm run build`, `npm start`); (3) `npx tsx tests/load/makeTokens.ts`; (4) `npm run test:load` (open a new terminal so k6 is on PATH); (5) write counts and p95 into the README, tick the F13 box, mark F13 ✅ and set progress to 100%.
+
 - **14 Nov 2026, Claude Code, full suite green:** one uninterrupted `npm test` run passed 21 of 21 files and 177 of 177 tests (502 s) on the final code. Earlier runs had 1-5 transient ETIMEDOUT/30 s failures that passed on rerun, so flakiness on the shared remote DB remains possible. The only open item is still the k6 load test (see F13 and Questions for the user).
 
 - **14 Nov 2026, Claude Code, F7–F13 session:** F7–F12 completed and pushed (95%). F8 payments (bKash only, jobs: discard hourly, reminders 10:00, abandoned payments 15 min), F9 exam routine, F10 seat plans, F11 grades, F12 notifications/dashboards/audit log; all required test IDs exist. F13 files and README done; the k6 load test is pending the user installing k6 and running it near the database. Also added: bulk `email` queue (jobs/email.ts, 3 attempts), section transaction timeout 60 s, `DATABASE_POOL_MAX` env (default 10), HTTP backlog 4096, `health.docs.ts`. Load experiments mutated the demo section and were cleaned up (enrolledCount 0); temp scripts were removed.
@@ -288,9 +291,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Questions for the user
 
-1. **Install k6** (`winget install k6`) so the load test can run (AGENTS.md: installing software is yours to do). Because this machine's database is remote, please run `npm run test:load` (steps in the README) where PostgreSQL is local or close; paste or commit the counts and p95 and F13 can be closed at 100%.
+1. **The hosted Prisma Postgres database reports `planLimitReached`** and refuses all connections, so the load test (and any test run) is blocked. Please fix the plan, or give me a different `DATABASE_URL` (a local PostgreSQL is best for the load test). Put it only in the ignored `.env` and `.env.test`; I will not print it.
 
-Previously answered: first-admin/demo credentials supplied; uni.edu; shared database/Redis for this assignment. Values are stored only in ignored environment files.
+Previously answered: k6 install approved and done; first-admin/demo credentials supplied; uni.edu; shared database/Redis for this assignment.
 
 ## Decisions log
 
@@ -348,7 +351,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Test database | Same supplied PostgreSQL, isolated clashless_test schema |
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
-| k6 installed | **No** (checked 14 Nov 2026); user asked to install it |
+| k6 installed | Yes, v2.4.0 (installed 14 Nov 2026 18:33 with the user's approval); not yet run |
 | PostgreSQL max_connections | 50 (hosted); ~56 ms round trip from this machine |
 
 
