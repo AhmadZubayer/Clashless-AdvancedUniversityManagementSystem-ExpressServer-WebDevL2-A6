@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import request from "supertest";
-import { beforeAll, expect, it } from "vitest";
+import { beforeAll, beforeEach, expect, it } from "vitest";
 import app from "../../src/app";
 import { prisma } from "../../src/app/lib/prisma";
+import { redisClient, redisKey } from "../../src/app/lib/redis";
 import { tokenFor } from "../helpers/auth";
 import { createAcademicWorld, createStudent } from "../helpers/factory";
 
@@ -16,6 +17,12 @@ let windowEnd: Date;
 const authorization = () => `Bearer ${tokenFor(student)}`;
 let originalEnrollmentId: string;
 let targetStudent: Awaited<ReturnType<typeof createStudent>>;
+beforeEach(async () => {
+	if (student?.student)
+		await redisClient.del(
+			redisKey(`rate-limit-registration:${student.student.id}`),
+		);
+});
 beforeAll(async () => {
 	world = await createAcademicWorld();
 	student = await createStudent({ batch: world.batch, program: world.program });
@@ -479,3 +486,103 @@ it("T-REG-10 one hundred students race for exactly forty seats", async () => {
 		}),
 	).toBe(40);
 }, 120000);
+
+it("T-REG-12 the same idempotency key returns the original response unchanged for ten minutes", async () => {
+	const user = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const key = randomUUID();
+	const auth = `Bearer ${tokenFor(user)}`;
+	const first = await request(app)
+		.post(`/api/registrations/sections/${sectionId}`)
+		.set("Authorization", auth)
+		.set("Idempotency-Key", key);
+	expect(first.status).toBe(201);
+	const second = await request(app)
+		.post(`/api/registrations/sections/${sectionId}`)
+		.set("Authorization", auth)
+		.set("Idempotency-Key", key);
+	expect(second.status).toBe(first.status);
+	expect(second.body).toEqual(first.body);
+	const ttl = await redisClient.ttl(redisKey(`idempotency:${user.id}:${key}`));
+	expect(ttl).toBeGreaterThan(590);
+	expect(ttl).toBeLessThanOrEqual(600);
+	await prisma.semester.update({
+		where: { id: semesterId },
+		data: { phase: "PLANNING" },
+	});
+	const replay = await request(app)
+		.post(`/api/registrations/sections/${alternativeId}`)
+		.set("Authorization", auth)
+		.set("Idempotency-Key", key);
+	expect(replay.status).toBe(201);
+	expect(replay.body).toEqual(first.body);
+	await prisma.semester.update({
+		where: { id: semesterId },
+		data: { phase: "REGISTRATION" },
+	});
+	expect(
+		await prisma.enrollment.count({
+			where: { studentId: user.student!.id, status: "ENROLLED" },
+		}),
+	).toBe(1);
+});
+
+it("F7 simultaneous first requests with one idempotency key share one response and seat", async () => {
+	const user = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const key = randomUUID();
+	const before = await prisma.section.findUniqueOrThrow({
+		where: { id: sectionId },
+	});
+	const responses = await Promise.all(
+		Array.from({ length: 5 }, () =>
+			request(app)
+				.post(`/api/registrations/sections/${sectionId}`)
+				.set("Authorization", `Bearer ${tokenFor(user)}`)
+				.set("Idempotency-Key", key),
+		),
+	);
+	expect(responses.every((response) => response.status === 201)).toBe(true);
+	for (const response of responses)
+		expect(response.body).toEqual(responses[0].body);
+	expect(
+		(await prisma.section.findUniqueOrThrow({ where: { id: sectionId } }))
+			.enrolledCount,
+	).toBe(before.enrolledCount + 1);
+	expect(
+		await redisClient.exists(redisKey(`idempotency-lock:${user.id}:${key}`)),
+	).toBe(0);
+});
+
+it("T-REG-17 the eleventh registration request within ten seconds is rate limited", async () => {
+	const user = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const responses = await Promise.all(
+		Array.from({ length: 10 }, () =>
+			request(app)
+				.post(`/api/registrations/sections/${sectionId}`)
+				.set("Authorization", `Bearer ${tokenFor(user)}`),
+		),
+	);
+	expect(
+		responses.every(
+			(response) => response.status === 201 || response.status === 200,
+		),
+	).toBe(true);
+	const last = await request(app)
+		.post(`/api/registrations/sections/${sectionId}`)
+		.set("Authorization", `Bearer ${tokenFor(user)}`);
+	expect(last.status).toBe(429);
+	expect(last.body.errorDetails.code).toBe("RATE_LIMITED");
+	const ttl = await redisClient.pTTL(
+		redisKey(`rate-limit-registration:${user.student!.id}`),
+	);
+	expect(ttl).toBeGreaterThan(0);
+	expect(ttl).toBeLessThanOrEqual(10000);
+});

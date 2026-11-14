@@ -54,7 +54,7 @@ Started: 14 Nov 2026 13:20 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F6 complete and pushed; all 88 tests and static/build/manual checks pass. Demo published routine version 2 exists; semester stays PLANNING.
 - Half-done: select endpoint/core transaction implemented and documented; rate/idempotency guards remain for their checklist item. T-REG-01/02/03/04/10 passed (5 tests, 43.13 seconds); T-REG-11 passed separately (17.84 seconds).
-- Next step: Redis rate limit/idempotency, then reads/cache/SSE/admin endpoints, demo registration-open seed and remaining tests. Unselect/switch implemented with ascending section updates, rollback and retained paid credit. Focused 6 tests passed (T-REG-03/13/14/15/16 and opposite-direction switch); baseline full suite 94 passed in 246.09 seconds.
+- Next step: verify fee/payment-status boundaries, then reads/cache/SSE/admin endpoints, demo registration-open seed and remaining tests. Redis idempotency/rate guards passed 3 focused tests (T-REG-12/17 and concurrent first replay). Unselect/switch implemented with ascending section updates, rollback and retained paid credit. Focused 6 tests passed (T-REG-03/13/14/15/16 and opposite-direction switch); baseline full suite 94 passed in 246.09 seconds.
 - Traps: default isolation for select, serialize same-student writes with registration row locks, ascending section IDs for switches; Decimal bill totals; test schema/prefix isolation remains mandatory.
 
 ## ⏭️ Next
@@ -154,7 +154,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 - [x] Select a section exactly as in 6.9.1 (raw insert + `FOR UPDATE`, guarded seat update)
 - [x] Unselect (6.9.2) and switch (6.9.3)
-- [ ] Idempotency key and rate limit
+- [x] Idempotency key and rate limit
 - [ ] Fee and `paymentStatus` recalculation
 - [ ] `GET /api/registrations/me` and offerings with per-student flags (catalog cache)
 - [ ] SSE seat stream with Redis pub/sub
@@ -265,6 +265,7 @@ No outstanding questions. First-admin/demo credentials supplied; user chose uni.
 
 | Date | Decision | By |
 |---|---|---|
+| 14 Nov 2026 | F7 student select/unselect/switch share the registration mutation counter (10 per 10 seconds); idempotency keys apply to select as specified, with a short-lived ownership lock so concurrent first retries replay the same successful response. | Codex |
 | 14 Nov 2026 | F5 extra scheduled sections are added to the published RoutineEntry grid; cancellation removes their published entry while retaining draft/archive history and all paid credit. Shared routineValidator implements hard rules now for F5 and will be reused by F6. | Codex |
 | 14 Nov 2026 | F4 current-semester student response uses registrationWindow and serverTime; CLOSED grade gate will derive publication from matching CourseResult rows without schema changes. Zero percent/day rules are accepted as nonnegative configuration; credits remain positive Decimal. | Codex |
 | 14 Nov 2026 | Assignment override: use supplied database/Redis services for tests, isolated PostgreSQL clashless_test schema and clashless:test: Redis keys; no shared FLUSHDB. Use uni.edu for university email domain. Credentials supplied and stored only in ignored .env. | User / Codex |
@@ -304,6 +305,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 

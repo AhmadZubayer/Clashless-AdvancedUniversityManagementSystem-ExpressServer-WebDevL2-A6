@@ -4,6 +4,7 @@
  *   delete:
  *     tags: [Registration]
  *     summary: Unselect inside the batch window; retain any overpaid credit
+ *     description: Student mutations share a limit of 10 requests per 10 seconds.
  *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - { in: path, name: sectionId, required: true, schema: { type: string, format: uuid } }
@@ -14,6 +15,7 @@
  *       403: { description: Student access, WINDOW_NOT_OPEN, WINDOW_CLOSED or REGISTRATION_DISCARDED }
  *       404: { description: Registration or enrolled section not found }
  *       409: { description: PHASE_NOT_ALLOWED or concurrent state conflict }
+ *       429: { description: RATE_LIMITED }
  */
 /**
  * @openapi
@@ -39,6 +41,7 @@
  *       403: { description: Student access, WINDOW_NOT_OPEN, WINDOW_CLOSED or REGISTRATION_DISCARDED }
  *       404: { description: Source enrollment or same-offering scheduled target not found }
  *       409: { description: PHASE_NOT_ALLOWED, SECTION_CLOSED, TIME_CLASH or SECTION_FULL with rollback }
+ *       429: { description: RATE_LIMITED }
  */
 /**
  * @openapi

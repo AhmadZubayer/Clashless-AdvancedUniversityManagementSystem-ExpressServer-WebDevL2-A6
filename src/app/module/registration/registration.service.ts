@@ -1,6 +1,8 @@
 import { Prisma } from "../../../generated/prisma/client";
+import { randomUUID } from "node:crypto";
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
+import { redisClient, redisKey } from "../../lib/redis";
 import { publishSeatEvent } from "../../lib/seatEvents";
 import { AppError } from "../../utils/AppError";
 import { getGradePoint } from "../../utils/grade";
@@ -86,6 +88,29 @@ const scheduleInclude = {
 	timeSlot: true,
 	offering: { include: { course: true } },
 } satisfies Prisma.SectionInclude;
+
+async function checkRegistrationRateLimitFromDB(userId: string) {
+	const student = await prisma.student.findUnique({
+		where: { userId },
+		select: { id: true },
+	});
+	if (!student) throw new AppError(404, "Student profile not found");
+	const count = Number(
+		await redisClient.eval(
+			"local count = redis.call('INCR', KEYS[1]); if count == 1 then redis.call('PEXPIRE', KEYS[1], 10000) end; return count",
+			{
+				keys: [redisKey(`rate-limit-registration:${student.id}`)],
+				arguments: [],
+			},
+		),
+	);
+	if (count > 10)
+		throw new AppError(
+			429,
+			"Too many registration requests; try again in a few seconds",
+			{ code: "RATE_LIMITED" },
+		);
+}
 
 const selectSectionIntoDB = async (userId: string, sectionId: string) => {
 	const { student, semester } = await getStudentContextFromDB(userId);
@@ -295,6 +320,7 @@ const selectSectionIntoDB = async (userId: string, sectionId: string) => {
 };
 
 const unselectSectionIntoDB = async (userId: string, sectionId: string) => {
+	await checkRegistrationRateLimitFromDB(userId);
 	const { student, semester } = await getStudentContextFromDB(userId);
 	if (semester.phase !== "REGISTRATION")
 		throw new AppError(
@@ -364,6 +390,7 @@ const switchSectionIntoDB = async (
 	fromSectionId: string,
 	toSectionId: string,
 ) => {
+	await checkRegistrationRateLimitFromDB(userId);
 	const { student, semester } = await getStudentContextFromDB(userId);
 	if (semester.phase !== "REGISTRATION")
 		throw new AppError(
@@ -533,7 +560,54 @@ const switchSectionIntoDB = async (
 	return result.data;
 };
 
+const selectSectionWithGuardsIntoDB = async (
+	userId: string,
+	sectionId: string,
+	idempotencyKey?: string,
+): Promise<{ statusCode: number; data: unknown }> => {
+	// Count retries too: the specified rate limit precedes idempotency lookup.
+	await checkRegistrationRateLimitFromDB(userId);
+	if (!idempotencyKey) return selectSectionIntoDB(userId, sectionId);
+	const cacheKey = redisKey(`idempotency:${userId}:${idempotencyKey}`);
+	const lockKey = redisKey(`idempotency-lock:${userId}:${idempotencyKey}`);
+	const owner = randomUUID();
+	const waitUntil = Date.now() + 180000;
+	for (;;) {
+		const cached = await redisClient.get(cacheKey);
+		if (cached) return JSON.parse(cached);
+		const claimed = Number(
+			await redisClient.eval(
+				"if redis.call('SET', KEYS[1], ARGV[1], 'NX', 'PX', 180000) then return 1 end; return 0",
+				{ keys: [lockKey], arguments: [owner] },
+			),
+		);
+		if (claimed) break;
+		if (Date.now() >= waitUntil)
+			throw new AppError(
+				409,
+				"A request with this idempotency key is still in progress",
+			);
+		await new Promise((resolve) => setTimeout(resolve, 50));
+	}
+	try {
+		// Another owner may have finished between our cache lookup and lock acquisition.
+		const cached = await redisClient.get(cacheKey);
+		if (cached) return JSON.parse(cached);
+		const result = await selectSectionIntoDB(userId, sectionId);
+		await redisClient.set(cacheKey, JSON.stringify(result), {
+			expiration: { type: "EX", value: 600 },
+		});
+		return result;
+	} finally {
+		await redisClient.eval(
+			"if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) end; return 0",
+			{ keys: [lockKey], arguments: [owner] },
+		);
+	}
+};
+
 export const registrationService = {
+	selectSectionWithGuardsIntoDB,
 	selectSectionIntoDB,
 	unselectSectionIntoDB,
 	switchSectionIntoDB,
