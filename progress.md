@@ -48,7 +48,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 10:49 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0 complete and pushed; baseline smoke test green.
-- Half-done: self-registration removed from routes, services, validation, types and docs. Tokens carry tokenVersion; guard and refresh reject stale or inactive sessions. Password-change guard allows only change-password, me and logout; Login rejects unactivated students; me includes the role profile. Logout bumps tokenVersion and clears cookies; Activation implemented with atomic send limit and wrong-attempt handling, transactional student activation, and safe emails. Google restrictions next.
+- Half-done: self-registration removed from routes, services, validation, types and docs. Tokens carry tokenVersion; guard and refresh reject stale or inactive sessions. Password-change guard allows only change-password, me and logout; Login rejects unactivated students; me includes the role profile. Logout bumps tokenVersion and clears cookies; Activation implemented with atomic send limit and wrong-attempt handling, transactional student activation, and safe emails. Google now verifies university-domain identity and links existing students only; password recovery changes next.
 - Next step: remove self-registration and implement token-version guards and activation.
 - Traps: shared test services require isolated schema/prefix; external calls mocked.
 
@@ -90,7 +90,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Login: `ACCOUNT_NOT_ACTIVATED`, `needPasswordChange` in the response
 - [x] Logout bumps `tokenVersion`
 - [x] Activation: `request-otp` (send limit) and `verify`
-- [ ] Google login: students only, university domain, never creates users
+- [x] Google login: students only, university domain, never creates users
 - [ ] Forgot, reset and change password changes
 - [ ] Tests T-AUTH-01 … T-AUTH-15
 - [ ] Definition of done → commit → push

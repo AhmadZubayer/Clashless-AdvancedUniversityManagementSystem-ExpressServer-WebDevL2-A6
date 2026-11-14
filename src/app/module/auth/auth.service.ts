@@ -328,112 +328,23 @@ const changePassword = async (
 	});
 };
 
-const googleLogin = async (payload: IGoogleLoginPayload) => {
-	let googleIdTokenPayload: TokenPayload | null | undefined = null;
-	try {
-		const ticket = await googleClient.verifyIdToken({
-			idToken: payload.idToken,
-			audience: config.google_client_id,
-		});
-
-		googleIdTokenPayload = ticket.getPayload();
-	} catch (error) {
-		logger.warn({ err: error }, "Google ID Token Verification Failed");
-		throw new AppError(
-			httpStatus.UNAUTHORIZED,
-			"Invalid Or Expired Google Id Token",
-		);
-	}
-
-	if (!googleIdTokenPayload) {
-		throw new AppError(
-			httpStatus.UNAUTHORIZED,
-			"Invalid Or Expired Google Id Token",
-		);
-	}
-
-	if (!googleIdTokenPayload.email || !googleIdTokenPayload.email_verified) {
-		throw new AppError(httpStatus.BAD_REQUEST, "Google Email Not Found");
-	}
-	if (!googleIdTokenPayload.name) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			"Google Email User Name Not Found",
-		);
-	}
-
-	const email = googleIdTokenPayload.email.toLowerCase();
-
-	// 1. already linked to this Google account
-	let user = await prisma.user.findUnique({
-		where: {
-			googleId: googleIdTokenPayload.sub,
-		},
-	});
-
-	if (!user) {
-		const isUserExistWithEmail = await prisma.user.findUnique({
-			where: {
-				email,
-			},
-		});
-
-		if (isUserExistWithEmail) {
-			// 2. same email registered with a password: link the Google account
-			// Google login is only for the default self-registered role.
-			if (isUserExistWithEmail.role !== UserRole.STUDENT) {
-				throw new AppError(
-					httpStatus.FORBIDDEN,
-					"This account must log in with email and password",
-				);
-			}
-
-			checkUserCanLogin(isUserExistWithEmail);
-
-			user = await prisma.user.update({
-				where: {
-					id: isUserExistWithEmail.id,
-				},
-				data: {
-					googleId: googleIdTokenPayload.sub,
-					emailVerified: true,
-				},
-			});
-		} else {
-			// 3. Google Register
-			user = await prisma.user.create({
-				data: {
-					name: googleIdTokenPayload.name,
-					email,
-					googleId: googleIdTokenPayload.sub,
-					authProvider: AuthProvider.GOOGLE,
-					emailVerified: true,
-				},
-			});
-
-			try {
-				await sendEmail({
-					to: user.email,
-					subject: `Welcome To ${config.app_name}`,
-					templateName: "welcome",
-					templateData: {
-						name: user.name,
-					},
-				});
-			} catch (error) {
-				logger.error(
-					{ err: error, userId: user.id },
-					"Failed to send welcome email",
-				);
-			}
-		}
-	}
-
-	checkUserCanLogin(user);
-
-	return createAuthTokens(user);
+const googleLogin = async ({ idToken }: IGoogleLoginPayload) => {
+ let payload: TokenPayload | undefined;
+ try {
+  const ticket = await googleClient.verifyIdToken({ idToken, audience: config.google_client_id });
+  payload = ticket.getPayload();
+ } catch { throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Google token"); }
+ const email = payload?.email?.trim().toLowerCase();
+ if (!email || !payload?.email_verified || !payload.sub || !email.endsWith(`@${config.university_email_domain.toLowerCase()}`)) throw new AppError(httpStatus.FORBIDDEN, "Use an existing university student account");
+ const user = await prisma.$transaction(async (tx) => {
+  const existing = await tx.user.findUnique({ where: { email } });
+  if (!existing || existing.role !== UserRole.STUDENT) throw new AppError(httpStatus.FORBIDDEN, "Google sign-in is only for existing students; staff must use a password");
+  checkUserCanLogin(existing);
+  if (existing.googleId && existing.googleId !== payload.sub) throw new AppError(httpStatus.FORBIDDEN, "Google identity does not match");
+  return tx.user.update({ where: { id: existing.id }, data: { googleId: payload.sub, authProvider: AuthProvider.GOOGLE, emailVerified: true }, omit: { password: true } });
+ });
+ return createAuthTokens(user);
 };
-
 const logoutUser = (user: RequestUser) => prisma.user.update({ where: { id: user.id }, data: { tokenVersion: { increment: 1 } }, select: { id: true } });
 
 export const authService = {
