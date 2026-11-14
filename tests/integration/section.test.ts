@@ -3,6 +3,7 @@ import { beforeAll, expect, it } from "vitest";
 import app from "../../src/app";
 import { prisma } from "../../src/app/lib/prisma";
 import { tokenFor } from "../helpers/auth";
+import { externalMocks } from "../helpers/mocks";
 import {
 	createAcademicWorld,
 	createAdmin,
@@ -337,6 +338,70 @@ it("T-SEC-04 capacity cannot be reduced below enrolledCount", async () => {
 	).toBe(40);
 });
 
+it("T-SEC-08 another teacher cannot open a section class list", async () => {
+	const fixture = await scheduledWorld();
+	const response = await request(app)
+		.get(`/api/sections/${fixture.section.id}/students`)
+		.set("Authorization", `Bearer ${tokenFor(fixture.otherTeacher)}`);
+	expect(response.status).toBe(403);
+});
+
+it("T-SEC-09 CSV has one row per ENROLLED student ordered by university ID; JSON and PDF work", async () => {
+	const fixture = await scheduledWorld();
+	const users = [
+		(await enroll(fixture)).user,
+		(await enroll(fixture)).user,
+		(await enroll(fixture)).user,
+	];
+	await prisma.student.update({
+		where: { id: users[0].student!.id },
+		data: { name: 'A, "quoted" student' },
+	});
+	await prisma.enrollment.update({
+		where: {
+			unique_student_section: {
+				studentId: users[1].student!.id,
+				sectionId: fixture.section.id,
+			},
+		},
+		data: { status: "DROPPED" },
+	});
+	const expectedIds = [
+		users[0].student!.universityId,
+		users[2].student!.universityId,
+	].sort();
+	const csv = await request(app)
+		.get(`/api/sections/${fixture.section.id}/students?format=csv`)
+		.set("Authorization", `Bearer ${tokenFor(fixture.teacher)}`);
+	expect(csv.status).toBe(200);
+	expect(csv.headers["content-type"]).toContain("text/csv");
+	const lines = csv.text.trim().split("\r\n");
+	expect(lines).toHaveLength(3);
+	expect(lines.slice(1).map((line) => line.split(",")[0])).toEqual(
+		expectedIds.map((id) => `"${id}"`),
+	);
+	expect(csv.text).toContain('"A, ""quoted"" student"');
+	const json = await request(app)
+		.get(`/api/sections/${fixture.section.id}/students`)
+		.set("Authorization", authorization());
+	expect(json.status).toBe(200);
+	expect(
+		json.body.data.map((row: { universityId: string }) => row.universityId),
+	).toEqual(expectedIds);
+	expect(
+		json.body.data.every(
+			(row: Record<string, unknown>) =>
+				!("password" in row) && !("user" in row),
+		),
+	).toBe(true);
+	const pdf = await request(app)
+		.get(`/api/sections/${fixture.section.id}/students?format=pdf`)
+		.set("Authorization", authorization());
+	expect(pdf.status).toBe(200);
+	expect(pdf.headers["content-type"]).toContain("application/pdf");
+	expect(pdf.body.subarray(0, 4).toString()).toBe("%PDF");
+});
+
 it("T-SEC-05 an extra section cannot double-book a published room", async () => {
 	const fixture = await scheduledWorld();
 	const response = await request(app)
@@ -431,7 +496,7 @@ it("T-SEC-07 cancellation reduces three bills, preserves credit and notifies stu
 
 it("F5 extra section uses N+1 and rescheduling updates both records and emails students", async () => {
 	const fixture = await scheduledWorld();
-	await enroll(fixture);
+	const { user } = await enroll(fixture);
 	const extra = await request(app)
 		.post("/api/admin/sections")
 		.set("Authorization", authorization())
@@ -459,6 +524,12 @@ it("F5 extra section uses N+1 and rescheduling updates both records and emails s
 			reason: "Room change",
 		});
 	expect(response.status).toBe(200);
+	expect(
+		externalMocks.emails.some(
+			(email) =>
+				email.to === user.email && email.templateData.reason === "Room change",
+		),
+	).toBe(true);
 	expect(
 		(
 			await prisma.routineEntry.findFirstOrThrow({

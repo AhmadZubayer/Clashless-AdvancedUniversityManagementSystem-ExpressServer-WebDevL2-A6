@@ -36,6 +36,9 @@ const assignmentsSchema = z.object({
 		),
 });
 export const sectionValidation = {
+	studentsQuerySchema: z.object({
+		format: z.enum(["json", "csv", "pdf"]).default("json"),
+	}),
 	assignmentsSchema,
 	createSchema,
 	updateSchema,

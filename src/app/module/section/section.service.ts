@@ -2,6 +2,8 @@
 import { validateRoutine } from "../../engine/routineValidator";
 import type { IRoutineEntry } from "../../engine/routineValidator";
 import { prisma } from "../../lib/prisma";
+import type { RequestUser } from "../../middleware/checkAuth";
+import { generatePdf } from "../../utils/generatePdf";
 import { publishSeatEvent } from "../../lib/seatEvents";
 import { AppError } from "../../utils/AppError";
 import { registrationTotals } from "../../utils/registrationTotals";
@@ -518,7 +520,91 @@ const getMySectionsFromDB = async (userId: string) => {
 	});
 };
 
+const getSectionStudentsFromDB = async (
+	id: string,
+	actor: RequestUser,
+	format: "json" | "csv" | "pdf",
+) => {
+	const section = await prisma.section.findUnique({
+		where: { id },
+		include: {
+			offering: { include: { course: true, semester: true } },
+			faculty: { select: { userId: true, name: true } },
+		},
+	});
+	if (!section) throw new AppError(404, "Section not found");
+	if (actor.role === "FACULTY" && section.faculty?.userId !== actor.id)
+		throw new AppError(403, "You can only open your own section's class list");
+	const enrollments = await prisma.enrollment.findMany({
+		where: { sectionId: id, status: "ENROLLED" },
+		select: {
+			student: {
+				select: {
+					id: true,
+					universityId: true,
+					name: true,
+					email: true,
+					batch: { select: { code: true } },
+					program: { select: { code: true } },
+				},
+			},
+		},
+		orderBy: { student: { universityId: "asc" } },
+	});
+	const students = enrollments.map((row) => row.student);
+	if (format === "json") return { students };
+	if (format === "csv") {
+		const cell = (value: string) =>
+			`"${(/^[=+@\-\t\r]/.test(value) ? `'${value}` : value).replaceAll('"', '""')}"`;
+		const rows = [
+			["University ID", "Name", "Email", "Batch", "Program"],
+			...students.map((row) => [
+				row.universityId,
+				row.name,
+				row.email,
+				row.batch.code,
+				row.program.code,
+			]),
+		];
+		return {
+			buffer: Buffer.from(
+				rows.map((row) => row.map(cell).join(",")).join("\r\n") + "\r\n",
+			),
+		};
+	}
+	const buffer = await generatePdf((pdf) => {
+		const heading = () => {
+			pdf
+				.fontSize(17)
+				.text(`${section.offering.course.code} — Section ${section.sectionNo}`);
+			pdf
+				.fontSize(11)
+				.text(
+					`${section.offering.semester.name} | ${section.faculty?.name ?? "Teacher TBA"}`,
+				);
+			pdf.moveDown();
+			pdf.font("Helvetica-Bold").text("University ID / Name / Email");
+			pdf.font("Helvetica").moveDown(0.5);
+		};
+		heading();
+		for (const student of students) {
+			const line = `${student.universityId} | ${student.name}\n${student.email}`;
+			if (
+				pdf.y + pdf.heightOfString(line) + 12 >
+				pdf.page.height - pdf.page.margins.bottom
+			) {
+				pdf.addPage();
+				heading();
+			}
+			pdf.text(line).moveDown(0.5);
+		}
+		if (!students.length) pdf.text("No enrolled students.");
+	});
+	return { buffer };
+};
+
 export const sectionService = {
+	getSectionStudentsFromDB,
 	assignFacultyIntoDB,
 	getMySectionsFromDB,
 	createSectionIntoDB,

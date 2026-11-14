@@ -1,5 +1,27 @@
 /**
  * @openapi
+ * /api/sections/{id}/students:
+ *   get:
+ *     tags: [Section]
+ *     summary: Enrolled class list ordered by university ID; teachers may access only their own
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *       - { in: query, name: format, schema: { type: string, enum: [json, csv, pdf], default: json } }
+ *     responses:
+ *       200:
+ *         description: Student list or downloadable class list
+ *         content:
+ *           application/json: { schema: { type: object } }
+ *           text/csv: { schema: { type: string } }
+ *           application/pdf: { schema: { type: string, format: binary } }
+ *       400: { description: Invalid ID or format }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin or own assigned teacher required }
+ *       404: { description: Section not found }
+ */
+/**
+ * @openapi
  * /api/admin/sections/faculty-assignments:
  *   put:
  *     tags: [Section]

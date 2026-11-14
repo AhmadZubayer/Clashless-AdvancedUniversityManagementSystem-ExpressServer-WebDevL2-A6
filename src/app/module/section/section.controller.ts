@@ -74,7 +74,31 @@ const getMySections = catchAsync(async (req: Request, res: Response) => {
 		data,
 	});
 });
+const getSectionStudents = catchAsync(async (req: Request, res: Response) => {
+	if (!req.user) throw new AppError(401, "Please log in");
+	const { format } = res.locals.validatedQuery as {
+		format: "json" | "csv" | "pdf";
+	};
+	const result = await sectionService.getSectionStudentsFromDB(
+		res.locals.validatedParams.id,
+		req.user,
+		format,
+	);
+	if (result.buffer) {
+		res.type(format === "csv" ? "text/csv" : "application/pdf");
+		res.attachment(`class-list-${res.locals.validatedParams.id}.${format}`);
+		res.send(result.buffer);
+		return;
+	}
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "Class list retrieved",
+		data: result.students,
+	});
+});
 export const sectionController = {
+	getSectionStudents,
 	assignFaculty,
 	getMySections,
 	createSection,

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { UserRole } from "../../../generated/prisma/enums";
 import { auth } from "../../middleware/checkAuth";
 import { validateParams } from "../../middleware/validateParams";
+import { validateQuery } from "../../middleware/validateQuery";
 import { validateRequest } from "../../middleware/validateRequest";
 import { sectionController } from "./section.controller";
 import { sectionValidation } from "./section.validation";
@@ -12,6 +13,13 @@ sectionRoutes.get(
 	"/mine",
 	auth(UserRole.FACULTY),
 	sectionController.getMySections,
+);
+sectionRoutes.get(
+	"/:id/students",
+	auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.FACULTY),
+	validateParams(sectionValidation.idSchema),
+	validateQuery(sectionValidation.studentsQuerySchema),
+	sectionController.getSectionStudents,
 );
 adminSectionRoutes.use(auth(UserRole.ADMIN, UserRole.SUPER_ADMIN));
 adminSectionRoutes.put(
