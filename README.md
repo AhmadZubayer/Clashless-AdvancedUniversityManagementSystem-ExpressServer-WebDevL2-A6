@@ -2,6 +2,8 @@
 
 University registration, class routines, exam routines and seat plans. Implementation status and continuation notes are in [progress.md](progress.md); the specification is [requirement.md](requirement.md).
 
+Deployed API: https://clashless-backend-ahmadzubayer.vercel.app/. See [endpoint.md](endpoint.md) for all endpoints, access and sample requests, and [endpoint-test-results.md](endpoint-test-results.md) for live smoke-check results.
+
 ## Development setup
 
 Use Node.js 24, PostgreSQL and Redis. Install dependencies with `npm ci`. Copy `.env.example` to `.env` and fill in service credentials, first-admin details, `UNIVERSITY_EMAIL_DOMAIN` and `DEMO_PASSWORD`. Never commit environment files containing secrets.

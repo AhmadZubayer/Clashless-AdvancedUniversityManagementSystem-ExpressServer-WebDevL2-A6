@@ -2,11 +2,11 @@
 
 > ## Overall: 100% complete (100 of 100 points)
 > **In progress:** none · **Next:** none (all features complete)
-> **Last updated:** 14 Nov 2026 by Claude Code
+> **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
 
-Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md](requirement.md).
+The work is defined in [requirement.md](requirement.md). API usage is mapped in [endpoint.md](endpoint.md).
 
 ---
 
@@ -225,6 +225,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex, deployed endpoint review:** On user request, removed the tracked agent instruction files (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`) and added 134 endpoints in `endpoint.md` (133 operations matching live Swagger plus Swagger UI). Live HTTP checks targeted only `https://clashless-backend-ahmadzubayer.vercel.app/`: 255/255 endpoint smoke checks and 12/12 extra account/session checks passed; scope and limits are in `endpoint-test-results.md`. Temporary student created/read/blocked/soft-deleted. User explicitly authorized changing the original admin password; verified new login and saved the secret only as `UPDATED_ADMIN_PASS` in ignored `.env` (use it instead of the old `ADMIN_PASSWORD` for login). No local API server was started; local integration suite was not run. Type check and lint passed. Format check reports pre-existing issues in `src/app.ts` and `src/app/lib/queue.ts`; neither source file was changed. Work remains on `main`; `dev` retains its requested pre-deployment commit.
+
 - **14 Nov 2026, Claude Code, Vercel install fix:** Vercel's `npm install` failed in `postinstall` (`prisma generate`) with `Missing environment variable: SERVER_URL` because `prisma.config.ts` imported the app config, which requires every runtime secret. `prisma.config.ts` now loads only dotenv and `DATABASE_URL` (placeholder URL allowed for `prisma generate`; the test-schema safety checks are kept). Verified: `prisma generate` succeeds with no `.env` and no environment variables, `NODE_ENV=test prisma migrate status` still targets `clashless_test`, type check clean. The runtime still needs the README's environment variables set in Vercel before the function can start.
 
 - **14 Nov 2026, Claude Code, project complete (100%):** the user said load testing is no longer needed since all requirement code is implemented, so the k6 criterion of F13 is waived (it ran twice and did not pass, results are in the README) and F13 is complete. The user asked to apply the Vercel deploy skill from `.agents/skill-library/express-vercel-deploy-skill` and push so they can import the repository into Vercel: added `api/index.js`, `public/.gitkeep`, `vercel.json`, `.vercel/` in `.gitignore`, a README section (env table, caveats), on-demand Redis connect and inline queue jobs when `VERCEL` is set. Verified locally: build, Node import of `api/index.js` (Handler type: function), and a smoke test of `/`, `/docs/`, Swagger CSS, login (200) and an unauthenticated call (401). Not verified: the live Vercel build. Cron jobs do not run on Vercel (see README).
@@ -312,6 +314,8 @@ No outstanding questions. The k6 pass criteria were waived by the user (14 Nov 2
 | 14 Nov 2026 | Work happens on `main` only; push after every completed feature, and also when stopping mid-feature | User / Claude Code |
 
 ## Manual test log
+
+- 14 Nov 2026, live API review: all 134 endpoints covered against the deployed Vercel host; 255 endpoint smoke checks plus 12 account/session checks passed. Includes admin/faculty/student demo login, temporary student lifecycle, cookie refresh, PDF signature and SSE headers. This is basic smoke coverage, not full successful business-workflow verification. See `endpoint-test-results.md`.
 
 One line per feature after its manual pass (requirement.md 9.5): date, feature, what was tried, result.
 
