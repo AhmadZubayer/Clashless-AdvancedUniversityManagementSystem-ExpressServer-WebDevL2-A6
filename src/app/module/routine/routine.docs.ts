@@ -243,7 +243,7 @@
  *               semesterId: { type: string, format: uuid }
  *               keepPinnedFrom: { type: string, format: uuid }
  *     responses:
- *       202: { description: Queued; data.jobId can be polled at /api/admin/jobs/{id} }
+ *       202: { description: Queued; poll data.jobId through the job endpoint }
  *       400: { description: Invalid IDs }
  *       401: { description: Authentication required }
  *       403: { description: Admin access required }

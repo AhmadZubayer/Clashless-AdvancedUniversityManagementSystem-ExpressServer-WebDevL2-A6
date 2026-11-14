@@ -72,9 +72,10 @@ export async function enqueueJob(
 	return { id: job.id ?? jobId };
 }
 
-export async function startQueueWorkers() {
+export async function startQueueWorkers(names?: readonly string[]) {
 	if (config.node_env === "test") return;
 	for (const [name, handler] of handlers) {
+		if (names && !names.includes(name)) continue;
 		if (!workers.has(name)) {
 			const worker = new Worker(name, (job) => handler(job.data), {
 				connection: createConnection(name),

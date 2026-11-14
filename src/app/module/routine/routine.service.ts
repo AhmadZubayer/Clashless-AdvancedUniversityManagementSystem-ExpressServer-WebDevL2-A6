@@ -704,7 +704,7 @@ const exportRoutineFromDB = async (
 				...filters,
 			});
 	return routinePdf(
-		`${routine.semester.name} — Version ${routine.version} (${routine.status})`,
+		`${routine.semester.name} - Version ${routine.version} (${routine.status})`,
 		routine.entries,
 		query.view === "master",
 	);

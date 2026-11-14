@@ -53,7 +53,7 @@ Started: 14 Nov 2026 12:51 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F5 complete and pushed; all 70 tests, static/build/manual checks pass. Pure routineValidator and T-ROUT-05 already implemented in F5.
 - Half-done: generator, worker, generation request and job polling implemented. T-ROUT-07/08 and role/phase/source guards passed (3 integration tests). Version list/view/report implemented and verified; 10 routine integration tests and 11 unit tests pass, including T-ROUT-13 teacher grid and T-ROUT-14 portable actual-demo performance. All F6 endpoints/docs implemented.
-- Next step: full regression/build and manual HTTP F6 pass. Weekly grids, student enrollment scope, all published filters and teacher-restricted exports pass. Master PDF is 38 weekly room pages; page 1 visually inspected clean. Publication validates current complete coverage, bulk-copies schedules in one parameterized SQL update and archives the previous version atomically. Draft edits validate and recompute scores atomically; valid swaps and exact pin preservation pass. Fresh reports validate against current resources; idempotent test migrations now retry three times for intermittent hosted schema-engine failures.
+- Next step: complete and push F6. Full suite: 88 passed in 217.55 seconds; all static/build/manual/PDF checks pass. Build/static checks and real BullMQ/manual HTTP pass succeeded. Weekly grids, student enrollment scope, all published filters and teacher-restricted exports pass. Master PDF is 38 weekly room pages; page 1 visually inspected clean. Publication validates current complete coverage, bulk-copies schedules in one parameterized SQL update and archives the previous version atomically. Draft edits validate and recompute scores atomically; valid swaps and exact pin preservation pass. Fresh reports validate against current resources; idempotent test migrations now retry three times for intermittent hosted schema-engine failures.
 - Traps: pinned entries never move; repair may move one unpinned blocker only; use occupancy maps and seeded local search; never change teacher assignments.
 
 ## ⏭️ Next
@@ -146,7 +146,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Move, swap, pin
 - [x] Publish (copies onto sections, archives the old version)
 - [x] Published routine, `/api/routines/me`, PDF exports
-- [ ] Tests T-ROUT-07 … T-ROUT-14
+- [x] Tests T-ROUT-07 … T-ROUT-14
 - [ ] Definition of done → commit → push
 
 ### F7 — Registration (14 points)
@@ -284,6 +284,8 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 
 - 14 Nov 2026, F5: manual HTTP offerings, assigned teacher mine, class-list JSON/CSV/PDF, preference lists, unchanged-capacity update and all 13 Swagger methods passed. Tokens stayed in memory; no outgoing emails or demo schedule changes.
 
+- 14 Nov 2026, F6: real BullMQ routine worker and manual HTTP generation/poll/report/publication passed for all 264 demo sections. Teacher grid/PDF, version listing and all 13 Swagger methods passed. Master and actual teacher PDF pages visually inspected clean. Demo now has published routine version 2 (version 1 archived) while semester remains PLANNING; no email workers started.
+
 ## Environment notes (never write secrets here)
 
 | Item | Value |
@@ -297,6 +299,8 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
+
 
 
 
