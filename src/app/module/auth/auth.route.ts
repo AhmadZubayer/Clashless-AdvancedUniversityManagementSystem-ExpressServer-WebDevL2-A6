@@ -7,18 +7,6 @@ import { authValidation } from "./auth.validation";
 export const authRoutes = Router();
 
 authRoutes.post(
-	"/register",
-	validateRequest(authValidation.registerUserSchema),
-	authController.registerUser,
-);
-
-authRoutes.post(
-	"/verify-email",
-	validateRequest(authValidation.verifyEmailSchema),
-	authController.verifyEmail,
-);
-
-authRoutes.post(
 	"/login",
 	validateRequest(authValidation.loginUserSchema),
 	authController.loginUser,

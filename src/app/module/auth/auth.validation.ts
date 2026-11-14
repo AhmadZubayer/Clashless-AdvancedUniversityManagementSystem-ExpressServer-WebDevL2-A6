@@ -10,21 +10,6 @@ const passwordSchema = z
 
 const emailSchema = z.email("Invalid email address").trim().toLowerCase();
 
-const registerUserSchema = z.object({
-	name: z
-		.string("Name must be a string")
-		.trim()
-		.min(3, "Name must be atleast 3 characters long")
-		.max(50, "Name cannot exceed 50 characters"),
-	email: emailSchema,
-	password: passwordSchema,
-});
-
-const verifyEmailSchema = z.object({
-	email: emailSchema,
-	otp: z.string().length(6, "OTP must be 6 digits"),
-});
-
 const loginUserSchema = z.object({
 	email: emailSchema,
 	password: z.string().min(1, "Password is required"),
@@ -50,8 +35,8 @@ const changePasswordSchema = z.object({
 });
 
 export const authValidation = {
-	registerUserSchema,
-	verifyEmailSchema,
+
+
 	loginUserSchema,
 	googleLoginSchema,
 	forgotPasswordSchema,

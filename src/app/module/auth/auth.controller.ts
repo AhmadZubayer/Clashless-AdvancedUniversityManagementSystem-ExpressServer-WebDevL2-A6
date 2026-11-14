@@ -6,40 +6,6 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { authService } from "./auth.service";
 
-const registerUser = catchAsync(async (req: Request, res: Response) => {
-	const payload = req.body;
-
-	await authService.registerUser(payload);
-
-	sendResponse(res, {
-		statusCode: httpStatus.CREATED,
-		success: true,
-		message: "Verification OTP Sent",
-		data: null,
-	});
-});
-
-const verifyEmail = catchAsync(async (req: Request, res: Response) => {
-	const payload = req.body;
-
-	const result = await authService.verifyEmail(payload);
-
-	const { accessToken, refreshToken, user } = result;
-
-	setAuthCookies(res, accessToken, refreshToken);
-
-	sendResponse(res, {
-		statusCode: httpStatus.CREATED,
-		success: true,
-		message: "Email Verified Successfully",
-		data: {
-			accessToken,
-			refreshToken,
-			user,
-		},
-	});
-});
-
 const loginUser = catchAsync(async (req: Request, res: Response) => {
 	const payload = req.body;
 
@@ -177,8 +143,8 @@ const logoutUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const authController = {
-	registerUser,
-	verifyEmail,
+
+
 	loginUser,
 	getMe,
 	refreshToken,

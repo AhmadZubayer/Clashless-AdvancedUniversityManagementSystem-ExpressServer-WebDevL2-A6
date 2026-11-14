@@ -48,7 +48,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 10:49 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0 complete and pushed; baseline smoke test green.
-- Half-done: F1 implementation beginning.
+- Half-done: self-registration removed from routes, services, validation, types and docs. Token guards next.
 - Next step: remove self-registration and implement token-version guards and activation.
 - Traps: shared test services require isolated schema/prefix; external calls mocked.
 
@@ -84,7 +84,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F1 — Auth (7 points)
 
-- [ ] Remove `POST /api/auth/register` and `POST /api/auth/verify-email` (routes, docs, validation, service code)
+- [x] Remove `POST /api/auth/register` and `POST /api/auth/verify-email` (routes, docs, validation, service code)
 - [ ] `tokenVersion` in the token payload; the guard and refresh reject old versions and users who aren't ACTIVE
 - [ ] `needPasswordChange` guard (only change-password, me and logout pass)
 - [ ] Login: `ACCOUNT_NOT_ACTIVATED`, `needPasswordChange` in the response

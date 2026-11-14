@@ -19,9 +19,9 @@ import type {
 	IForgotPasswordPayload,
 	IGoogleLoginPayload,
 	ILoginUserPayload,
-	IRegisterUserPayload,
+
 	IResetPasswordPayload,
-	IVerifyEmailPayload,
+
 } from "./auth.interface";
 
 const OTP_EXPIRATION_SECONDS = 5 * 60;
@@ -70,140 +70,6 @@ const checkUserCanLogin = (user: {
 	if (user.isDeleted || user.status === UserStatus.DELETED) {
 		throw new AppError(httpStatus.FORBIDDEN, "User is deleted");
 	}
-};
-
-const registerUser = async (payload: IRegisterUserPayload) => {
-	const { name, email, password } = payload;
-
-	const isUserExists = await prisma.user.findUnique({
-		where: { email },
-	});
-
-	if (isUserExists) {
-		throw new AppError(
-			httpStatus.CONFLICT,
-			"User with this email already exists",
-		);
-	}
-
-	const hashedPassword = await bcrypt.hash(
-		password,
-		Number(config.bcrypt_salt_rounds),
-	);
-
-	const otpKey = redisKey(`registration-otp:${email}`);
-	const otpValue = generateOtp();
-
-	await redisClient.set(otpKey, otpValue, {
-		expiration: {
-			type: "EX",
-			value: OTP_EXPIRATION_SECONDS,
-		},
-	});
-
-	const registrationKey = redisKey(`registration-data:${email}`);
-	const redisUserDataPayload = {
-		name,
-		email,
-		password: hashedPassword,
-	};
-
-	await redisClient.set(registrationKey, JSON.stringify(redisUserDataPayload), {
-		expiration: {
-			type: "EX",
-			value: OTP_EXPIRATION_SECONDS,
-		},
-	});
-
-	await sendEmail({
-		to: email,
-		subject: "Email Verification",
-		templateName: "registration-otp",
-		templateData: {
-			name,
-			email,
-			otp: otpValue,
-			expirationMinutes: OTP_EXPIRATION_SECONDS / 60,
-		},
-	});
-};
-
-const verifyEmail = async (payload: IVerifyEmailPayload) => {
-	const { email, otp } = payload;
-
-	const isUserExist = await prisma.user.findUnique({
-		where: { email },
-	});
-
-	if (isUserExist) {
-		throw new AppError(httpStatus.CONFLICT, "Email Already Verified");
-	}
-
-	const otpKey = redisKey(`registration-otp:${email}`);
-
-	const redisOtp = await redisClient.get(otpKey);
-
-	if (!redisOtp) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			"OTP Expired. Please register again",
-		);
-	}
-
-	if (redisOtp !== otp) {
-		throw new AppError(httpStatus.BAD_REQUEST, "OTP Does Not Match");
-	}
-
-	const registrationKey = redisKey(`registration-data:${email}`);
-
-	const redisUserData = await redisClient.get(registrationKey);
-
-	if (!redisUserData) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			"Registration Expired. Please register again",
-		);
-	}
-
-	const userPayload: IRegisterUserPayload = JSON.parse(redisUserData);
-
-	const user = await prisma.user.create({
-		data: {
-			name: userPayload.name,
-			email: userPayload.email,
-			password: userPayload.password,
-			status: UserStatus.ACTIVE,
-			emailVerified: true,
-		},
-		omit: { password: true },
-	});
-
-	await redisClient.del([otpKey, registrationKey]);
-
-	try {
-		await sendEmail({
-			to: user.email,
-			subject: `Welcome To ${config.app_name}`,
-			templateName: "welcome",
-			templateData: {
-				name: user.name,
-			},
-		});
-	} catch (error) {
-		// the account exists; a failed welcome email must not fail the request
-		logger.error(
-			{ err: error, userId: user.id },
-			"Failed to send welcome email",
-		);
-	}
-
-	const { accessToken, refreshToken } = createAuthTokens(user);
-
-	return {
-		user,
-		accessToken,
-		refreshToken,
-	};
 };
 
 const loginUser = async (payload: ILoginUserPayload) => {
@@ -536,8 +402,8 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 };
 
 export const authService = {
-	registerUser,
-	verifyEmail,
+
+
 	loginUser,
 	getMe,
 	refreshToken,
