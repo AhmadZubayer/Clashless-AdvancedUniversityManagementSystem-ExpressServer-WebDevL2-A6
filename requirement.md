@@ -2105,10 +2105,9 @@ Name each test after its ID, e.g. `it("T-REG-10 100 students race for 40 seats",
 ### 9.2 Test environment
 
 - `.env.test` holds the test settings and is git-ignored. Commit `.env.test.example` with the same names and placeholder values. Add `.env.test` to `.gitignore` in F0.
-- `DATABASE_URL` points at a **separate database** (e.g. `clashless_test`), never the development one. If you don't have one, ask the user for it once and note the database name (not the password) in progress.md.
-- Redis: one that holds nothing important (a local Redis, or a free development instance). `globalSetup` runs `FLUSHDB` on it.
-- `globalSetup.ts`: load `.env.test`, run `npx prisma migrate reset --force`, flush Redis.
-- `perFile.ts`: before each test file, `TRUNCATE` every table in the `public` schema except `_prisma_migrations`, with `RESTART IDENTITY CASCADE`.
+- Assignment override (14 Nov 2026, user): use the supplied development PostgreSQL and Redis services for tests. Isolate tests in the `clashless_test` PostgreSQL schema on the supplied database, and use the `clashless:test:` Redis key prefix. Never reset the development schema or run `FLUSHDB` on shared Redis.
+- `globalSetup.ts`: load `.env.test`, enforce the test schema and key prefix, apply migrations to that schema, and remove only keys under the test prefix.
+- `perFile.ts`: before each test file, `TRUNCATE` every table in the `clashless_test` schema except `_prisma_migrations`, with `RESTART IDENTITY CASCADE`.
 
 ### 9.3 Mocks
 

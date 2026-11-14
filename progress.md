@@ -46,9 +46,9 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 by Codex
 Handoff notes:
 - Done: planning documents pushed; required skill downloaded; scaffold created with required features, ignore rules merged and README expanded. Initial type check passes.
-- Half-done: no application code yet.
-- Next step: scaffold, install pinned packages, run env checker.
-- Traps: type checking is unavailable until scaffold and packages exist.
+- Half-done: scaffold only; domain models and F0 infrastructure pending.
+- Next step: copy exact requirement schema and adapt scaffold references.
+- Traps: test services are shared; tests must enforce isolated schema and Redis prefix.
 
 When you start a feature, replace the line above with:
 
@@ -78,7 +78,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Get the skill into `.agents/skill-library` (AGENTS.md section 2)
 - [x] Scaffold into this folder with `--features google,uploads,pdf,bkash,cron`. Merge the skipped `.gitignore` and `README.md` by hand
 - [x] Install packages with the two pinned commands the scaffold prints; add Vitest, Supertest, BullMQ
-- [ ] Fill `.env` using the skill's env checker; ask the user for missing values. Add `UNIVERSITY_EMAIL_DOMAIN` and `DEMO_PASSWORD` to `config/index.ts`, `.env.example` and `.env`
+- [x] Fill `.env` using the skill's env checker; ask the user for missing values. Add `UNIVERSITY_EMAIL_DOMAIN` and `DEMO_PASSWORD` to `config/index.ts`, `.env.example` and `.env`
 - [ ] Replace the Prisma models with requirement.md section 5. Delete the example models (`booking`, `service`, `category`) and `BookingStatus`, and fix the code that used them
 - [ ] First migration with the extra SQL from 5.3; `npx prisma generate`
 - [ ] `npm run db:seed` creates the first SUPER_ADMIN with an Admin profile
@@ -241,12 +241,13 @@ Ask these during F0 (one message), then record the answers (never the secret val
 - A `DEMO_PASSWORD` for the demo accounts
 - A PostgreSQL database for development and a **separate** one for tests
 - A Redis for development, and one for tests that can be flushed
-- Checker result (14 Nov, Codex): `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` missing. Also requested project variables and separate test services above. Awaiting user confirmation; existing service values were not printed.
+- Checker result (14 Nov, Codex): `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` missing. Also requested project variables and separate test services above. Resolved: user supplied first-admin/demo credentials and authorized existing DB/Redis services for assignment tests. Values are saved only in ignored .env; existing service values were not printed.
 
 ## Decisions log
 
 | Date | Decision | By |
 |---|---|---|
+| 14 Nov 2026 | Assignment override: use supplied database/Redis services for tests, isolated PostgreSQL clashless_test schema and clashless:test: Redis keys; no shared FLUSHDB. Use uni.edu for university email domain. Credentials supplied and stored only in ignored .env. | User / Codex |
 | 14 Nov 2026 | Demo course catalogue taken from the AIUB BSc CSE curriculum (requirement.md Appendix A) | User |
 | 14 Nov 2026 | AGENTS.md is the single instruction file for every agent; CLAUDE.md and GEMINI.md only point to it | Claude Code |
 | 14 Nov 2026 | Work happens on `main` only; push after every completed feature, and also when stopping mid-feature | User / Claude Code |
