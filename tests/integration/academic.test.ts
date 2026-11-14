@@ -58,6 +58,39 @@ it("T-ACAD-02 cannot delete a department with a course", async () => {
 	).toBe(409);
 });
 
+it("T-ACAD-03 batch code derives intake values and rejects term four", async () => {
+	const response = await request(app)
+		.post("/api/admin/batches")
+		.set("Authorization", authorization())
+		.send({ code: "23-3" });
+	expect(response.status).toBe(201);
+	expect(response.body.data.intakeYear).toBe(2023);
+	expect(response.body.data.intakeTerm).toBe(3);
+	expect(
+		(
+			await request(app)
+				.post("/api/admin/batches")
+				.set("Authorization", authorization())
+				.send({ code: "23-4" })
+		).status,
+	).toBe(400);
+	expect(
+		(
+			await request(app)
+				.post("/api/admin/batches")
+				.set("Authorization", authorization())
+				.send({ code: "23-3" })
+		).status,
+	).toBe(409);
+	expect(
+		(
+			await request(app)
+				.get("/api/batches?searchTerm=23-3")
+				.set("Authorization", authorization())
+		).status,
+	).toBe(200);
+});
+
 it("T-ACAD-09 curriculum replacement removes previous rows and program fees obey phase", async () => {
 	const world = await createAcademicWorld();
 	const created = await request(app)
