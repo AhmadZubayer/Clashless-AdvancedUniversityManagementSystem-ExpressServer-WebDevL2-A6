@@ -48,7 +48,13 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 
 ## 🔄 In progress
 
-None.
+### F6 — Class routine
+Started: 14 Nov 2026 12:51 Asia/Dhaka by Codex
+Handoff notes:
+- Done: F0–F5 complete and pushed; all 70 tests, static/build/manual checks pass. Pure routineValidator and T-ROUT-05 already implemented in F5.
+- Half-done: no generator or routine/job module yet.
+- Next step: confirm validator checklist, then deterministic generator and remaining unit tests, including demo performance.
+- Traps: pinned entries never move; repair may move one unpinned blocker only; use occupancy maps and seeded local search; never change teacher assignments.
 
 ## ⏭️ Next
 
@@ -133,7 +139,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F6 — Class routine (14 points)
 
-- [ ] `engine/routineValidator.ts` with unit tests (T-ROUT-05)
+- [x] `engine/routineValidator.ts` with unit tests (T-ROUT-05)
 - [ ] `engine/routineGenerator.ts`: candidates, ordering, greedy placement, repair, seeded local search, penalty (T-ROUT-01 … T-ROUT-04, T-ROUT-06)
 - [ ] BullMQ `routine` worker and the `job` module (`GET /api/admin/jobs/:id`)
 - [ ] Generate, list versions, view, report
@@ -289,6 +295,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 
