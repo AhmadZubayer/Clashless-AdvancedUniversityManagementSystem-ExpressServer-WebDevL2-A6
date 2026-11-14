@@ -1,8 +1,8 @@
 # Clashless — Progress
 
 > ## Overall: 0% complete (0 of 100 points)
-> **In progress:** nothing · **Next:** F0 Project setup
-> **Last updated:** 14 Nov 2026 by Claude Code (planning session)
+> **In progress:** F0 Project setup · **Next:** F1 Auth
+> **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
 
@@ -14,7 +14,7 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 
 | ID | Feature | Points | Status | Needs | requirement.md |
 |---|---|---:|---|---|---|
-| F0 | Project setup | 6 | ⏭️ Next | — | 5, 9.1–9.4, 10.2 |
+| F0 | Project setup | 6 | 🔄 In progress | — | 5, 9.1–9.4, 10.2 |
 | F1 | Auth | 7 | ⬜ Not started | F0 | 6.3 |
 | F2 | User management | 5 | ⬜ Not started | F1 | 6.4 |
 | F3 | Academic setup | 6 | ⬜ Not started | F1 | 6.5 |
@@ -42,7 +42,13 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 
 ## 🔄 In progress
 
-_Nothing is in progress._
+### F0 — Project setup
+Started: 14 Nov 2026 by Codex
+Handoff notes:
+- Done: planning documents committed and pushed; required skill downloaded.
+- Half-done: no application code yet.
+- Next step: scaffold, install pinned packages, run env checker.
+- Traps: type checking is unavailable until scaffold and packages exist.
 
 When you start a feature, replace the line above with:
 
