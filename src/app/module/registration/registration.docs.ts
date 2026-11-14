@@ -1,5 +1,107 @@
 /**
  * @openapi
+ * /api/admin/registrations:
+ *   get:
+ *     tags: [Registration]
+ *     summary: List student bills with batch, payment and risk filters
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: query, name: semesterId, required: true, schema: { type: string, format: uuid } }
+ *       - { in: query, name: batchId, schema: { type: string, format: uuid } }
+ *       - { in: query, name: status, schema: { type: string, enum: [ACTIVE, DISCARDED] } }
+ *       - { in: query, name: paymentStatus, schema: { type: string, enum: [UNPAID, MINIMUM_PAID, FULLY_PAID] } }
+ *       - { in: query, name: atRisk, schema: { type: boolean, default: false }, description: ACTIVE and UNPAID with deadline at most three days away, including overdue bills }
+ *       - { in: query, name: searchTerm, schema: { type: string } }
+ *       - { in: query, name: page, schema: { type: integer, minimum: 1, default: 1 } }
+ *       - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100, default: 10 } }
+ *       - { in: query, name: sortBy, schema: { type: string, enum: [createdAt, paymentDeadline], default: createdAt } }
+ *       - { in: query, name: sortOrder, schema: { type: string, enum: [asc, desc], default: desc } }
+ *     responses:
+ *       200: { description: Paginated bills with student information and enrolled counts }
+ *       400: { description: Invalid query }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin access required }
+ *       404: { description: Semester not found }
+ */
+/**
+ * @openapi
+ * /api/admin/registrations/{studentId}:
+ *   get:
+ *     tags: [Registration]
+ *     summary: Student bill with all enrollment history and payments
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: studentId, required: true, schema: { type: string, format: uuid } }
+ *       - { in: query, name: semesterId, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200: { description: Bill, student, semester, all enrollments and payments }
+ *       400: { description: Invalid IDs }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin access required }
+ *       404: { description: Registration not found }
+ */
+/**
+ * @openapi
+ * /api/admin/registrations/{studentId}/sections/{sectionId}:
+ *   post:
+ *     tags: [Registration]
+ *     summary: Manually enroll with explicit bypasses during REGISTRATION or CLASSES
+ *     description: Audited atomically. CAPACITY first raises capacity by one. WINDOW skips opening/closing checks; a new bill still needs a configured batch window to derive its deadline.
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: studentId, required: true, schema: { type: string, format: uuid } }
+ *       - { in: path, name: sectionId, required: true, schema: { type: string, format: uuid } }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [reason]
+ *             properties:
+ *               reason: { type: string, minLength: 1, maxLength: 1000 }
+ *               bypass:
+ *                 type: array
+ *                 default: []
+ *                 items: { type: string, enum: [WINDOW, CREDIT_LIMIT, PREREQUISITE, TIME_CLASH, CAPACITY] }
+ *     responses:
+ *       201: { description: Enrolled, bill recalculated, audit saved and seat count published }
+ *       200: { description: Already enrolled in this section }
+ *       400: { description: Invalid reason, IDs or bypass }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin access or a non-bypassed window/discarded-registration rule }
+ *       404: { description: Active student, section or billing registration/window not found }
+ *       409: { description: PHASE_NOT_ALLOWED or a non-bypassed course/clash/credit/prerequisite/capacity conflict }
+ */
+/**
+ * @openapi
+ * /api/admin/registrations/{studentId}/sections/{sectionId}:
+ *   delete:
+ *     tags: [Registration]
+ *     summary: Manually remove during REGISTRATION or CLASSES without a window check
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: studentId, required: true, schema: { type: string, format: uuid } }
+ *       - { in: path, name: sectionId, required: true, schema: { type: string, format: uuid } }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [reason]
+ *             properties:
+ *               reason: { type: string, minLength: 1, maxLength: 1000 }
+ *     responses:
+ *       200: { description: Dropped enrollment, recalculated bill and audit; paid credit retained }
+ *       400: { description: Invalid reason or IDs }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin access required or REGISTRATION_DISCARDED }
+ *       404: { description: Student, registration or enrollment not found }
+ *       409: { description: PHASE_NOT_ALLOWED or concurrent state conflict }
+ */
+/**
+ * @openapi
  * /api/registrations/seats/stream:
  *   get:
  *     tags: [Registration]

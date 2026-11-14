@@ -116,7 +116,71 @@ const streamSeats = catchAsync(async (_req: Request, res: Response) => {
 		if (!closed) res.write(": heartbeat\n\n");
 	}, 25000);
 });
+const getAllRegistrations = catchAsync(async (_req: Request, res: Response) => {
+	const result = await registrationService.getAllRegistrationsFromDB(
+		res.locals.validatedQuery,
+	);
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "Registrations retrieved",
+		...result,
+	});
+});
+const getStudentRegistration = catchAsync(
+	async (_req: Request, res: Response) => {
+		const data = await registrationService.getStudentRegistrationFromDB(
+			res.locals.validatedParams.studentId,
+			res.locals.validatedQuery.semesterId,
+		);
+		sendResponse(res, {
+			success: true,
+			statusCode: 200,
+			message: "Student registration retrieved",
+			data,
+		});
+	},
+);
+const manuallySelectSection = catchAsync(
+	async (req: Request, res: Response) => {
+		if (!req.user) throw new AppError(401, "Please log in");
+		const { studentId, sectionId } = res.locals.validatedParams;
+		const result = await registrationService.manuallySelectSectionIntoDB(
+			req.user.id,
+			studentId,
+			sectionId,
+			req.body,
+		);
+		sendResponse(res, {
+			success: true,
+			message: "Student added to section",
+			...result,
+		});
+	},
+);
+const manuallyUnselectSection = catchAsync(
+	async (req: Request, res: Response) => {
+		if (!req.user) throw new AppError(401, "Please log in");
+		const { studentId, sectionId } = res.locals.validatedParams;
+		const data = await registrationService.manuallyUnselectSectionIntoDB(
+			req.user.id,
+			studentId,
+			sectionId,
+			req.body.reason,
+		);
+		sendResponse(res, {
+			success: true,
+			statusCode: 200,
+			message: "Student removed from section",
+			data,
+		});
+	},
+);
 export const registrationController = {
+	getAllRegistrations,
+	getStudentRegistration,
+	manuallySelectSection,
+	manuallyUnselectSection,
 	streamSeats,
 	getMyRegistration,
 	getRegistrationOfferings,

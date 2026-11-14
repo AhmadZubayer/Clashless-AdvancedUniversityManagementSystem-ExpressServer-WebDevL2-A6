@@ -53,8 +53,8 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 13:20 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F6 complete and pushed; all 88 tests and static/build/manual checks pass. Demo published routine version 2 exists; semester stays PLANNING.
-- Half-done: student mutations, Redis guards, exact billing, me/catalog reads and real SSE stream implemented. Admin flows, registration-open demo seed, missing required tests and final DoD verification remain.
-- Next step: admin list/detail/add/remove with audited bypasses; then registration-open demo seed, missing T-REG-05/06/07/08/09/18/19, full regression/build and manual pass. T-REG-20 SSE event/cleanup passed; read/catalog 3 passed; guarded mutations 14 passed; units 16 passed.
+- Half-done: all ten registration endpoints/docs implemented and focused-tested. Demo registration-open seed, missing core guard tests and final full verification remain.
+- Next step: --registration-open demo seed, missing T-REG-05/06/07/08/09/18, then full suite/build/manual pass. Admin suite 8 passed, including T-REG-19; repaired T-REG-10/11 and T-REG-17 passed separately.
 - Traps: default isolation for select, serialize same-student writes with registration row locks, ascending section IDs for switches; Decimal bill totals; test schema/prefix isolation remains mandatory.
 
 ## ⏭️ Next
@@ -158,7 +158,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Fee and `paymentStatus` recalculation
 - [x] `GET /api/registrations/me` and offerings with per-student flags (catalog cache)
 - [x] SSE seat stream with Redis pub/sub
-- [ ] Admin list, detail, manual add (bypass) and remove
+- [x] Admin list, detail, manual add (bypass) and remove
 - [ ] `--registration-open` option for `db:seed:demo`
 - [ ] Tests T-REG-01 … T-REG-21
 - [ ] Definition of done → commit → push
@@ -224,6 +224,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex, F7 admin verified:** Four admin endpoints and Swagger complete. Shared select/unselect core preserves registration locks and guarded seat changes. Explicit bypasses are independently enforced; CAPACITY adds one before the guarded increment, reason/actor/bypasses and before/after bill/seat values are audit-logged in the same transaction. Admin list supports risk/batch/status/payment/search/pagination; detail includes all enrollments and payments without User credentials. Removal works outside the window in REGISTRATION/CLASSES and retains paid credit. All 8 admin tests passed in 26.67 seconds, including 41 genuine ENROLLED rows for T-REG-19. Repaired rate test passed in 17.70 seconds. No schema/env changes. Next: registration-open demo seed, missing T-REG-05/06/07/08/09/18, final all-tests/build/manual checks before F7 completion.
+
 - **14 Nov 2026, Codex, F7 baseline timing repair:** Session baseline had 108 passes and 3 failures: T-REG-11 and T-REG-17 exceeded 30-second timed cases; T-REG-10 then returned only 33 successes during that run. No safety guards or timeouts were relaxed. Moved the parallel-credit and race fixture construction to beforeAll hooks, retaining all request counts and assertions. T-REG-11/10 then both passed in a focused 47.80-second run, including exact 40/60 seat results. T-REG-17 now tests 11 valid cached select retries, with its successful response primed in setup and the counter cleared at test start; this independently verifies the specified rate-before-idempotency order without measuring ten serialized writes as part of a ten-second rate interval. It passed in 17.70 seconds. Full suite must be rerun before F7 completion. Admin endpoints and audit/bypass tests are currently being verified.
 
 - **14 Nov 2026, Codex, F7 SSE continuation checkpoint:** Student routes now include select, unselect, switch, me, offerings and seats/stream. SSE is ST/AD/SA, subscribes before flushing headers, buffers startup events, sends a connected comment and 25-second comment heartbeats, and closes its duplicate Redis connection on disconnect. seatEvents startup errors destroy the duplicate client; unsubscribe cleanup is idempotent. Real HTTP/native-fetch plus Redis T-REG-20 passed, including matching seat data and subscriber count returning to baseline after abort. Type/lint/format clean; no processes/tests remain running. Next: admin router is empty and must implement four endpoints from 6.9: paginated list, student detail, audited manual add with explicit WINDOW/CREDIT_LIMIT/PREREQUISITE/TIME_CLASH/CAPACITY bypasses, and audited manual remove. Refactor shared select/unselect core carefully so student behavior and row locks remain unchanged. Admin phase permits REGISTRATION and CLASSES; CAPACITY bypass raises capacity before guarded seat increment. After admin: seed --registration-open, missing T-REG-05/06/07/08/09/18/19, full suite/build/manual/Swagger checks. F7 remains in progress; overall 48%. Existing published demo v2 stays PLANNING. No new environment/schema/software changes or user questions.
@@ -271,6 +273,7 @@ No outstanding questions. First-admin/demo credentials supplied; user chose uni.
 
 | Date | Decision | By |
 |---|---|---|
+| 14 Nov 2026 | Admin WINDOW bypass skips time-range checks; if no window exists, an existing bill keeps its deadline, while a student with no bill returns 404 rather than inventing a deadline. atRisk includes overdue ACTIVE/UNPAID bills as well as those due within three days. | Codex |
 | 14 Nov 2026 | F7 student select/unselect/switch share the registration mutation counter (10 per 10 seconds); idempotency keys apply to select as specified, with a short-lived ownership lock so concurrent first retries replay the same successful response. | Codex |
 | 14 Nov 2026 | F5 extra scheduled sections are added to the published RoutineEntry grid; cancellation removes their published entry while retaining draft/archive history and all paid credit. Shared routineValidator implements hard rules now for F5 and will be reused by F6. | Codex |
 | 14 Nov 2026 | F4 current-semester student response uses registrationWindow and serverTime; CLOSED grade gate will derive publication from matching CourseResult rows without schema changes. Zero percent/day rules are accepted as nonnegative configuration; credits remain positive Decimal. | Codex |
@@ -311,6 +314,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 

@@ -8,7 +8,12 @@ import { AppError } from "../../utils/AppError";
 import { getGradePoint } from "../../utils/grade";
 import { registrationTotals } from "../../utils/registrationTotals";
 import { formatDhaka, overlaps } from "../../utils/time";
-import type { IRegistrationCatalogQuery } from "./registration.interface";
+import type {
+	IRegistrationCatalogQuery,
+	IManualRegistration,
+	IAdminRegistrationQuery,
+} from "./registration.interface";
+import { createAuditLogIntoDB } from "../auditLog/auditLog.service";
 
 // Raw writes must use the same schema as Prisma's driver adapter.
 function table(name: "semester_registrations") {
@@ -113,22 +118,39 @@ async function checkRegistrationRateLimitFromDB(userId: string) {
 		);
 }
 
-const selectSectionIntoDB = async (userId: string, sectionId: string) => {
+const selectSectionIntoDB = async (
+	userId: string,
+	sectionId: string,
+	manual?: IManualRegistration & { actorId: string },
+) => {
 	const { student, semester } = await getStudentContextFromDB(userId);
-	if (semester.phase !== "REGISTRATION")
+	if (
+		manual
+			? !["REGISTRATION", "CLASSES"].includes(semester.phase)
+			: semester.phase !== "REGISTRATION"
+	)
 		throw new AppError(
 			409,
 			`Not allowed while the semester is in ${semester.phase}`,
 			{ code: "PHASE_NOT_ALLOWED" },
 		);
-	const window = await getOpenWindowFromDB(
-		student.id,
-		student.batchId,
-		semester.id,
-	);
-	const paymentDeadline = new Date(
-		window.endsAt.getTime() + semester.paymentDeadlineDays * 86400000,
-	);
+	const bypass = new Set(manual?.bypass ?? []);
+	const window = bypass.has("WINDOW")
+		? await prisma.registrationWindow.findUnique({
+				where: {
+					unique_batch_window: {
+						batchId: student.batchId,
+						semesterId: semester.id,
+					},
+				},
+			})
+		: await getOpenWindowFromDB(student.id, student.batchId, semester.id);
+	// A bypass does not invent a new billing deadline when a batch has no window.
+	const paymentDeadline = window
+		? new Date(
+				window.endsAt.getTime() + semester.paymentDeadlineDays * 86400000,
+			)
+		: undefined;
 	const result = await prisma.$transaction(
 		async (tx) => {
 			const registration = await lockRegistrationIntoDB(
@@ -180,7 +202,7 @@ const selectSectionIntoDB = async (userId: string, sectionId: string) => {
 					) &&
 					overlaps(sectionTime, row.section.timeSlot),
 			);
-			if (conflict)
+			if (conflict && !bypass.has("TIME_CLASH"))
 				throw new AppError(
 					409,
 					`Clashes with ${conflict.section.offering.course.code} section ${conflict.section.sectionNo}`,
@@ -191,6 +213,7 @@ const selectSectionIntoDB = async (userId: string, sectionId: string) => {
 					},
 				);
 			if (
+				!bypass.has("CREDIT_LIMIT") &&
 				registration.totalCredits
 					.plus(section.offering.course.credits)
 					.gt(semester.maxCredits)
@@ -204,7 +227,7 @@ const selectSectionIntoDB = async (userId: string, sectionId: string) => {
 				where: { courseId: section.offering.courseId },
 				include: { prerequisite: { select: { code: true } } },
 			});
-			if (prerequisites.length) {
+			if (prerequisites.length && !bypass.has("PREREQUISITE")) {
 				const results = await tx.courseResult.findMany({
 					where: {
 						studentId: student.id,
@@ -237,6 +260,11 @@ const selectSectionIntoDB = async (userId: string, sectionId: string) => {
 						},
 					);
 			}
+			if (bypass.has("CAPACITY"))
+				await tx.section.update({
+					where: { id: sectionId },
+					data: { capacity: { increment: 1 } },
+				});
 			const taken = await tx.section.updateMany({
 				where: {
 					id: sectionId,
@@ -303,6 +331,29 @@ const selectSectionIntoDB = async (userId: string, sectionId: string) => {
 				where: { id: sectionId },
 				select: { id: true, enrolledCount: true, capacity: true },
 			});
+			if (manual)
+				await createAuditLogIntoDB(tx, {
+					actorId: manual.actorId,
+					action: "MANUAL_ENROLL",
+					entity: "Enrollment",
+					entityId: enrollment.id,
+					reason: manual.reason,
+					before: {
+						totalCredits: registration.totalCredits.toString(),
+						totalFee: registration.totalFee.toString(),
+						enrolledCount: seat.enrolledCount - 1,
+						capacity: seat.capacity - (bypass.has("CAPACITY") ? 1 : 0),
+					},
+					after: {
+						studentId: student.id,
+						sectionId,
+						bypass: manual.bypass,
+						enrolledCount: seat.enrolledCount,
+						capacity: seat.capacity,
+						totalCredits: updatedRegistration.totalCredits.toString(),
+						totalFee: updatedRegistration.totalFee.toString(),
+					},
+				});
 			return {
 				statusCode: 201,
 				data: { enrollment, registration: updatedRegistration },
@@ -320,16 +371,25 @@ const selectSectionIntoDB = async (userId: string, sectionId: string) => {
 	return { statusCode: result.statusCode, data: result.data };
 };
 
-const unselectSectionIntoDB = async (userId: string, sectionId: string) => {
-	await checkRegistrationRateLimitFromDB(userId);
+const unselectSectionIntoDB = async (
+	userId: string,
+	sectionId: string,
+	manual?: { actorId: string; reason: string },
+) => {
+	if (!manual) await checkRegistrationRateLimitFromDB(userId);
 	const { student, semester } = await getStudentContextFromDB(userId);
-	if (semester.phase !== "REGISTRATION")
+	if (
+		manual
+			? !["REGISTRATION", "CLASSES"].includes(semester.phase)
+			: semester.phase !== "REGISTRATION"
+	)
 		throw new AppError(
 			409,
 			`Not allowed while the semester is in ${semester.phase}`,
 			{ code: "PHASE_NOT_ALLOWED" },
 		);
-	await getOpenWindowFromDB(student.id, student.batchId, semester.id);
+	if (!manual)
+		await getOpenWindowFromDB(student.id, student.batchId, semester.id);
 	const result = await prisma.$transaction(
 		async (tx) => {
 			const registration = await lockRegistrationIntoDB(
@@ -375,6 +435,25 @@ const unselectSectionIntoDB = async (userId: string, sectionId: string) => {
 				where: { id: sectionId },
 				select: { enrolledCount: true, capacity: true },
 			});
+			if (manual)
+				await createAuditLogIntoDB(tx, {
+					actorId: manual.actorId,
+					action: "MANUAL_UNENROLL",
+					entity: "Enrollment",
+					entityId: enrollment.id,
+					reason: manual.reason,
+					before: {
+						enrolledCount: seat.enrolledCount + 1,
+						totalCredits: registration.totalCredits.toString(),
+						totalFee: registration.totalFee.toString(),
+					},
+					after: {
+						status: "DROPPED",
+						enrolledCount: seat.enrolledCount,
+						totalCredits: updatedRegistration.totalCredits.toString(),
+						totalFee: updatedRegistration.totalFee.toString(),
+					},
+				});
 			return {
 				data: { enrollment: dropped, registration: updatedRegistration },
 				seat,
@@ -827,7 +906,141 @@ const getRegistrationOfferingsFromDB = async (
 	};
 };
 
+const studentSelect = {
+	id: true,
+	universityId: true,
+	name: true,
+	email: true,
+	batchId: true,
+	programId: true,
+	batch: { select: { id: true, code: true } },
+	program: { select: { id: true, code: true, name: true } },
+} satisfies Prisma.StudentSelect;
+
+const getAllRegistrationsFromDB = async (query: IAdminRegistrationQuery) => {
+	if (
+		!(await prisma.semester.findUnique({
+			where: { id: query.semesterId },
+			select: { id: true },
+		}))
+	)
+		throw new AppError(404, "Semester not found");
+	const where: Prisma.SemesterRegistrationWhereInput = {
+		semesterId: query.semesterId,
+		...(query.status ? { status: query.status } : {}),
+		...(query.paymentStatus ? { paymentStatus: query.paymentStatus } : {}),
+		student: {
+			...(query.batchId ? { batchId: query.batchId } : {}),
+			...(query.searchTerm
+				? {
+						OR: [
+							{
+								universityId: {
+									contains: query.searchTerm,
+									mode: "insensitive",
+								},
+							},
+							{ name: { contains: query.searchTerm, mode: "insensitive" } },
+							{ email: { contains: query.searchTerm, mode: "insensitive" } },
+						],
+					}
+				: {}),
+		},
+		...(query.atRisk
+			? {
+					AND: [
+						{
+							status: "ACTIVE",
+							paymentStatus: "UNPAID",
+							paymentDeadline: { lte: new Date(Date.now() + 3 * 86400000) },
+						},
+					],
+				}
+			: {}),
+	};
+	const [data, total] = await Promise.all([
+		prisma.semesterRegistration.findMany({
+			where,
+			include: {
+				student: { select: studentSelect },
+				_count: { select: { enrollments: { where: { status: "ENROLLED" } } } },
+			},
+			skip: (query.page - 1) * query.limit,
+			take: query.limit,
+			orderBy: { [query.sortBy]: query.sortOrder },
+		}),
+		prisma.semesterRegistration.count({ where }),
+	]);
+	return {
+		data,
+		meta: {
+			page: query.page,
+			limit: query.limit,
+			total,
+			totalPages: Math.ceil(total / query.limit),
+		},
+	};
+};
+
+const getStudentRegistrationFromDB = async (
+	studentId: string,
+	semesterId: string,
+) => {
+	const registration = await prisma.semesterRegistration.findUnique({
+		where: { unique_student_semester: { studentId, semesterId } },
+		include: {
+			student: { select: studentSelect },
+			semester: true,
+			enrollments: {
+				include: { section: { include: registrationSectionInclude } },
+				orderBy: { enrolledAt: "desc" },
+			},
+			payments: { orderBy: { createdAt: "desc" } },
+		},
+	});
+	if (!registration) throw new AppError(404, "Semester registration not found");
+	return registration;
+};
+
+async function activeStudentUserIdFromDB(studentId: string) {
+	const student = await prisma.student.findFirst({
+		where: {
+			id: studentId,
+			isDeleted: false,
+			user: { status: "ACTIVE", isDeleted: false },
+		},
+		select: { userId: true },
+	});
+	if (!student) throw new AppError(404, "Active student not found");
+	return student.userId;
+}
+
+const manuallySelectSectionIntoDB = async (
+	actorId: string,
+	studentId: string,
+	sectionId: string,
+	payload: IManualRegistration,
+) =>
+	selectSectionIntoDB(await activeStudentUserIdFromDB(studentId), sectionId, {
+		...payload,
+		actorId,
+	});
+const manuallyUnselectSectionIntoDB = async (
+	actorId: string,
+	studentId: string,
+	sectionId: string,
+	reason: string,
+) =>
+	unselectSectionIntoDB(await activeStudentUserIdFromDB(studentId), sectionId, {
+		actorId,
+		reason,
+	});
+
 export const registrationService = {
+	getAllRegistrationsFromDB,
+	getStudentRegistrationFromDB,
+	manuallySelectSectionIntoDB,
+	manuallyUnselectSectionIntoDB,
 	getSeatStreamSemesterFromDB: async () => {
 		const semester = await prisma.semester.findFirst({
 			where: { phase: { not: "CLOSED" } },

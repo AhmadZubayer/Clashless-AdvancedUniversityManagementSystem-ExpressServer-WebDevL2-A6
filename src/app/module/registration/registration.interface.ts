@@ -14,3 +14,19 @@ export interface IRegistrationCatalogQuery {
 	sortOrder: "asc" | "desc";
 	searchTerm?: string;
 }
+export interface IManualRegistration {
+	reason: string;
+	bypass: TRegistrationBypass[];
+}
+export interface IAdminRegistrationQuery {
+	semesterId: string;
+	batchId?: string;
+	status?: "ACTIVE" | "DISCARDED";
+	paymentStatus?: "UNPAID" | "MINIMUM_PAID" | "FULLY_PAID";
+	atRisk: boolean;
+	searchTerm?: string;
+	page: number;
+	limit: number;
+	sortBy: "createdAt" | "paymentDeadline";
+	sortOrder: "asc" | "desc";
+}
