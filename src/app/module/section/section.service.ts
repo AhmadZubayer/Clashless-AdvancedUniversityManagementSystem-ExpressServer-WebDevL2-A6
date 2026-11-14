@@ -25,7 +25,7 @@ const sectionInclude = {
 } satisfies Prisma.SectionInclude;
 const transactionOptions = {
 	isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-	timeout: 15000,
+	timeout: 60000,
 };
 
 async function getSection(tx: Prisma.TransactionClient, id: string) {

@@ -1,7 +1,7 @@
 # Clashless — Progress
 
-> ## Overall: 70% complete (70 of 100 points)
-> **In progress:** F9 Exam routine · **Next:** F10 Seat plan and invigilators
+> ## Overall: 77% complete (77 of 100 points)
+> **In progress:** F10 Seat plan and invigilators · **Next:** F11 Grades
 > **Last updated:** 14 Nov 2026 by Claude Code
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -23,8 +23,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F6 | Class routine | 14 | ✅ Completed | F5 | 6.8 |
 | F7 | Registration | 14 | ✅ Completed | F6 | 6.9 |
 | F8 | Payments and the discard job | 8 | ✅ Completed | F7 | 6.10, 7 |
-| F9 | Exam routine | 7 | 🔄 In progress | F7 | 6.11 |
-| F10 | Seat plan and invigilators | 10 | ⬜ Not started | F9 | 6.12 |
+| F9 | Exam routine | 7 | ✅ Completed | F7 | 6.11 |
+| F10 | Seat plan and invigilators | 10 | 🔄 In progress | F9 | 6.12 |
 | F11 | Grades | 4 | ⬜ Not started | F7 | 6.13 |
 | F12 | Notifications, dashboards and audit log | 4 | ⬜ Not started | F8, F10, F11 | 6.14–6.16 |
 | F13 | Load test, performance and delivery | 5 | ⬜ Not started | All | 8, 9.7 |
@@ -47,21 +47,22 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | F5 Offerings, sections and teacher preferences | 14 Nov 2026 | Codex | 17 (70 total) | All 13 endpoints/docs, 10 required test IDs, boundary/unit checks and manual pass |
 | F6 Class routine | 14 Nov 2026 | Codex | 18 (88 total) | All 13 endpoints/docs; actual demo 264/264 placed in 552 ms; real BullMQ/manual/PDF pass |
 
+| F9 Exam routine | 14 Nov 2026 | Claude Code | 9 (152 total) | slots, generator/validator, worker, move, publish, /me; T-EXAM-01…08; manual pass done |
 | F8 Payments and the discard job | 14 Nov 2026 | Claude Code | 15 (143 total) | create/callback/me/:id/receipt/admin list, discard + reminder + abandoned jobs, cron; T-PAY-01…11, T-JOB-01…05; manual pass done |
 | F7 Registration | 14 Nov 2026 | Claude Code (built by Codex) | 40 (128 total) | All 10 endpoints/docs; full suite 128 passed, type/lint/format/build clean, manual pass done |
 
 ## 🔄 In progress
 
-### F9 — Exam routine
+### F10 — Seat plan and invigilators
 Started: 14 Nov 2026 by Claude Code
 Handoff notes:
-- Done: F0–F8 complete. F9 code written but not yet mounted/verified: engine/examRoutineGenerator+Validator (unit tests T-EXAM-01..03 pass), module/examSlot, module/examRoutine, jobs/examRoutine.ts, template exam-routine-published.ejs, tests/integration/examRoutine.test.ts (T-EXAM-04..08).
-- Next step: mount examSlot/examRoutine routes in src/app.ts (/api/exam-slots, /api/admin/exam-slots, /api/exam-routines, /api/admin/exam-routines), tsc, run the integration test, lint/format, manual pass, full suite.
-- Traps: full suite can take 14 min on a slow DB (transient 30s timeouts in section tests; rerun file alone). Commits: user identity only, no Co-Authored-By.
+- Done: F0–F9 complete. F10 implemented and verified (module/seatPlan, engine/seatPlan*, seatPlan.jobs reminder + cron, tests/unit/seatPlanGenerator, tests/integration/seatPlan); full suite last run 164 passed (one worker crash, file passes alone).
+- Next step: commit F10, then F11 grades (module/grade written, tests/integration/grade.test.ts written, not mounted) and F12 (notification/auditLog/analytics modules + tests/integration/misc.test.ts written, not mounted).
+- Traps: full suite takes 7-14 min on this DB; transient timeouts/worker crashes happen, rerun the file alone. Commits: user identity only, no Co-Authored-By.
 
 ## ⏭️ Next
 
-1. **F9 Exam routine** (in progress).
+1. **F10 Seat plan and invigilators** (in progress).
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -177,12 +178,12 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F9 — Exam routine (7 points)
 
-- [ ] Exam slots: create, list, delete
-- [ ] `engine/examRoutineGenerator.ts` and `engine/examRoutineValidator.ts` (T-EXAM-01 … T-EXAM-03)
-- [ ] BullMQ `exam-routine` worker; generate, list, view, move, publish
-- [ ] `GET /api/exam-routines/me` for students and teachers
-- [ ] Tests T-EXAM-04 … T-EXAM-08
-- [ ] Definition of done → commit → push
+- [x] Exam slots: create, list, delete
+- [x] `engine/examRoutineGenerator.ts` and `engine/examRoutineValidator.ts` (T-EXAM-01 … T-EXAM-03)
+- [x] BullMQ `exam-routine` worker; generate, list, view, move, publish
+- [x] `GET /api/exam-routines/me` for students and teachers
+- [x] Tests T-EXAM-04 … T-EXAM-08
+- [x] Definition of done → commit → push
 
 ### F10 — Seat plan and invigilators (10 points)
 

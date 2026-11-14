@@ -1,0 +1,7 @@
+<h2>Hello <%= name %>,</h2>
+<p>The exam routine has been published. Your exams:</p>
+<ul>
+<% exams.forEach(function (exam) { %>
+  <li><%= exam.course %> — <%= exam.when %></li>
+<% }) %>
+</ul>

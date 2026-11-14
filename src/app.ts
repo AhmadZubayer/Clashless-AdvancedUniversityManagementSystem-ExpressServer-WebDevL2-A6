@@ -71,6 +71,14 @@ import {
 	adminPaymentRoutes,
 	paymentRoutes,
 } from "./app/module/payment/payment.route";
+import {
+	adminExamRoutineRoutes,
+	examRoutineRoutes,
+} from "./app/module/examRoutine/examRoutine.route";
+import {
+	adminExamSlotRoutes,
+	examSlotRoutes,
+} from "./app/module/examSlot/examSlot.route";
 import { bkashRoutes } from "./app/module/payment/providers/bkash/bkash.route";
 
 const app: Application = express();
@@ -132,6 +140,10 @@ app.use("/api/registrations", registrationRoutes);
 app.use("/api/admin/registrations", adminRegistrationRoutes);
 app.use("/api/faculty-preferences", facultyPreferenceRoutes);
 app.use("/api/admin/faculty-preferences", adminFacultyPreferenceRoutes);
+app.use("/api/exam-slots", examSlotRoutes);
+app.use("/api/admin/exam-slots", adminExamSlotRoutes);
+app.use("/api/exam-routines", examRoutineRoutes);
+app.use("/api/admin/exam-routines", adminExamRoutineRoutes);
 app.use("/api/payments/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin/payments", adminPaymentRoutes);
