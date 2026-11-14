@@ -50,7 +50,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 11:56 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F3 complete and pushed; all 39 tests pass and build/static checks clean.
-- Half-done: F4 claimed only; no F4 application code yet. Continuation checkpoint is committed and pushed.
+- Half-done: semester CRUD/current/detail endpoints and Swagger implemented. Serializable creation prevents concurrent open semesters; rule fields lock after PLANNING. Baseline 39 tests passed. Phase gates next.
 - Next step: semester CRUD/current/detail and rule-field locks, lifecycle gates, then registration windows and T-SEM-01 through T-SEM-09.
 - Traps: use existing schema tables for all gates; no new schema field for published grades. Shared test schema/prefix; explicit ioredis clients for BullMQ. Real notification queue was empty during worker verification.
 
@@ -120,7 +120,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F4 — Semesters and registration windows (4 points)
 
-- [ ] Semester create, list, current, detail, update (rule fields locked after PLANNING)
+- [x] Semester create, list, current, detail, update (rule fields locked after PLANNING)
 - [ ] Phase change with every gate from requirement.md section 3 (the gates read tables that already exist, even before their features are built)
 - [ ] Registration windows: create, list (students see only theirs), change (extend only while running; moves `paymentDeadline`), delete
 - [ ] Tests T-SEM-01 … T-SEM-09
@@ -249,6 +249,7 @@ No outstanding questions. First-admin/demo credentials supplied; user chose uni.
 
 | Date | Decision | By |
 |---|---|---|
+| 14 Nov 2026 | F4 current-semester student response uses registrationWindow and serverTime; CLOSED grade gate will derive publication from matching CourseResult rows without schema changes. Zero percent/day rules are accepted as nonnegative configuration; credits remain positive Decimal. | Codex |
 | 14 Nov 2026 | Assignment override: use supplied database/Redis services for tests, isolated PostgreSQL clashless_test schema and clashless:test: Redis keys; no shared FLUSHDB. Use uni.edu for university email domain. Credentials supplied and stored only in ignored .env. | User / Codex |
 | 14 Nov 2026 | F1 guard tests use a test-only /api/departments route until F3 creates that resource, preserving feature order; replace with production endpoint in F3. | Codex |
 | 14 Nov 2026 | Demo course catalogue taken from the AIUB BSc CSE curriculum (requirement.md Appendix A) | User |

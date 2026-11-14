@@ -14,6 +14,10 @@ import { swaggerDocument } from "./app/lib/swagger";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { authRoutes } from "./app/module/auth/auth.route";
+import {
+	semesterRoutes,
+	adminSemesterRoutes,
+} from "./app/module/semester/semester.route";
 import { adminResultRoutes } from "./app/module/result/result.route";
 import {
 	timeSlotRoutes,
@@ -85,6 +89,8 @@ app.use("/api/admin/time-slots", adminTimeSlotRoutes);
 app.use("/api/day-patterns", dayPatternRoutes);
 app.use("/api/admin/day-patterns", adminDayPatternRoutes);
 app.use("/api/admin/results", adminResultRoutes);
+app.use("/api/semesters", semesterRoutes);
+app.use("/api/admin/semesters", adminSemesterRoutes);
 app.use("/api/payments/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
 
