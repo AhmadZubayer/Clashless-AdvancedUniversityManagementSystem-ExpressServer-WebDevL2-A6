@@ -1,7 +1,7 @@
 # Clashless — Progress
 
-> ## Overall: 95% complete (95 of 100 points)
-> **In progress:** F13 Load test, performance and delivery · **Next:** none (final feature)
+> ## Overall: 100% complete (100 of 100 points)
+> **In progress:** none · **Next:** none (all features complete)
 > **Last updated:** 14 Nov 2026 by Claude Code
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -27,7 +27,7 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F10 | Seat plan and invigilators | 10 | ✅ Completed | F9 | 6.12 |
 | F11 | Grades | 4 | ✅ Completed | F7 | 6.13 |
 | F12 | Notifications, dashboards and audit log | 4 | ✅ Completed | F8, F10, F11 | 6.14–6.16 |
-| F13 | Load test, performance and delivery | 5 | 🔄 In progress | All | 8, 9.7 |
+| F13 | Load test, performance and delivery | 5 | ✅ Completed | All | 8, 9.7 |
 | | **Total** | **100** | | | |
 
 Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. Only one feature is 🔄 at a time.
@@ -47,6 +47,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | F5 Offerings, sections and teacher preferences | 14 Nov 2026 | Codex | 17 (70 total) | All 13 endpoints/docs, 10 required test IDs, boundary/unit checks and manual pass |
 | F6 Class routine | 14 Nov 2026 | Codex | 18 (88 total) | All 13 endpoints/docs; actual demo 264/264 placed in 552 ms; real BullMQ/manual/PDF pass |
 
+| F13 Load test, performance and delivery | 14 Nov 2026 | Claude Code | — (177 total) | Load-test scripts, README, Swagger check (134/134), pool/backlog settings, Vercel deployment files. k6 ran twice and did not meet 9.7; waived by the user | 
 | F12 Notifications, dashboards and audit log | 14 Nov 2026 | Claude Code | 5 (177 total) | notifications, admin/live/me dashboards, audit log; T-MISC-01…05; manual pass done |
 | F11 Grades | 14 Nov 2026 | Claude Code | 6 (177 total) | submit/sheet/status/publish/me; T-GRADE-01…06; CGPA hand-checked incl. retake; manual pass done |
 | F10 Seat plan and invigilators | 14 Nov 2026 | Claude Code | 14 (166 total) | 13 T-SEAT + T-JOB-06, 14 endpoints/docs, validator/generator, invigilators, PDFs, reminder cron; manual pass done |
@@ -56,18 +57,11 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 
 ## 🔄 In progress
 
-### F13 — Load test, performance and delivery
-Started: 14 Nov 2026 by Claude Code
-Handoff notes:
-- Done: F0–F12 complete and pushed (95%). F13: load-test files, README (architecture, decisions, performance, load results), Swagger review, T-ROUT-14/T-SEAT-13 and the full suite are done.
-- Left: only the k6 run (requirement.md 9.7). The user must install k6 (`winget install k6`) and ideally run it where the API and PostgreSQL are close (this machine uses a hosted DB with ~56 ms round trips, so the 1,000-way race cannot finish quickly and the Windows loopback timed out connections). Then: `npm run db:seed:demo -- --registration-open`, `npm run build`, `npm start`, `npx tsx tests/load/makeTokens.ts`, `npm run test:load`; write the counts and p95 into the README, tick the box, move F13 to Completed, set progress to 100%.
-- After a load run, clean the demo section (CSC2211 section 1): delete its enrollments and bills and set enrolledCount to 0, otherwise the next run starts with fewer seats.
-- Traps: run only ONE API instance at a time (the shared Redis refuses extra worker connections: "Queue connection failed"). Full suite takes 9-14 min with transient ETIMEDOUT failures; rerun the file alone. Commits: user identity only, no Co-Authored-By lines.
+_No feature is in progress. All 14 features are completed._
 
 ## ⏭️ Next
 
-1. **F13 Load test, performance and delivery** (in progress): only the k6 run is left, see Questions for the user.
-2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
+Nothing. The backend is complete. Optional follow-ups: run the k6 load test on Linux or against a local PostgreSQL to record a real pass; run the cron jobs on a long-running host or an external scheduler when deploying to Vercel (see the README).
 
 ---
 
@@ -220,16 +214,18 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ### F13 — Load test, performance and delivery (5 points)
 
 - [x] `tests/load/makeTokens.ts` and `tests/load/select-section.k6.js` written (k6 is missing: user asked to install it, see Questions)
-- [ ] Run the load test (requirement.md 9.7); exactly 40 × 201 and 960 × 409. **Ran twice with k6, not a pass**: exactly 40 × 201 both times, but 552/614 × 409 and 346/408 TCP dial failures, p95 about 45 s (remote DB + Windows accept queue). Needs Linux / a local database
+- [x] Run the load test (requirement.md 9.7). **Waived by the user on 14 Nov 2026**; it ran twice and did NOT meet the pass criteria. **Ran twice with k6, not a pass**: exactly 40 × 201 both times, but 552/614 × 409 and 346/408 TCP dial failures, p95 about 45 s (remote DB + Windows accept queue). Needs Linux / a local database
 - [x] T-ROUT-14 and T-SEAT-13 pass on this machine
 - [x] README: architecture, design decisions (why the guarded update, why column groups), load test and performance results
 - [x] Swagger review: all 134 endpoints of requirement.md are documented (checked by script), plus the health check
 - [x] Full `npm test` run is green (177 tests; every file passes; on this shared remote DB 1–5 tests fail per full run with ETIMEDOUT/30 s timeouts and pass when their file is rerun alone)
-- [ ] Definition of done → commit → push
+- [x] Definition of done → commit → push (load-test criterion waived by the user)
 
 ---
 
 ## Handoff notes (newest first)
+
+- **14 Nov 2026, Claude Code, project complete (100%):** the user said load testing is no longer needed since all requirement code is implemented, so the k6 criterion of F13 is waived (it ran twice and did not pass, results are in the README) and F13 is complete. The user asked to apply the Vercel deploy skill from `.agents/skill-library/express-vercel-deploy-skill` and push so they can import the repository into Vercel: added `api/index.js`, `public/.gitkeep`, `vercel.json`, `.vercel/` in `.gitignore`, a README section (env table, caveats), on-demand Redis connect and inline queue jobs when `VERCEL` is set. Verified locally: build, Node import of `api/index.js` (Handler type: function), and a smoke test of `/`, `/docs/`, Swagger CSS, login (200) and an unauthenticated call (401). Not verified: the live Vercel build. Cron jobs do not run on Vercel (see README).
 
 - **14 Nov 2026 18:50, Claude Code, k6 load test run (not a pass):** database access was restored, k6 2.4.0 ran twice (see README). Both runs enrolled exactly 40 students (guard holds, zero API errors), but 552/614 SECTION_FULL instead of 960, 408/346 TCP dial failures (Windows accept queue, requests never reached the API) and p95 about 45 s (remote DB, ~56 ms per round trip). Demo section CSC2211-1 was cleaned afterwards (enrolledCount 0). Docker Desktop exists but its daemon was not running; I did not start it or download images. Not marked complete because the spec's pass criteria are not met.
 - **To finish F13:** run the five load-test steps on Linux or a machine with a local PostgreSQL (or ask me to try Docker: Linux containers for Postgres, API and k6; needs Docker Desktop started and image downloads), then record the numbers and mark F13 ✅.
@@ -294,14 +290,13 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Questions for the user
 
-1. The k6 load test ran but did **not** pass on this machine (hosted DB latency and the Windows accept queue; details in the README). To close F13, either run the README's five steps on Linux or against a local PostgreSQL, or tell me to try Docker (Linux containers; needs Docker Desktop started and about 1 GB of image downloads) and I will run it there.
-
-Previously answered: k6 install approved and done; database access restored for 24 h; first-admin/demo credentials supplied; uni.edu; shared database/Redis for this assignment.
+No outstanding questions. The k6 pass criteria were waived by the user (14 Nov 2026).
 
 ## Decisions log
 
 | Date | Decision | By |
 |---|---|---|
+| 14 Nov 2026 | The user waived the k6 pass criteria of F13 ("no need anymore load testing"). The two k6 runs, which did not meet requirement 9.7, stay documented in the README. For Vercel the app connects Redis on demand and runs queue jobs inline; cron jobs need a long-running host. | User / Claude Code |
 | 14 Nov 2026 | Payments: a registration's payment amount is chosen by the student (min brings paid to 40%, max is the remaining due); callback and abandoned-payment job share complete/close/refund functions. Receipts and discard/reminder/seat emails go through the BullMQ `email` queue. Grades count as published when CourseResult rows exist for the semester. Exam slot delete also removes draft/archived entries for the slot. Section transactions allow 60 s on the shared remote DB. API pool size is `DATABASE_POOL_MAX` (default 10) and the listener backlog is 4096. | Claude Code |
 | 14 Nov 2026 | The explicit demo --registration-open option may reopen its own batch window from now for two hours and move affected bill deadlines; it preserves enrollments/payments and never rewinds CLASSES or later semesters. A REGISTRATION rerun reuses the valid published routine. | Codex |
 | 14 Nov 2026 | Admin WINDOW bypass skips time-range checks; if no window exists, an existing bill keeps its deadline, while a student with no bill returns 404 rather than inventing a deadline. atRisk includes overdue ACTIVE/UNPAID bills as well as those due within three days. | Codex |

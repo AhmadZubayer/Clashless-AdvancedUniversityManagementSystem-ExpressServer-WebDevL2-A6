@@ -10,6 +10,7 @@ import pinoHttp from "pino-http";
 import swaggerUi from "swagger-ui-express";
 import config from "./app/config";
 import { logger } from "./app/lib/logger";
+import { redisClient } from "./app/lib/redis";
 import { swaggerDocument } from "./app/lib/swagger";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
@@ -100,6 +101,24 @@ app.use(
 		credentials: true,
 	}),
 );
+
+// Vercel runs this exported app without server.ts, so Redis is connected on demand.
+if (process.env.VERCEL) {
+	let connecting: Promise<unknown> | undefined;
+	app.use(async (_req, _res, next) => {
+		try {
+			if (!redisClient.isOpen) {
+				connecting ??= redisClient.connect().finally(() => {
+					connecting = undefined;
+				});
+				await connecting;
+			}
+			next();
+		} catch (error) {
+			next(error);
+		}
+	});
+}
 
 // Middleware to parse JSON bodies
 app.use(express.json());

@@ -52,7 +52,8 @@ export async function enqueueJob(
 ) {
 	const handler = handlers.get(name);
 	if (!handler) throw new Error(`No handler registered: ${name}`);
-	if (config.node_env === "test") {
+	// Tests and Vercel have no worker process, so the job runs inline.
+	if (config.node_env === "test" || process.env.VERCEL) {
 		await handler(data);
 		return { id: jobId };
 	}
