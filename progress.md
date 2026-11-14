@@ -54,7 +54,7 @@ Started: 14 Nov 2026 13:20 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F6 complete and pushed; all 88 tests and static/build/manual checks pass. Demo published routine version 2 exists; semester stays PLANNING.
 - Half-done: all ten endpoints/docs and registration-open seed implemented. All required test IDs now exist; the completed registration suite and final full/build/manual checks remain.
-- Next step: run the complete registration suite including all 21 required IDs, then full regression/build/manual/Swagger pass. Actual --registration-open seed succeeded; main demo is now REGISTRATION with published routine and batch 23-3 open for two hours.
+- Next step: final full regression and build, then complete and push F7. All 24 student registration cases passed together in 106.39 seconds; admin suite 8 passed; seed suite 3 passed; main manual HTTP flow and all 10 Swagger methods passed.
 - Traps: default isolation for select, serialize same-student writes with registration row locks, ascending section IDs for switches; Decimal bill totals; test schema/prefix isolation remains mandatory.
 
 ## ⏭️ Next
@@ -224,6 +224,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex, F7 all required IDs/manual verified:** The complete 24-case student registration suite passed in 106.39 seconds after returning SELECT * FOR UPDATE directly and loading independent context reads concurrently. All required T-REG-01 through 21 exist (19 is in registrationAdmin.test.ts); admin suite 8 and seed suite 3 passed. Added explicit guard cases for time clash, 13-to-16 credit limit, prerequisites, CLOSED sections, the 41st seat with alternatives and DISCARDED registrations. Test fixtures retain matching seat/enrollment counts; shared-student Redis counters are isolated between tests, never reset within a scenario. Main manual HTTP select/replay/switch/unselect, me/catalog, admin list/detail/add/remove and all 10 Swagger methods passed; published demo routine v3 has 264 entries and all used seats were released. Diagnostic script removed. Type/lint/format pass. Final full-suite/build checks are next; do not mark F7 complete until they pass.
+
 - **14 Nov 2026, Codex, F7 concurrency query reduction:** A subsequent 24-case registration run still timed out T-REG-11 and returned only 32 SECTION_FULL responses in T-REG-10, so fixture separation alone was insufficient. Changed lockRegistrationIntoDB to the specified SELECT * FOR UPDATE and use that returned row directly, removing a redundant ORM fetch while the row lock is held. Student/program and current-semester reads now run concurrently. Added a shared, documented 60-second transaction wait/timeout constant without changing default isolation or existing limits. A broader eight-case run (first select, unselect/reselect, failed/valid/opposite switches, same-student race and 100-student race) passed in 70.46 seconds. Read-only probe showed warm DB round trips 51–57 ms; only aggregate wait categories were inspected, no row data or connection values printed. Probe removed. Need the full 24-case registration run and final all-suite verification before completion.
 
 - **14 Nov 2026, Codex, F7 registration-open seed verified:** Added prisma/openDemoRegistration.ts and --registration-open wiring/preflight in seedDemo.ts plus README instructions. Generates/publishes synchronously during PLANNING using the shared pure engine and publish service, upserts a two-hour batch window, updates affected bill deadlines and transitions through the normal semester service. REGISTRATION reruns reuse a valid complete publication and reopen the demo window while preserving bills/enrollments/payments; CLASSES and later are rejected before seed writes. Three integration checks passed in 15.14 seconds. Actual npm run db:seed:demo -- --registration-open succeeded at 14:14 Dhaka, retaining 96 courses/2100 students. Main Spring 2027 is now REGISTRATION, with a new published routine; batch 23-3 closes at 16:14 Dhaka on 14 Nov. Remaining required guard tests have been added and compile; next run all registration tests and final full/build/manual verification. No env/schema changes.
@@ -306,6 +308,8 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 
 - 14 Nov 2026, F6: real BullMQ routine worker and manual HTTP generation/poll/report/publication passed for all 264 demo sections. Teacher grid/PDF, version listing and all 13 Swagger methods passed. Master and actual teacher PDF pages visually inspected clean. Demo now has published routine version 2 (version 1 archived) while semester remains PLANNING; no email workers started.
 
+- 14 Nov 2026, F7: manual demo login, empty page, select/replay/switch/unselect, catalog flags, admin list/detail/add/remove and all 10 Swagger methods passed. Used an unregistered demo student; seats were released and a zero-fee bill with dropped enrollment history retained. Spring 2027 is REGISTRATION with published routine v3 (264 entries), and batch 23-3 has the two-hour seed window. No workers or outgoing email/payment services were started.
+
 ## Environment notes (never write secrets here)
 
 | Item | Value |
@@ -319,6 +323,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 

@@ -18,9 +18,15 @@ const authorization = () => `Bearer ${tokenFor(student)}`;
 let originalEnrollmentId: string;
 let targetStudent: Awaited<ReturnType<typeof createStudent>>;
 beforeEach(async () => {
-	if (student?.student)
+	const ids = [
+		student?.student?.id,
+		readStudent?.student?.id,
+		guardStudent?.student?.id,
+		creditStudent?.student?.id,
+	].filter((id): id is string => !!id);
+	if (ids.length)
 		await redisClient.del(
-			redisKey(`rate-limit-registration:${student.student.id}`),
+			ids.map((id) => redisKey(`rate-limit-registration:${id}`)),
 		);
 });
 beforeAll(async () => {
@@ -828,4 +834,178 @@ beforeAll(async () => {
 		.set("Authorization", `Bearer ${tokenFor(readStudent)}`)
 		.set("Idempotency-Key", rateIdempotencyKey);
 	expect(prime.status).toBe(200);
+});
+
+let guardStudent: Awaited<ReturnType<typeof createStudent>>;
+let creditStudent: Awaited<ReturnType<typeof createStudent>>;
+let creditRegistrationId: string;
+beforeAll(async () => {
+	guardStudent = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	creditStudent = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const original = await prisma.section.findUniqueOrThrow({
+		where: { id: sectionId },
+	});
+	const course = await prisma.course.create({
+		data: {
+			code: "F7-FOUR-CREDITS",
+			title: "Four-credit course",
+			credits: 4,
+			type: "THEORY",
+			departmentId: world.department.id,
+		},
+	});
+	const offering = await prisma.courseOffering.create({
+		data: { semesterId, courseId: course.id },
+	});
+	const four = await prisma.section.create({
+		data: {
+			offeringId: offering.id,
+			sectionNo: 1,
+			roomId: original.roomId,
+			timeSlotId: original.timeSlotId,
+			dayPatternId: original.dayPatternId,
+			enrolledCount: 1,
+		},
+	});
+	const registration = await prisma.semesterRegistration.create({
+		data: {
+			studentId: creditStudent.student!.id,
+			semesterId,
+			totalCredits: 13,
+			totalFee: 96500,
+			paymentDeadline: new Date(windowEnd.getTime() + 12 * 86400000),
+		},
+	});
+	creditRegistrationId = registration.id;
+	await prisma.enrollment.createMany({
+		data: [
+			...parallelFixture.sections.slice(0, 3).map((section) => ({
+				studentId: creditStudent.student!.id,
+				semesterId,
+				registrationId: registration.id,
+				sectionId: section.id,
+				offeringId: section.offeringId,
+				credits: 3,
+			})),
+			{
+				studentId: creditStudent.student!.id,
+				semesterId,
+				registrationId: registration.id,
+				sectionId: four.id,
+				offeringId: four.offeringId,
+				credits: 4,
+			},
+		],
+	});
+	await prisma.section.updateMany({
+		where: {
+			id: {
+				in: parallelFixture.sections.slice(0, 3).map((section) => section.id),
+			},
+		},
+		data: { enrolledCount: { increment: 1 } },
+	});
+});
+
+it("T-REG-05 overlapping days and times reject selection and name the held course", async () => {
+	const response = await request(app)
+		.post(`/api/registrations/sections/${sectionId}`)
+		.set("Authorization", `Bearer ${tokenFor(readStudent)}`);
+	expect(response.status).toBe(409);
+	expect(response.body.errorDetails.code).toBe("TIME_CLASH");
+	expect(response.body.message).toContain("F7-READ");
+});
+it("T-REG-06 selecting three more credits from thirteen rejects the sixteen-credit total", async () => {
+	const target = parallelFixture.sections[4];
+	const response = await request(app)
+		.post(`/api/registrations/sections/${target.id}`)
+		.set("Authorization", `Bearer ${tokenFor(creditStudent)}`);
+	expect(response.status).toBe(409);
+	expect(response.body.errorDetails.code).toBe("CREDIT_LIMIT");
+	expect(
+		(
+			await prisma.semesterRegistration.findUniqueOrThrow({
+				where: { id: creditRegistrationId },
+			})
+		).totalCredits.toString(),
+	).toBe("13");
+});
+it("T-REG-07 a missing prerequisite rejects selection with the required course", async () => {
+	const response = await request(app)
+		.post(`/api/registrations/sections/${clashingSectionId}`)
+		.set("Authorization", `Bearer ${tokenFor(guardStudent)}`);
+	expect(response.status).toBe(409);
+	expect(response.body.errorDetails.code).toBe("PREREQUISITE_MISSING");
+	expect(response.body.errorDetails.prerequisites[0].code).toBe("F7-PRE");
+});
+it("T-REG-08 closed sections cannot be selected", async () => {
+	const target = parallelFixture.sections[6];
+	await prisma.section.update({
+		where: { id: target.id },
+		data: { status: "CLOSED" },
+	});
+	const response = await request(app)
+		.post(`/api/registrations/sections/${target.id}`)
+		.set("Authorization", `Bearer ${tokenFor(guardStudent)}`);
+	expect(response.status).toBe(409);
+	expect(response.body.errorDetails.code).toBe("SECTION_CLOSED");
+	await prisma.section.update({
+		where: { id: target.id },
+		data: { status: "OPEN" },
+	});
+});
+it("T-REG-09 the forty-first student gets SECTION_FULL and an open alternative", async () => {
+	const full = raceFixture.section;
+	expect(
+		(await prisma.section.findUniqueOrThrow({ where: { id: full.id } }))
+			.enrolledCount,
+	).toBe(40);
+	const alternative = await prisma.section.create({
+		data: {
+			offeringId: full.offeringId,
+			sectionNo: 2,
+			roomId: full.roomId,
+			dayPatternId: full.dayPatternId,
+			timeSlotId: full.timeSlotId,
+		},
+	});
+	const response = await request(app)
+		.post(`/api/registrations/sections/${full.id}`)
+		.set("Authorization", `Bearer ${tokenFor(guardStudent)}`);
+	expect(response.status).toBe(409);
+	expect(response.body.errorDetails.code).toBe("SECTION_FULL");
+	expect(response.body.errorDetails.alternatives).toContainEqual({
+		id: alternative.id,
+		sectionNo: 2,
+		enrolledCount: 0,
+		capacity: 40,
+	});
+});
+it("T-REG-18 discarded registrations cannot select a section", async () => {
+	await prisma.semesterRegistration.upsert({
+		where: {
+			unique_student_semester: {
+				studentId: guardStudent.student!.id,
+				semesterId,
+			},
+		},
+		create: {
+			studentId: guardStudent.student!.id,
+			semesterId,
+			status: "DISCARDED",
+			paymentDeadline: windowEnd,
+		},
+		update: { status: "DISCARDED" },
+	});
+	const response = await request(app)
+		.post(`/api/registrations/sections/${sectionId}`)
+		.set("Authorization", `Bearer ${tokenFor(guardStudent)}`);
+	expect(response.status).toBe(403);
+	expect(response.body.errorDetails.code).toBe("REGISTRATION_DISCARDED");
 });
