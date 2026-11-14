@@ -1,7 +1,7 @@
 # Clashless — Progress
 
-> ## Overall: 18% complete (18 of 100 points)
-> **In progress:** F3 Academic setup · **Next:** F4 Semesters and registration windows
+> ## Overall: 24% complete (24 of 100 points)
+> **In progress:** nothing · **Next:** F4 Semesters and registration windows
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -17,8 +17,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F0 | Project setup | 6 | ✅ Completed | — | 5, 9.1–9.4, 10.2 |
 | F1 | Auth | 7 | ✅ Completed | F0 | 6.3 |
 | F2 | User management | 5 | ✅ Completed | F1 | 6.4 |
-| F3 | Academic setup | 6 | 🔄 In progress | F1 | 6.5 |
-| F4 | Semesters and registration windows | 4 | ⬜ Not started | F3 | 6.6 |
+| F3 | Academic setup | 6 | ✅ Completed | F1 | 6.5 |
+| F4 | Semesters and registration windows | 4 | ⏭️ Next | F3 | 6.6 |
 | F5 | Offerings, sections and teacher preferences | 6 | ⬜ Not started | F2, F4 | 6.7 |
 | F6 | Class routine | 14 | ⬜ Not started | F5 | 6.8 |
 | F7 | Registration | 14 | ⬜ Not started | F6 | 6.9 |
@@ -42,20 +42,15 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | F0 Project setup | 14 Nov 2026 | Codex | 2 | All setup checks and manual HTTP pass; demo seed rerun verified |
 | F1 Auth | 14 Nov 2026 | Codex | 15 (16 total) | All auth flows, Swagger, static checks and manual HTTP pass |
 | F2 User management | 14 Nov 2026 | Codex | 11 (27 total) | Endpoints, Swagger, static checks, build and manual pass |
+| F3 Academic setup | 14 Nov 2026 | Codex | 11 (39 total) | All 26 endpoints, Swagger, static checks, build and manual pass |
 
 ## 🔄 In progress
 
-### F3 — Academic setup
-Started: 14 Nov 2026 11:14 Asia/Dhaka by Codex
-Handoff notes:
-- Done: all endpoints, Swagger, required tests and manual verification; all 39 tests pass, static checks/build clean; real worker startup verified.
-- Half-done: none; completion commit and push next.
-- Next step: finish completion records and begin F4.
-- Traps: test schema/prefix isolation; ioredis must remain an explicit dependency and constructed client for ESM BullMQ workers.
+_Nothing is in progress._
 
 ## ⏭️ Next
 
-1. **F3 Academic setup**: implement requirement.md 6.5.
+1. **F4 Semesters and registration windows**: implement requirement.md 6.6 and lifecycle gates in section 3.
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -114,7 +109,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Time slots (overlap check) and day patterns
 - [x] Results import, with CGPA and earned-credit recalculation
 - [x] Tests T-ACAD-01 … T-ACAD-11
-- [ ] Definition of done → commit → push
+- [x] Definition of done → commit → push
 
 ### F4 — Semesters and registration windows (4 points)
 
