@@ -43,28 +43,15 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 ## 🔄 In progress
 
 ### F0 — Project setup
-Started: 14 Nov 2026 by Codex
+Started: 14 Nov 2026 10:20 Asia/Dhaka by Codex
 Handoff notes:
-- Done: planning documents pushed; required skill downloaded; scaffold created with required features, ignore rules merged and README expanded. Initial type check passes.
-- Half-done: scaffold only; domain models and F0 infrastructure pending.
-- Next step: copy exact requirement schema and adapt scaffold references.
-- Traps: test services are shared; tests must enforce isolated schema and Redis prefix.
-
-When you start a feature, replace the line above with:
-
-```text
-### F<n> — <feature name>
-Started: <date and time> by <tool name>
-Handoff notes:
-- Done: ...
-- Half-done: <file> / <function> — ...
-- Next step: ...
-- Traps: ...
-```
-
+- Done: scaffold, exact schema/migration, seeds, audit/notification helpers, queues, seat events, grade/time helpers, test harness and README implemented. Static checks and build pass. Demo seed ran twice safely; aggregate counts match the requirements.
+- Half-done: final test run and normal startup verification are running after replacement Redis credentials were supplied.
+- Next step: finish F0 verification and push, then begin F1 Auth.
+- Traps: shared services require clashless_test schema and clashless:test: Redis keys. Auth/payment code remains scaffold behavior pending F1/F8; payment changes so far only adapt deleted example models.
 ## ⏭️ Next
 
-1. **F0 Project setup**: start here. Its checklist is below.
+1. Finish **F0 Project setup** verification, then **F1 Auth**.
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -87,7 +74,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] `lib/queue.ts` (inline when `NODE_ENV=test`), worker bootstrap in `src/app/jobs/` started from `server.ts`, `lib/seatEvents.ts`
 - [x] `utils/grade.ts` and `utils/time.ts`
 - [ ] Test setup from 9.1–9.4: `vitest.config.ts`, `tests/` folders, `.env.test.example`, `.env.test` and `tests/load/tokens.json` added to `.gitignore`; a smoke test (`GET /` answers 200) passes
-- [ ] README: install, configure, run, seed and test
+- [x] README: install, configure, run, seed and test
 - [ ] The skill's verify steps all pass (validate, migrate, generate, format, lint, type check, seed, dev, `/docs`)
 - [ ] Definition of done (10.3) → commit → push
 
@@ -235,13 +222,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Questions for the user
 
-Ask these during F0 (one message), then record the answers (never the secret values) under *Environment notes*:
-
-- The real university email domain for `UNIVERSITY_EMAIL_DOMAIN` (demo data uses `clashless.test`)
-- A `DEMO_PASSWORD` for the demo accounts
-- A PostgreSQL database for development and a **separate** one for tests
-- A Redis for development, and one for tests that can be flushed
-- Checker result (14 Nov, Codex): `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` missing. Also requested project variables and separate test services above. Resolved: user supplied first-admin/demo credentials and authorized existing DB/Redis services for assignment tests. Values are saved only in ignored .env; existing service values were not printed.
+No outstanding questions. First-admin/demo credentials supplied; user chose uni.edu and shared database/Redis services for this assignment. Replacement Redis credentials supplied after the previous host failed DNS. Values are stored only in ignored environment files.
 
 ## Decisions log
 
@@ -256,7 +237,7 @@ Ask these during F0 (one message), then record the answers (never the secret val
 
 One line per feature after its manual pass (requirement.md 9.5): date, feature, what was tried, result.
 
-_Nothing yet._
+- 14 Nov 2026, F0: HTTP welcome and Swagger UI returned 200; Swagger init includes login; seeded Super Admin login returned 200. SMTP verify succeeded. Normal bootstrap recheck running with replacement Redis.
 
 ## Environment notes (never write secrets here)
 
@@ -266,7 +247,7 @@ _Nothing yet._
 | Project folder | `D:\AhmadZubayer\Dev\Projects\Clashless-AdvancedUniversityManagement` |
 | Node.js | v24.15.0 (checked 14 Nov 2026) |
 | Git remote | `origin` → `https://github.com/AhmadZubayer/Clashless-AdvancedUniversityManagementSystem-ExpressServer-WebDevL2-A6.git`, branch `main` |
-| Development database | _not set yet_ |
-| Test database | _not set yet_ |
-| Redis (dev / test) | _not set yet_ |
+| Development database | Supplied hosted PostgreSQL; public schema migrated and seeded |
+| Test database | Same supplied PostgreSQL, isolated clashless_test schema |
+| Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | k6 installed | _not checked yet_ |

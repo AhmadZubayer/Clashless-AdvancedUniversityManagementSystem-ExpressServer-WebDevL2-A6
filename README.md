@@ -6,10 +6,10 @@ University registration, class routines, exam routines and seat plans. Implement
 
 Use Node.js 24, PostgreSQL and Redis. Install dependencies with `npm ci`. Copy `.env.example` to `.env` and fill in service credentials, first-admin details, `UNIVERSITY_EMAIL_DOMAIN` and `DEMO_PASSWORD`. Never commit environment files containing secrets.
 
-Once F0's database schema and migration are ready, run `npm run db:migrate`, `npm run db:seed` and `npm run db:seed:demo`. Start the API with `npm run dev`; Swagger is at `http://localhost:5000/docs`.
+Run `npm run db:deploy`, `npm run db:seed` and `npm run db:seed:demo`. Start the API with `npm run dev`; Swagger is at `http://localhost:5000/docs`. The first Super Admin uses `ADMIN_*`; all demo accounts use `DEMO_PASSWORD`. Seeds can be rerun without duplicating rows.
 
 ## Verification
 
-Use a separate PostgreSQL database and disposable Redis database in `.env.test`. Tests reset those databases. The test harness and demo seed are pending F0 work; see the checklist before running them.
+Copy `.env.test.example` to `.env.test` and configure the supplied PostgreSQL and Redis services. For this assignment, tests share the services and enforce `DATABASE_SCHEMA=clashless_test` and `REDIS_KEY_PREFIX=clashless:test:`. Tests migrate and truncate only that schema and delete only keys with that prefix. Development data in `public` is preserved. Set `REDIS_TLS=true` in both environments if the Redis provider requires TLS.
 
-Run `npx tsc --noEmit`, `npm run lint:check`, `npm run format:check` and, once the harness is implemented, `npm test`. Build with `npm run build`, then start with `npm start`.
+Run `npx tsc --noEmit`, `npm run lint:check`, `npm run format:check` and `npm test`. Build with `npm run build`, then start with `npm start`. Tests mock outgoing mail, Google verification, uploads and bKash calls.
