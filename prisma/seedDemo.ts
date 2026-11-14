@@ -6,6 +6,7 @@ import { logger } from "../src/app/lib/logger";
 import { prisma } from "../src/app/lib/prisma";
 import type { Prisma } from "../src/generated/prisma/client";
 import { CourseType, UserRole, Weekday } from "../src/generated/prisma/enums";
+import { openDemoRegistrationIntoDB } from "./openDemoRegistration";
 
 interface ICatalogCourse {
 	code: string;
@@ -45,6 +46,15 @@ const departmentFor = (code: string) =>
 	})[code.startsWith("CHEM") ? "CHEM" : code.slice(0, 3)];
 
 async function seedDemo() {
+	const registrationOpen = process.argv.includes("--registration-open");
+	if (registrationOpen) {
+		const existing = await prisma.semester.findUnique({
+			where: { code: "2027-1" },
+			select: { phase: true },
+		});
+		if (existing && !["PLANNING", "REGISTRATION"].includes(existing.phase))
+			throw new Error("Demo semester has moved beyond registration");
+	}
 	if (!config.demo_password) throw new Error("DEMO_PASSWORD is required");
 	const password = await bcrypt.hash(
 		config.demo_password,
@@ -173,7 +183,7 @@ async function seedDemo() {
 			create: { code, days, type: days.length === 2 ? "THEORY" : "LAB" },
 		});
 	const adminEmail = "admin@clashless.test";
-	await prisma.user.upsert({
+	const demoAdmin = await prisma.user.upsert({
 		where: { email: adminEmail },
 		update: {},
 		create: {
@@ -361,6 +371,24 @@ async function seedDemo() {
 				},
 			});
 		}
+	}
+	if (registrationOpen) {
+		const batch = await prisma.batch.findUniqueOrThrow({
+			where: { code: "23-3" },
+		});
+		const opened = await openDemoRegistrationIntoDB(
+			semester.id,
+			demoAdmin.id,
+			batch.id,
+		);
+		logger.info(
+			{
+				semesterId: semester.id,
+				routineId: opened.routineId,
+				closesAt: opened.window.endsAt,
+			},
+			"Demo registration open for two hours",
+		);
 	}
 	logger.info({ courses: catalog.length, students: 2100 }, "Demo data ready");
 }
