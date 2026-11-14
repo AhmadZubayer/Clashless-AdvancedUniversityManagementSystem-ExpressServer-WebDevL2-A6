@@ -132,6 +132,8 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 const logoutUser = catchAsync(async (req: Request, res: Response) => {
+	if (!req.user) throw new AppError(httpStatus.UNAUTHORIZED, "Please log in");
+	await authService.logoutUser(req.user);
 	clearAuthCookies(res);
 
 	sendResponse(res, {

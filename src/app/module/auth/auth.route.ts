@@ -16,7 +16,7 @@ authRoutes.get("/me", auth(), authController.getMe);
 
 authRoutes.post("/refresh-token", authController.refreshToken);
 
-authRoutes.post("/logout", authController.logoutUser);
+authRoutes.post("/logout", auth(), authController.logoutUser);
 
 authRoutes.post(
 	"/google",

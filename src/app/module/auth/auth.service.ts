@@ -404,7 +404,10 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 	return createAuthTokens(user);
 };
 
+const logoutUser = (user: RequestUser) => prisma.user.update({ where: { id: user.id }, data: { tokenVersion: { increment: 1 } }, select: { id: true } });
+
 export const authService = {
+	logoutUser,
 
 
 	loginUser,
