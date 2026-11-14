@@ -1,55 +1,21 @@
-import "dotenv/config";
-import bcrypt from "bcryptjs";
+﻿import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { UserRole } from "../src/generated/prisma/enums";
+import config from "../src/app/config";
+import { logger } from "../src/app/lib/logger";
 import { prisma } from "../src/app/lib/prisma";
+import { UserRole } from "../src/generated/prisma/enums";
 
-const adminEnvSchema = z.object({
-    ADMIN_NAME: z.string().min(2),
-    ADMIN_EMAIL: z.email(),
-    ADMIN_PASSWORD: z.string().min(8),
-    BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10)
-});
-
-const seedAdmin = async () => {
-    const env = adminEnvSchema.parse(process.env);
-    const email = env.ADMIN_EMAIL.toLowerCase();
-
-    const existingUser = await prisma.user.findUnique({
-        where: {
-            email
-        }
-    });
-
-    if (existingUser) {
-        if (existingUser.role !== UserRole.ADMIN) {
-            throw new Error("Admin email already belongs to a non-admin user");
-        }
-
-        console.log("Admin user already exists");
-        return;
-    }
-
-    const password = await bcrypt.hash(env.ADMIN_PASSWORD, env.BCRYPT_SALT_ROUNDS);
-
-    await prisma.user.create({
-        data: {
-            name: env.ADMIN_NAME,
-            email,
-            password,
-            role: UserRole.ADMIN,
-            emailVerified: true
-        }
-    });
-
-    console.log("Admin user created successfully");
+async function seedAdmin() {
+ const input = z.object({ name: z.string().min(2), email: z.email(), password: z.string().min(8) }).parse({ name: config.admin_name, email: config.admin_email, password: config.admin_password });
+ const email = input.email.toLowerCase();
+ const password = await bcrypt.hash(input.password, Number(config.bcrypt_salt_rounds));
+ await prisma.$transaction(async (tx) => {
+  const existing = await tx.user.findUnique({ where: { email } });
+  if (existing && existing.role !== UserRole.SUPER_ADMIN) throw new Error("Admin email belongs to another role");
+  const user = existing ?? await tx.user.create({ data: { name: input.name, email, password, role: UserRole.SUPER_ADMIN, emailVerified: true, needPasswordChange: true } });
+  await tx.admin.upsert({ where: { userId: user.id }, update: {}, create: { userId: user.id, name: user.name, email, personalEmail: email } });
+ });
+ logger.info("Super admin and profile are ready");
 }
 
-seedAdmin()
-    .catch((error) => {
-        console.error(error);
-        process.exitCode = 1;
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+seedAdmin().catch(() => { logger.error("Super admin seed failed"); process.exitCode = 1; }).finally(() => prisma.$disconnect());
