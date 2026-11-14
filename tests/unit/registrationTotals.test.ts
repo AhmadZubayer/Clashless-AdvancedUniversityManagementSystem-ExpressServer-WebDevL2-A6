@@ -41,6 +41,6 @@ it("F7 fractional credit sums stay exact and the last drop removes the semester 
 	const dropped = registrationTotals({ ...input, credits: [] });
 	expect(dropped.totalCredits.isZero()).toBe(true);
 	expect(dropped.totalFee.isZero()).toBe(true);
-	expect(dropped.paymentStatus).toBe("FULLY_PAID");
+	expect(dropped.paymentStatus).toBe("UNPAID");
 	expect(input.paidAmount.toString()).toBe("1205");
 });

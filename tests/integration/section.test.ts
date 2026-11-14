@@ -543,7 +543,7 @@ it("T-SEC-07 cancellation reduces three bills, preserves credit and notifies stu
 		expect(bill.totalCredits.toString()).toBe(index === 0 ? "3" : "0");
 		expect(bill.totalFee.toString()).toBe(index === 0 ? "31500" : "0");
 		expect(bill.paidAmount.toString()).toBe("40000");
-		expect(bill.paymentStatus).toBe("FULLY_PAID");
+		expect(bill.paymentStatus).toBe(index === 0 ? "FULLY_PAID" : "UNPAID");
 		expect(
 			await prisma.notification.count({
 				where: { userId: user.id, type: "SECTION_CANCELLED" },

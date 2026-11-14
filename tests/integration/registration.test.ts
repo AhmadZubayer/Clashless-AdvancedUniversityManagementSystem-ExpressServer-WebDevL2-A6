@@ -196,7 +196,7 @@ it("T-REG-13 unselect drops the enrollment and removes the semester fee without 
 		totalCredits: "0",
 		totalFee: "0",
 		paidAmount: "10000",
-		paymentStatus: "FULLY_PAID",
+		paymentStatus: "UNPAID",
 	});
 	expect(
 		(await prisma.section.findUniqueOrThrow({ where: { id: sectionId } }))

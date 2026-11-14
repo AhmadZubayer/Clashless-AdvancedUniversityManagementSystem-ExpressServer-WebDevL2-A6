@@ -18,10 +18,12 @@ export function registrationTotals(input: {
 				.plus(input.semesterFee)
 				.toDecimalPlaces(2);
 	const minimumPayment = totalFee.mul(input.minPaymentPercent).div(100).ceil();
-	const paymentStatus = input.paidAmount.gte(totalFee)
-		? "FULLY_PAID"
-		: input.paidAmount.gte(minimumPayment)
-			? "MINIMUM_PAID"
-			: "UNPAID";
+	const paymentStatus = totalFee.isZero()
+		? "UNPAID"
+		: input.paidAmount.gte(totalFee)
+			? "FULLY_PAID"
+			: input.paidAmount.gte(minimumPayment)
+				? "MINIMUM_PAID"
+				: "UNPAID";
 	return { totalCredits, totalFee, paymentStatus } as const;
 }

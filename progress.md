@@ -1,4 +1,4 @@
-﻿# Clashless — Progress
+# Clashless — Progress
 
 > ## Overall: 48% complete (48 of 100 points)
 > **In progress:** F7 Registration · **Next:** F8 Payments and the discard job
@@ -223,6 +223,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ---
 
 ## Handoff notes (newest first)
+
+- **14 Nov 2026, Codex, zero-fee billing correction:** Requirement 6.10 explicitly makes a registration with no courses/zero fee UNPAID, retaining any paid credit. Corrected the shared Decimal helper and the drop/cancel boundary assertions (previously FULLY_PAID at zero). Type, lint and format checks pass. The prior focused-run process/result was unavailable; cache confirms the repaired section file passed, but registration had no new final result. Interrupted the fresh baseline run to include this discovered production correction; a complete regression is required on the final source. No services or timeouts changed.
 
 - **14 Nov 2026, Codex, F7 final-suite setup repair in progress:** Final full run: 123 passed, five 30-second case timeouts (extra F7 opposite-switch case and F5 bulk swap, capacity, CSV/PDF and extra-section cases). All named T-REG IDs passed in that run. No production assertion failed in those five cases. Moved the opposite-switch starting enrollments into beforeAll while retaining its two initial select assertions and both concurrent switches; registration tests now share one actual HTTP listener, closed in afterAll. A no-DB local probe measured fresh listeners 7–155 ms versus shared 4–8 ms, so no claim that listener startup was the sole cause; probe removed. F5 scheduledWorld/student setup is now in beforeEach hooks, preserving all API assertions and original 30-second test timeouts. Current combined registration/section verification is running; full regression must still be green before F7 completion. No business rules, test counts or expected results were relaxed.
 
