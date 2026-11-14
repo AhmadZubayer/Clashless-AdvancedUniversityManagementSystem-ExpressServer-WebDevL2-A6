@@ -53,8 +53,8 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 13:20 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F6 complete and pushed; all 88 tests and static/build/manual checks pass. Demo published routine version 2 exists; semester stays PLANNING.
-- Half-done: F7 implementation not started.
-- Next step: registration select with raw insert/FOR UPDATE and guarded seat update, following requirement 6.9.1 exactly.
+- Half-done: select endpoint/core transaction implemented and documented; rate/idempotency guards remain for their checklist item. T-REG-01/02/03/04/10 passed (5 tests, 43.13 seconds); T-REG-11 passed separately (17.84 seconds).
+- Next step: unselect and switch, then Redis rate limit/idempotency, remaining reads/SSE/admin endpoints, demo registration-open seed and T-REG-05 through 21 still missing except 10/11. Reuse locked registration and Decimal totals.
 - Traps: default isolation for select, serialize same-student writes with registration row locks, ascending section IDs for switches; Decimal bill totals; test schema/prefix isolation remains mandatory.
 
 ## ⏭️ Next
@@ -152,7 +152,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F7 — Registration (14 points)
 
-- [ ] Select a section exactly as in 6.9.1 (raw insert + `FOR UPDATE`, guarded seat update)
+- [x] Select a section exactly as in 6.9.1 (raw insert + `FOR UPDATE`, guarded seat update)
 - [ ] Unselect (6.9.2) and switch (6.9.3)
 - [ ] Idempotency key and rate limit
 - [ ] Fee and `paymentStatus` recalculation
@@ -223,6 +223,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ---
 
 ## Handoff notes (newest first)
+
+- **14 Nov 2026, Codex, F7 selection checkpoint:** F0–F6 complete (48%) and pushed; F7 in progress. registration six-file module mounted. Select creates bill with raw INSERT including id/updatedAt and ON CONFLICT, then locks its row FOR UPDATE under default isolation. Implements phase/window/discarded/scheduled/open/same-course/clash/credits/prerequisites, guarded seat +1, enrollment upsert, Decimal bill update and post-commit seat publication. Default-isolation transaction uses 60-second wait/timeout for concurrent requests. T-REG-01/02/03/04/10 passed: exactly 40 of 100 students enrolled and 60 SECTION_FULL, final count/rows 40. T-REG-11 separately passed: same-student five parallel selects from 6 credits accept three and reject two, final 15 credits. Type/lint/format clean. Last full suite before F7: 88 passed. Remaining: unselect/switch; rate limit and idempotency (not yet wired despite endpoint docs already describing the final header/429); remaining read/cache/SSE/admin routes; registration-open seed; required missing tests. Admin router currently mounted but empty. Tests run only on clashless_test schema and clashless:test: Redis prefix. Main demo remains PLANNING with published routine v2; diagnostic workers stopped, temporary PDF/scripts removed.
 
 - **14 Nov 2026, Codex, F6 complete:** All 13 endpoints and Swagger implemented. Full suite 88 passed in 217.55 seconds; type check, lint, format and build pass. Real BullMQ/manual HTTP generated and published all 264 demo sections, checked report/versions/teacher grid/PDF and every Swagger method. Master and teacher PDF pages visually inspected clean. Demo now has published version 2, version 1 archived; semester remains PLANNING. Routine generation is deterministic with occupancy maps, one-blocker repair, pins and bounded improvement; demo placed in 552 ms, score 0. Portable anonymized demo fixture supports T-ROUT-14. Unit project runs without external services; integration migration setup retries idempotently up to three times. Queue bootstrap accepts optional queue names for focused real-worker runs; manual run started only routine workers, which were stopped afterward. No env/schema changes. Next F7: exact raw insert/FOR UPDATE registration locks, guarded seat updates, Redis idempotency/rate limit, then unselect/switch/browse/SSE/admin flows. Reuse Decimal registrationTotals and routine time helpers.
 
@@ -302,6 +304,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 
