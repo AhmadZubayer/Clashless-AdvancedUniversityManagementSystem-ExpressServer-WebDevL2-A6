@@ -183,151 +183,40 @@ const refreshToken = async (token: string) => {
 	return createAuthTokens(user);
 };
 
-const forgotPassword = async (payload: IForgotPasswordPayload) => {
-	const { email } = payload;
-
-	const isUserExist = await prisma.user.findUnique({
-		where: {
-			email,
-		},
-	});
-
-	if (!isUserExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "User Does Not Exist!");
-	}
-
-	checkUserCanLogin(isUserExist);
-
-	if (isUserExist.password === null) {
-		throw new AppError(httpStatus.BAD_REQUEST, "User Has Account With Google");
-	}
-
-	const otp = generateOtp();
-
-	const key = redisKey(`forgot-password-otp:${isUserExist.email}`);
-
-	await redisClient.set(key, otp, {
-		expiration: {
-			type: "EX",
-			value: OTP_EXPIRATION_SECONDS,
-		},
-	});
-
-	await sendEmail({
-		to: isUserExist.email,
-		subject: "Forgot Password",
-		templateName: "forgot-password",
-		templateData: {
-			name: isUserExist.name,
-			otp,
-			expirationMinutes: OTP_EXPIRATION_SECONDS / 60,
-		},
-	});
+const forgotPassword = async ({ email }: IForgotPasswordPayload) => {
+ await checkOtpSendLimit(email);
+ const user = await prisma.user.findUnique({ where: { email } });
+ if (!user || !user.password || user.isDeleted || user.status !== UserStatus.ACTIVE) return;
+ const otp = generateOtp();
+ await redisClient.set(redisKey(`forgot-password-otp:${email}`), otp, { expiration: { type: "EX", value: OTP_EXPIRATION_SECONDS } });
+ try { await sendEmail({ to: email, subject: "Forgot Password", templateName: "forgot-password", templateData: { name: user.name, otp, expirationMinutes: 5 } }); }
+ catch { logger.error({ userId: user.id }, "Password reset email failed"); }
 };
 
-const resetPassword = async (payload: IResetPasswordPayload) => {
-	const { email, otp, newPassword } = payload;
-
-	const isUserExist = await prisma.user.findUnique({
-		where: {
-			email,
-		},
-	});
-
-	if (!isUserExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "User Does Not Exist!");
-	}
-
-	checkUserCanLogin(isUserExist);
-
-	const key = redisKey(`forgot-password-otp:${isUserExist.email}`);
-
-	const redisOtp = await redisClient.get(key);
-
-	if (!redisOtp) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			"OTP Expired. Please request a new one",
-		);
-	}
-
-	if (redisOtp !== otp) {
-		throw new AppError(httpStatus.BAD_REQUEST, "OTP Does Not Match");
-	}
-
-	const hashedNewPassword = await bcrypt.hash(
-		newPassword,
-		Number(config.bcrypt_salt_rounds),
-	);
-
-	await prisma.user.update({
-		where: {
-			id: isUserExist.id,
-		},
-		data: {
-			password: hashedNewPassword,
-			needPasswordChange: false,
-		},
-	});
-
-	await redisClient.del(key);
-
-	await sendEmail({
-		to: isUserExist.email,
-		subject: "Password Changed",
-		templateName: "reset-password-success",
-		templateData: {
-			name: isUserExist.name,
-		},
-	});
+const resetPassword = async ({ email, otp, newPassword }: IResetPasswordPayload) => {
+ const user = await prisma.user.findUnique({ where: { email } });
+ const verified = await redisClient.eval(`if redis.call('GET', KEYS[1]) == ARGV[1] then redis.call('DEL', KEYS[1]); return 1 end; return 0`, { keys: [redisKey(`forgot-password-otp:${email}`)], arguments: [otp] });
+ if (!user || !user.password || user.isDeleted || user.status !== UserStatus.ACTIVE || Number(verified) !== 1) throw new AppError(httpStatus.BAD_REQUEST, "The OTP is wrong or has expired", { code: "INVALID_OTP" });
+ const hash = await bcrypt.hash(newPassword, Number(config.bcrypt_salt_rounds));
+ await prisma.$transaction(async (tx) => {
+  const changed = await tx.user.updateMany({ where: { id: user.id, password: user.password, tokenVersion: user.tokenVersion, status: UserStatus.ACTIVE, isDeleted: false }, data: { password: hash, needPasswordChange: false, tokenVersion: { increment: 1 } } });
+  if (changed.count !== 1) throw new AppError(httpStatus.CONFLICT, "Account changed; request a new OTP");
+ });
+ try { await sendEmail({ to: email, subject: "Password Changed", templateName: "reset-password-success", templateData: { name: user.name } }); }
+ catch { logger.error({ userId: user.id }, "Password confirmation email failed"); }
 };
 
-const changePassword = async (
-	user: RequestUser,
-	payload: IChangePasswordPayload,
-) => {
-	const isUserExist = await prisma.user.findUnique({
-		where: {
-			id: user.id,
-		},
-	});
-
-	if (!isUserExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "User Does Not Exist!");
-	}
-
-	if (isUserExist.password === null) {
-		throw new AppError(httpStatus.BAD_REQUEST, "User Has Account With Google");
-	}
-
-	const isPasswordMatched = await bcrypt.compare(
-		payload.currentPassword,
-		isUserExist.password,
-	);
-
-	if (!isPasswordMatched) {
-		throw new AppError(
-			httpStatus.UNAUTHORIZED,
-			"Current password is incorrect",
-		);
-	}
-
-	const hashedNewPassword = await bcrypt.hash(
-		payload.newPassword,
-		Number(config.bcrypt_salt_rounds),
-	);
-
-	await prisma.user.update({
-		where: {
-			id: isUserExist.id,
-		},
-		data: {
-			password: hashedNewPassword,
-			needPasswordChange: false,
-		},
-	});
+const changePassword = async (identity: RequestUser, { currentPassword, newPassword }: IChangePasswordPayload) => {
+ const user = await prisma.user.findUnique({ where: { id: identity.id } });
+ if (!user || !user.password || !(await bcrypt.compare(currentPassword, user.password))) throw new AppError(httpStatus.UNAUTHORIZED, "Current password is incorrect");
+ const hash = await bcrypt.hash(newPassword, Number(config.bcrypt_salt_rounds));
+ const updated = await prisma.$transaction(async (tx) => {
+  const changed = await tx.user.updateMany({ where: { id: user.id, password: user.password, tokenVersion: user.tokenVersion, status: UserStatus.ACTIVE, isDeleted: false }, data: { password: hash, needPasswordChange: false, tokenVersion: { increment: 1 } } });
+  if (changed.count !== 1) throw new AppError(httpStatus.CONFLICT, "Account changed; please log in again");
+  return tx.user.findUniqueOrThrow({ where: { id: user.id }, omit: { password: true } });
+ });
+ return { ...createAuthTokens(updated), needPasswordChange: updated.needPasswordChange };
 };
-
 const googleLogin = async ({ idToken }: IGoogleLoginPayload) => {
  let payload: TokenPayload | undefined;
  try {

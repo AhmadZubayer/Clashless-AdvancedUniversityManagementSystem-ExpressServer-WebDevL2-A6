@@ -106,7 +106,7 @@ const forgotPassword = catchAsync(async (req: Request, res: Response) => {
 	sendResponse(res, {
 		statusCode: httpStatus.OK,
 		success: true,
-		message: `OTP Sent To Email : ${payload.email}`,
+		message: "If this account is eligible, an OTP has been sent",
 		data: null,
 	});
 });
@@ -132,13 +132,14 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 		);
 	}
 
-	await authService.changePassword(req.user, req.body);
+	const result = await authService.changePassword(req.user, req.body);
+ setAuthCookies(res, result.accessToken, result.refreshToken);
 
 	sendResponse(res, {
 		statusCode: httpStatus.OK,
 		success: true,
 		message: "Password Changed Successfully",
-		data: null,
+		data: result,
 	});
 });
 
