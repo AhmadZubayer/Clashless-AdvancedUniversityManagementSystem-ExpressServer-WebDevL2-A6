@@ -1,5 +1,39 @@
 /**
  * @openapi
+ * /api/registrations/me:
+ *   get:
+ *     tags: [Registration]
+ *     summary: Current semester, own batch window, bill and enrolled sections
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Window isOpen/opensAt/closesAt/serverTime, registration or null, minimum payment, max credits and enrolled sections }
+ *       401: { description: Authentication required }
+ *       403: { description: Student access required }
+ *       404: { description: Student or current semester not found }
+ */
+/**
+ * @openapi
+ * /api/registrations/offerings:
+ *   get:
+ *     tags: [Registration]
+ *     summary: Cached catalog with live seats and per-student selection flags
+ *     description: Metadata is cached for 30 seconds. Capacity, enrollment counts and section status are read live; flags are computed for the current student.
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: query, name: page, schema: { type: integer, minimum: 1, default: 1 } }
+ *       - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100, default: 10 } }
+ *       - { in: query, name: sortBy, schema: { type: string, enum: [createdAt, code, title], default: createdAt } }
+ *       - { in: query, name: sortOrder, schema: { type: string, enum: [asc, desc], default: desc } }
+ *       - { in: query, name: searchTerm, schema: { type: string } }
+ *     responses:
+ *       200: { description: Paginated offerings; sections include seatsLeft, clash, hasCourse, prerequisiteMissing and full }
+ *       400: { description: Invalid query }
+ *       401: { description: Authentication required }
+ *       403: { description: Student access required }
+ *       404: { description: Student or current semester not found }
+ */
+/**
+ * @openapi
  * /api/registrations/sections/{sectionId}:
  *   delete:
  *     tags: [Registration]

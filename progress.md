@@ -53,8 +53,8 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 13:20 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F6 complete and pushed; all 88 tests and static/build/manual checks pass. Demo published routine version 2 exists; semester stays PLANNING.
-- Half-done: select endpoint/core transaction implemented and documented; rate/idempotency guards remain for their checklist item. T-REG-01/02/03/04/10 passed (5 tests, 43.13 seconds); T-REG-11 passed separately (17.84 seconds).
-- Next step: registration me/catalog reads and student flags, then SSE/admin endpoints, demo registration-open seed and remaining tests. Decimal boundary checks pass (16 unit tests total), including fee rounding, ceil minimum and retained credit after the last drop. Redis idempotency/rate guards passed 3 focused tests (T-REG-12/17 and concurrent first replay). Unselect/switch implemented with ascending section updates, rollback and retained paid credit. Focused 6 tests passed (T-REG-03/13/14/15/16 and opposite-direction switch); baseline full suite 94 passed in 246.09 seconds.
+- Half-done: select/unselect/switch, Redis rate/idempotency guards, Decimal billing and me/catalog reads implemented. SSE, admin flows, demo registration-open seed and remaining required tests are pending.
+- Next step: SSE seat stream, then admin list/detail/add/remove, registration-open demo seed, missing T-REG-05/06/07/08/09/18/19/20, full regression/build and manual pass. Baseline full suite 94 passed; 14 guarded mutation tests passed; latest read/catalog suite 3 passed; unit suite 16 passed.
 - Traps: default isolation for select, serialize same-student writes with registration row locks, ascending section IDs for switches; Decimal bill totals; test schema/prefix isolation remains mandatory.
 
 ## ⏭️ Next
@@ -156,7 +156,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Unselect (6.9.2) and switch (6.9.3)
 - [x] Idempotency key and rate limit
 - [x] Fee and `paymentStatus` recalculation
-- [ ] `GET /api/registrations/me` and offerings with per-student flags (catalog cache)
+- [x] `GET /api/registrations/me` and offerings with per-student flags (catalog cache)
 - [ ] SSE seat stream with Redis pub/sub
 - [ ] Admin list, detail, manual add (bypass) and remove
 - [ ] `--registration-open` option for `db:seed:demo`
@@ -223,6 +223,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ---
 
 ## Handoff notes (newest first)
+
+- **14 Nov 2026, Codex, F7 reads/guards checkpoint:** Completed selection, unselect and switch with ordered section writes and rollback. Redis 10-per-10-second shared student mutation counter is wired to all three actions. Select idempotency caches the successful status/data for 600 seconds and serializes concurrent first attempts with an owned short-lived Redis lock; rate limiting precedes replay. T-REG-12/17 and concurrent replay passed. Decimal boundary tests cover rounding, ceil minimum, partial/full payment and retained credit after the final drop (16 unit tests total). All 14 guarded mutation tests passed in 99.75 seconds, including seat and same-student races. Added GET me with null bill/window/serverTime/maxCredits/minimum payment/enrolled sections, and paginated catalog with 30-second metadata-only Redis cache plus live DB capacity/count/status and per-student flags. T-REG-21 and two page-state tests passed in 19.31 seconds. A combined read test exceeded 30 seconds during slow hosted queries; timings located the delay, independent reads now avoid an unnecessary transaction, fixtures moved to setup and page/catalog assertions split without increasing timeouts or dropping checks. Temporary diagnostics removed. Type/lint/format clean. Last full baseline 94 passed in 246.09 seconds; newer work has focused verification and needs full regression before F7 completion. Next: SSE using existing subscribeSeatEvents cleanup, admin registration flows with audited bypasses, --registration-open demo seed, missing T-REG-05/06/07/08/09/18/19/20, final manual/build/full checks. Admin router is still empty; no schema/env changes.
 
 - **14 Nov 2026, Codex, F7 selection checkpoint:** F0–F6 complete (48%) and pushed; F7 in progress. registration six-file module mounted. Select creates bill with raw INSERT including id/updatedAt and ON CONFLICT, then locks its row FOR UPDATE under default isolation. Implements phase/window/discarded/scheduled/open/same-course/clash/credits/prerequisites, guarded seat +1, enrollment upsert, Decimal bill update and post-commit seat publication. Default-isolation transaction uses 60-second wait/timeout for concurrent requests. T-REG-01/02/03/04/10 passed: exactly 40 of 100 students enrolled and 60 SECTION_FULL, final count/rows 40. T-REG-11 separately passed: same-student five parallel selects from 6 credits accept three and reject two, final 15 credits. Type/lint/format clean. Last full suite before F7: 88 passed. Remaining: unselect/switch; rate limit and idempotency (not yet wired despite endpoint docs already describing the final header/429); remaining read/cache/SSE/admin routes; registration-open seed; required missing tests. Admin router currently mounted but empty. Tests run only on clashless_test schema and clashless:test: Redis prefix. Main demo remains PLANNING with published routine v2; diagnostic workers stopped, temporary PDF/scripts removed.
 
@@ -305,6 +307,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 

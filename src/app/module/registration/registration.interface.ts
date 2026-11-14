@@ -7,3 +7,10 @@ export type TRegistrationBypass =
 	| "PREREQUISITE"
 	| "TIME_CLASH"
 	| "CAPACITY";
+export interface IRegistrationCatalogQuery {
+	page: number;
+	limit: number;
+	sortBy: "createdAt" | "code" | "title";
+	sortOrder: "asc" | "desc";
+	searchTerm?: string;
+}

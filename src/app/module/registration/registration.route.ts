@@ -3,10 +3,22 @@ import { UserRole } from "../../../generated/prisma/enums";
 import { auth } from "../../middleware/checkAuth";
 import { validateParams } from "../../middleware/validateParams";
 import { validateRequest } from "../../middleware/validateRequest";
+import { validateQuery } from "../../middleware/validateQuery";
 import { registrationController } from "./registration.controller";
 import { registrationValidation } from "./registration.validation";
 export const registrationRoutes = Router();
 export const adminRegistrationRoutes = Router();
+registrationRoutes.get(
+	"/me",
+	auth(UserRole.STUDENT),
+	registrationController.getMyRegistration,
+);
+registrationRoutes.get(
+	"/offerings",
+	auth(UserRole.STUDENT),
+	validateQuery(registrationValidation.catalogQuerySchema),
+	registrationController.getRegistrationOfferings,
+);
 registrationRoutes.post(
 	"/switch",
 	auth(UserRole.STUDENT),

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+﻿import { randomUUID } from "node:crypto";
 import request from "supertest";
 import { beforeAll, beforeEach, expect, it } from "vitest";
 import app from "../../src/app";
@@ -585,4 +585,149 @@ it("T-REG-17 the eleventh registration request within ten seconds is rate limite
 	);
 	expect(ttl).toBeGreaterThan(0);
 	expect(ttl).toBeLessThanOrEqual(10000);
+});
+
+let readStudent: Awaited<ReturnType<typeof createStudent>>;
+let readSectionId: string;
+let readAlternativeId: string;
+let clashingSectionId: string;
+beforeAll(async () => {
+	readStudent = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const original = await prisma.section.findUniqueOrThrow({
+		where: { id: sectionId },
+	});
+	const courses = ["F7-READ", "F7-CLASH", "F7-PRE"].map((code) => ({
+		id: randomUUID(),
+		code,
+		title: code,
+		credits: 3,
+		type: "THEORY" as const,
+		departmentId: world.department.id,
+	}));
+	const offerings = courses
+		.slice(0, 2)
+		.map((course) => ({ id: randomUUID(), courseId: course.id, semesterId }));
+	readSectionId = randomUUID();
+	readAlternativeId = randomUUID();
+	clashingSectionId = randomUUID();
+	await prisma.$transaction([
+		prisma.course.createMany({ data: courses }),
+		prisma.courseOffering.createMany({ data: offerings }),
+		prisma.section.createMany({
+			data: [readSectionId, readAlternativeId, clashingSectionId].map(
+				(id, index) => ({
+					id,
+					offeringId: offerings[index < 2 ? 0 : 1].id,
+					sectionNo: index === 1 ? 2 : 1,
+					roomId: original.roomId,
+					timeSlotId: original.timeSlotId,
+					dayPatternId: original.dayPatternId,
+					enrolledCount: index === 0 ? 1 : 0,
+				}),
+			),
+		}),
+		prisma.coursePrerequisite.create({
+			data: { courseId: courses[1].id, prerequisiteId: courses[2].id },
+		}),
+	]);
+	await prisma.semesterRegistration.create({
+		data: {
+			semesterId,
+			studentId: readStudent.student!.id,
+			paymentDeadline: new Date(windowEnd.getTime() + 12 * 86400000),
+			totalCredits: 3,
+			totalFee: 31500,
+			enrollments: {
+				create: {
+					studentId: readStudent.student!.id,
+					semesterId,
+					sectionId: readSectionId,
+					offeringId: offerings[0].id,
+					credits: 3,
+				},
+			},
+		},
+	});
+});
+it("F7 registration page is empty before the first selection", async () => {
+	const user = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const response = await request(app)
+		.get("/api/registrations/me")
+		.set("Authorization", `Bearer ${tokenFor(user)}`);
+	expect(response.status, response.body.message).toBe(200);
+	expect(response.body.data).toMatchObject({
+		registration: null,
+		sections: [],
+		window: { isOpen: true, closesAt: windowEnd.toISOString() },
+	});
+});
+it("F7 registration page shows minimum payment, max credits and only enrolled sections", async () => {
+	const response = await request(app)
+		.get("/api/registrations/me")
+		.set("Authorization", `Bearer ${tokenFor(readStudent)}`);
+	expect(response.status, response.body.message).toBe(200);
+	expect(response.body.data.registration).toMatchObject({
+		maxCredits: "15",
+		minimumPayment: "12600",
+		totalFee: "31500",
+	});
+	expect(
+		response.body.data.sections.map((row: { id: string }) => row.id),
+	).toEqual([readSectionId]);
+	expect(
+		Number.isFinite(Date.parse(response.body.data.window.serverTime)),
+	).toBe(true);
+});
+it("T-REG-21 catalog flags reflect own courses, clashes and prerequisites while seat counts stay live", async () => {
+	const auth = `Bearer ${tokenFor(readStudent)}`;
+	const cacheKey = redisKey(`catalog:${semesterId}`);
+	await redisClient.del(cacheKey);
+	const catalog = await request(app)
+		.get("/api/registrations/offerings?limit=100")
+		.set("Authorization", auth);
+	expect(catalog.status).toBe(200);
+	const sections = catalog.body.data.flatMap(
+		(row: { sections: Record<string, unknown>[] }) => row.sections,
+	);
+	expect(
+		sections.find((row: { id: string }) => row.id === readAlternativeId),
+	).toMatchObject({ hasCourse: true });
+	expect(
+		sections.find((row: { id: string }) => row.id === clashingSectionId),
+	).toMatchObject({ clash: true, prerequisiteMissing: true, hasCourse: false });
+	const cached = await redisClient.get(cacheKey);
+	expect(cached).toBeTruthy();
+	const cachedSections = JSON.parse(cached!).flatMap(
+		(row: { sections: Record<string, unknown>[] }) => row.sections,
+	);
+	expect(
+		cachedSections.every(
+			(row: Record<string, unknown>) =>
+				!Object.hasOwn(row, "enrolledCount") && !Object.hasOwn(row, "capacity"),
+		),
+	).toBe(true);
+	await prisma.section.update({
+		where: { id: clashingSectionId },
+		data: { capacity: 1, enrolledCount: 1 },
+	});
+	const live = await request(app)
+		.get("/api/registrations/offerings?searchTerm=F7-CLASH")
+		.set("Authorization", auth);
+	expect(live.status).toBe(200);
+	expect(live.body.data[0].sections[0]).toMatchObject({
+		capacity: 1,
+		enrolledCount: 1,
+		seatsLeft: 0,
+		full: true,
+	});
+	expect(await redisClient.get(cacheKey)).toBe(cached);
+	const ttl = await redisClient.ttl(cacheKey);
+	expect(ttl).toBeGreaterThan(0);
+	expect(ttl).toBeLessThanOrEqual(30);
 });

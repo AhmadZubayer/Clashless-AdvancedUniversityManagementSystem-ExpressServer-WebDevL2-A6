@@ -45,7 +45,34 @@ const switchSection = catchAsync(async (req: Request, res: Response) => {
 		data,
 	});
 });
+const getMyRegistration = catchAsync(async (req: Request, res: Response) => {
+	if (!req.user) throw new AppError(401, "Please log in");
+	const data = await registrationService.getMyRegistrationFromDB(req.user.id);
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "My registration retrieved",
+		data,
+	});
+});
+const getRegistrationOfferings = catchAsync(
+	async (req: Request, res: Response) => {
+		if (!req.user) throw new AppError(401, "Please log in");
+		const result = await registrationService.getRegistrationOfferingsFromDB(
+			req.user.id,
+			res.locals.validatedQuery,
+		);
+		sendResponse(res, {
+			success: true,
+			statusCode: 200,
+			message: "Registration offerings retrieved",
+			...result,
+		});
+	},
+);
 export const registrationController = {
+	getMyRegistration,
+	getRegistrationOfferings,
 	selectSection,
 	unselectSection,
 	switchSection,

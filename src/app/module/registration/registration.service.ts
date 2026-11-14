@@ -8,6 +8,7 @@ import { AppError } from "../../utils/AppError";
 import { getGradePoint } from "../../utils/grade";
 import { registrationTotals } from "../../utils/registrationTotals";
 import { formatDhaka, overlaps } from "../../utils/time";
+import type { IRegistrationCatalogQuery } from "./registration.interface";
 
 // Raw writes must use the same schema as Prisma's driver adapter.
 function table(name: "semester_registrations") {
@@ -606,7 +607,229 @@ const selectSectionWithGuardsIntoDB = async (
 	}
 };
 
+const registrationSectionInclude = {
+	...scheduleInclude,
+	room: true,
+	faculty: { select: { id: true, name: true, designation: true } },
+} satisfies Prisma.SectionInclude;
+
+const getMyRegistrationFromDB = async (userId: string) => {
+	const { student, semester } = await getStudentContextFromDB(userId);
+	const [window, registration, enrolled] = await Promise.all([
+		prisma.registrationWindow.findUnique({
+			where: {
+				unique_batch_window: {
+					batchId: student.batchId,
+					semesterId: semester.id,
+				},
+			},
+		}),
+		prisma.semesterRegistration.findUnique({
+			where: {
+				unique_student_semester: {
+					studentId: student.id,
+					semesterId: semester.id,
+				},
+			},
+		}),
+		prisma.enrollment.findMany({
+			where: {
+				studentId: student.id,
+				semesterId: semester.id,
+				status: "ENROLLED",
+			},
+			include: { section: { include: registrationSectionInclude } },
+			orderBy: { enrolledAt: "asc" },
+		}),
+	]);
+	const now = new Date();
+	return {
+		semester,
+		serverTime: now,
+		window: window
+			? {
+					id: window.id,
+					isOpen:
+						semester.phase === "REGISTRATION" &&
+						now >= window.startsAt &&
+						now <= window.endsAt,
+					opensAt: window.startsAt,
+					closesAt: window.endsAt,
+					serverTime: now,
+				}
+			: null,
+		registration: registration
+			? {
+					...registration,
+					maxCredits: semester.maxCredits,
+					minimumPayment: registration.totalFee
+						.mul(semester.minPaymentPercent)
+						.div(100)
+						.ceil(),
+				}
+			: null,
+		sections: enrolled.map((row) => ({
+			...row.section,
+			enrollmentId: row.id,
+			credits: row.credits,
+		})),
+	};
+};
+
+const catalogInclude = {
+	course: {
+		include: {
+			prerequisites: {
+				include: { prerequisite: { select: { id: true, code: true } } },
+			},
+		},
+	},
+	sections: {
+		select: {
+			id: true,
+			sectionNo: true,
+			facultyId: true,
+			faculty: { select: { id: true, name: true, designation: true } },
+			room: true,
+			timeSlot: true,
+			dayPattern: true,
+		},
+		orderBy: { sectionNo: "asc" },
+	},
+} satisfies Prisma.CourseOfferingInclude;
+type TCatalogOffering = Prisma.CourseOfferingGetPayload<{
+	include: typeof catalogInclude;
+}>;
+
+async function cachedCatalogFromDB(
+	semesterId: string,
+): Promise<TCatalogOffering[]> {
+	const key = redisKey(`catalog:${semesterId}`);
+	const cached = await redisClient.get(key);
+	if (cached) {
+		try {
+			return JSON.parse(cached);
+		} catch {
+			await redisClient.del(key);
+		}
+	}
+	// Capacity, counters and mutable status never enter this metadata cache.
+	const rows = await prisma.courseOffering.findMany({
+		where: { semesterId },
+		include: catalogInclude,
+	});
+	await redisClient.set(key, JSON.stringify(rows), {
+		expiration: { type: "EX", value: 30 },
+	});
+	return rows;
+}
+
+const getRegistrationOfferingsFromDB = async (
+	userId: string,
+	query: IRegistrationCatalogQuery,
+) => {
+	const { student, semester } = await getStudentContextFromDB(userId);
+	const [catalog, live, enrolled, results] = await Promise.all([
+		cachedCatalogFromDB(semester.id),
+		prisma.section.findMany({
+			where: { offering: { semesterId: semester.id } },
+			select: { id: true, capacity: true, enrolledCount: true, status: true },
+		}),
+		prisma.enrollment.findMany({
+			where: {
+				studentId: student.id,
+				semesterId: semester.id,
+				status: "ENROLLED",
+			},
+			include: { section: { include: scheduleInclude } },
+		}),
+		prisma.courseResult.findMany({
+			where: { studentId: student.id },
+			select: { courseId: true, gradePoint: true },
+		}),
+	]);
+	const liveById = new Map(live.map((row) => [row.id, row]));
+	const heldOfferings = new Set(enrolled.map((row) => row.offeringId));
+	const search = query.searchTerm?.toLowerCase();
+	const filtered = catalog.filter(
+		(row) =>
+			!search ||
+			row.course.code.toLowerCase().includes(search) ||
+			row.course.title.toLowerCase().includes(search),
+	);
+	filtered.sort((a, b) => {
+		const order =
+			query.sortBy === "createdAt"
+				? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+				: a.course[query.sortBy].localeCompare(b.course[query.sortBy]);
+		return (
+			(query.sortOrder === "asc" ? order : -order) || a.id.localeCompare(b.id)
+		);
+	});
+	const data = filtered
+		.slice((query.page - 1) * query.limit, query.page * query.limit)
+		.map((offering) => {
+			const prerequisiteMissing = offering.course.prerequisites.some(
+				(prerequisite) => {
+					const minimum = getGradePoint(prerequisite.minGrade);
+					return (
+						!minimum ||
+						!results.some(
+							(result) =>
+								result.courseId === prerequisite.prerequisiteId &&
+								new Prisma.Decimal(result.gradePoint).gte(minimum),
+						)
+					);
+				},
+			);
+			return {
+				...offering,
+				sections: offering.sections.flatMap((section) => {
+					const seats = liveById.get(section.id);
+					if (!seats || seats.status === "CANCELLED") return [];
+					const days = section.dayPattern?.days ?? [];
+					const slot = section.timeSlot;
+					const clash =
+						!!slot &&
+						enrolled.some(
+							(row) =>
+								row.sectionId !== section.id &&
+								row.section.timeSlot &&
+								row.section.dayPattern?.days.some((day) =>
+									days.includes(day),
+								) &&
+								overlaps(slot, row.section.timeSlot),
+						);
+					return [
+						{
+							...section,
+							capacity: seats.capacity,
+							enrolledCount: seats.enrolledCount,
+							status: seats.status,
+							seatsLeft: Math.max(0, seats.capacity - seats.enrolledCount),
+							clash,
+							hasCourse: heldOfferings.has(offering.id),
+							prerequisiteMissing,
+							full: seats.enrolledCount >= seats.capacity,
+						},
+					];
+				}),
+			};
+		});
+	return {
+		data,
+		meta: {
+			page: query.page,
+			limit: query.limit,
+			total: filtered.length,
+			totalPages: Math.ceil(filtered.length / query.limit),
+		},
+	};
+};
+
 export const registrationService = {
+	getMyRegistrationFromDB,
+	getRegistrationOfferingsFromDB,
 	selectSectionWithGuardsIntoDB,
 	selectSectionIntoDB,
 	unselectSectionIntoDB,
