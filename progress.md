@@ -50,7 +50,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 11:56 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F3 complete and pushed; all 39 tests pass and build/static checks clean.
-- Half-done: semester CRUD/current/detail endpoints and Swagger implemented. Serializable creation prevents concurrent open semesters; rule fields lock after PLANNING. Baseline 39 tests passed. Phase gates next.
+- Half-done: semester CRUD/current/detail endpoints and Swagger implemented. Serializable creation prevents concurrent open semesters; rule fields lock after PLANNING. Baseline 39 tests passed. All phase gates implemented with guarded serializable transitions and audit logs; window endpoints next.
 - Next step: semester CRUD/current/detail and rule-field locks, lifecycle gates, then registration windows and T-SEM-01 through T-SEM-09.
 - Traps: use existing schema tables for all gates; no new schema field for published grades. Shared test schema/prefix; explicit ioredis clients for BullMQ. Real notification queue was empty during worker verification.
 
@@ -121,7 +121,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ### F4 — Semesters and registration windows (4 points)
 
 - [x] Semester create, list, current, detail, update (rule fields locked after PLANNING)
-- [ ] Phase change with every gate from requirement.md section 3 (the gates read tables that already exist, even before their features are built)
+- [x] Phase change with every gate from requirement.md section 3 (the gates read tables that already exist, even before their features are built)
 - [ ] Registration windows: create, list (students see only theirs), change (extend only while running; moves `paymentDeadline`), delete
 - [ ] Tests T-SEM-01 … T-SEM-09
 - [ ] Definition of done → commit → push

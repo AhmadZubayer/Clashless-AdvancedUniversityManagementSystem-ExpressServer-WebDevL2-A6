@@ -59,7 +59,23 @@ const updateSemester = catchAsync(async (req: Request, res: Response) => {
 		data,
 	});
 });
+const changeSemesterPhase = catchAsync(async (req: Request, res: Response) => {
+	if (!req.user) throw new AppError(httpStatus.UNAUTHORIZED, "Please log in");
+	const data = await semesterService.changeSemesterPhaseIntoDB(
+		req.user,
+		res.locals.validatedParams.id,
+		req.body.phase,
+	);
+	sendResponse(res, {
+		success: true,
+		statusCode: httpStatus.OK,
+		message: "Semester phase changed",
+		data,
+	});
+});
+
 export const semesterController = {
+	changeSemesterPhase,
 	createSemester,
 	getAllSemesters,
 	getCurrentSemester,

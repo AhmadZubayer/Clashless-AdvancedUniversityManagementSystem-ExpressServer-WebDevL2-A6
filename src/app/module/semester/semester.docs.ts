@@ -17,6 +17,34 @@
  */
 /**
  * @openapi
+ * /api/admin/semesters/{id}/phase:
+ *   patch:
+ *     tags: [Semester]
+ *     summary: Move forward one phase with lifecycle gates and an audit record
+ *     description: REGISTRATION requires a published class routine and window; CLASSES requires all windows ended; EXAMS requires a published exam routine and published plans for slots with courses; CLOSED requires published grades. GRADING has no extra gate.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [phase]
+ *             properties:
+ *               phase: { type: string, enum: [PLANNING, REGISTRATION, CLASSES, EXAMS, GRADING, CLOSED] }
+ *     responses:
+ *       200: { description: Phase advanced and audit record saved }
+ *       400: { description: Invalid id or phase }
+ *       401: { description: Missing or revoked session }
+ *       403: { description: Admin role required }
+ *       404: { description: Semester not found }
+ *       409: { description: PHASE_NOT_ALLOWED with errorDetails.gate identifying the failed gate, or concurrent transition }
+ */
+/**
+ * @openapi
  * /api/admin/semesters:
  *   post:
  *     tags: [Semester]

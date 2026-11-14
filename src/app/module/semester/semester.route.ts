@@ -17,6 +17,12 @@ semesterRoutes.get(
 	semesterController.getAllSemesters,
 );
 adminSemesterRoutes.use(auth(UserRole.ADMIN, UserRole.SUPER_ADMIN));
+adminSemesterRoutes.patch(
+	"/:id/phase",
+	validateParams(semesterValidation.idSchema),
+	validateRequest(semesterValidation.phaseSchema),
+	semesterController.changeSemesterPhase,
+);
 adminSemesterRoutes.post(
 	"/",
 	validateRequest(semesterValidation.createSchema),

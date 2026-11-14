@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SemesterPhase } from "../../../generated/prisma/enums";
 import { decimalSchema } from "../../utils/decimalSchema";
 import { listQuerySchema } from "../../utils/listQuery";
 import { offsetDateSchema } from "../../utils/offsetDateSchema";
@@ -25,4 +26,5 @@ export const semesterValidation = {
 	updateSchema: semesterSchema.partial(),
 	idSchema: z.object({ id: z.uuid() }),
 	querySchema: listQuerySchema,
+	phaseSchema: z.object({ phase: z.enum(SemesterPhase) }),
 };
