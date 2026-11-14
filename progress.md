@@ -1,7 +1,7 @@
 # Clashless — Progress
 
 > ## Overall: 28% complete (28 of 100 points)
-> **In progress:** nothing · **Next:** F5 Offerings, sections and teacher preferences
+> **In progress:** F5 Offerings, sections and teacher preferences · **Next:** F6 Class routine
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -19,7 +19,7 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F2 | User management | 5 | ✅ Completed | F1 | 6.4 |
 | F3 | Academic setup | 6 | ✅ Completed | F1 | 6.5 |
 | F4 | Semesters and registration windows | 4 | ✅ Completed | F3 | 6.6 |
-| F5 | Offerings, sections and teacher preferences | 6 | ⏭️ Next | F2, F4 | 6.7 |
+| F5 | Offerings, sections and teacher preferences | 6 | 🔄 In progress | F2, F4 | 6.7 |
 | F6 | Class routine | 14 | ⬜ Not started | F5 | 6.8 |
 | F7 | Registration | 14 | ⬜ Not started | F6 | 6.9 |
 | F8 | Payments and the discard job | 8 | ⬜ Not started | F7 | 6.10, 7 |
@@ -47,7 +47,14 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 
 ## 🔄 In progress
 
-_Nothing is in progress._
+### F5 — Offerings, sections and teacher preferences
+Started: 14 Nov 2026 12:23 Asia/Dhaka by Codex
+Handoff notes:
+- Done: F0–F4 complete and pushed; all 53 tests and static/build checks pass.
+- Half-done: F5 implementation beginning.
+- Next step: offerings, section management and schedule guards, faculty assignment, class list exports and preferences in checklist order.
+- Traps: cancellation must retain overpaid credit and recalculate Decimal bills; schedule changes must protect teacher and student clashes, and published routine entries must stay consistent.
+
 
 ## ⏭️ Next
 
