@@ -75,7 +75,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F0 — Project setup (6 points)
 
-- [ ] Get the skill into `.agents/skill-library` (AGENTS.md section 2)
+- [x] Get the skill into `.agents/skill-library` (AGENTS.md section 2)
 - [ ] Scaffold into this folder with `--features google,uploads,pdf,bkash,cron`. Merge the skipped `.gitignore` and `README.md` by hand
 - [ ] Install packages with the two pinned commands the scaffold prints; add Vitest, Supertest, BullMQ
 - [ ] Fill `.env` using the skill's env checker; ask the user for missing values. Add `UNIVERSITY_EMAIL_DOMAIN` and `DEMO_PASSWORD` to `config/index.ts`, `.env.example` and `.env`
@@ -229,6 +229,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex:** Planning documents pushed as 6f932c0. F0 claimed; express-super-skill downloaded into ignored .agents/skill-library. Node/npm are available only in elevated execution (restricted PATH cannot resolve them). Scaffold created with required flags and dependencies installing. Initial scaffold client generation and type check pass. Environment checker reports only ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD missing from its groups; UNIVERSITY_EMAIL_DOMAIN and DEMO_PASSWORD also need user values. Asked user once to configure those plus a separate test PostgreSQL and disposable test Redis. Skill requires waiting for environment values before schema work. No schema replacement, migration, seed or tests implemented yet.
+
 - **14 Nov 2026, Claude Code (planning session):** wrote the planning documents only; no code yet. The folder has a git-ignored `.env` (its values weren't checked), an untracked `.gitignore` (already ignores `.env`, `.agents`, `.claude`, `.windsurf`), a stub `README.md`, and one commit (`first commit`) on `main`, pushed to `origin`. Start with F0.
 
 ## Questions for the user
@@ -239,7 +241,7 @@ Ask these during F0 (one message), then record the answers (never the secret val
 - A `DEMO_PASSWORD` for the demo accounts
 - A PostgreSQL database for development and a **separate** one for tests
 - A Redis for development, and one for tests that can be flushed
-- Any `.env` values the skill's env checker reports as missing
+- Checker result (14 Nov, Codex): `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` missing. Also requested project variables and separate test services above. Awaiting user confirmation; existing service values were not printed.
 
 ## Decisions log
 
