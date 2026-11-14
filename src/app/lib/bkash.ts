@@ -47,7 +47,10 @@ export const getBkashIdToken = async () => {
 				},
 			);
 			if (!refreshTokenResponse.ok) {
-				throw new AppError(httpStatus.BAD_GATEWAY, "Bkash Access Token Grant Failed");
+				throw new AppError(
+					httpStatus.BAD_GATEWAY,
+					"Bkash Access Token Grant Failed",
+				);
 			}
 
 			const bkashRefreshTokenResult = await refreshTokenResponse.json();
@@ -86,7 +89,10 @@ export const getBkashIdToken = async () => {
 		);
 
 		if (!response.ok) {
-			throw new AppError(httpStatus.BAD_GATEWAY, "Bkash Access Token Grant Failed");
+			throw new AppError(
+				httpStatus.BAD_GATEWAY,
+				"Bkash Access Token Grant Failed",
+			);
 		}
 
 		const result = await response.json();
@@ -110,18 +116,21 @@ export const getBkashIdToken = async () => {
 		bkashIdToken = result.id_token;
 
 		return bkashIdToken;
-	} catch (error: any) {
+	} catch (error: unknown) {
 		if (error instanceof AppError) {
 			throw error;
 		}
-		throw new AppError(httpStatus.BAD_GATEWAY, error.message);
+		throw new AppError(
+			httpStatus.BAD_GATEWAY,
+			error instanceof Error ? error.message : "bKash request failed",
+		);
 	}
 };
 
 export const bkashRequest = async (
 	path: string,
 	body: Record<string, unknown>,
-): Promise<Record<string, any>> => {
+): Promise<Record<string, unknown>> => {
 	const bkashIdToken = await getBkashIdToken();
 
 	if (!bkashIdToken) {

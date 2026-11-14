@@ -1,7 +1,7 @@
 import httpStatus from "http-status";
 import {
-  PaymentProvider,
-  PaymentStatus,
+	PaymentProvider,
+	PaymentStatus,
 } from "../../../../../generated/prisma/enums";
 import config from "../../../../config";
 import { bkashRequest } from "../../../../lib/bkash";
@@ -10,98 +10,101 @@ import { AppError } from "../../../../utils/AppError";
 import { paymentService } from "../../payment.service";
 
 const getRedirectUrl = (status: "success" | "failed" | "cancelled") => {
-  return `${config.frontend_url}/payment/${status}`;
+	return `${config.frontend_url}/payment/${status}`;
 };
 
 const handleCallback = async (query: Record<string, unknown>) => {
-  const paymentID = query.paymentID;
-  const status = query.status;
+	const paymentID = query.paymentID;
+	const status = query.status;
 
-  if (typeof paymentID !== "string" || typeof status !== "string") {
-    throw new AppError(httpStatus.BAD_REQUEST, "Invalid bKash callback request");
-  }
+	if (typeof paymentID !== "string" || typeof status !== "string") {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"Invalid bKash callback request",
+		);
+	}
 
-  const payment = await prisma.payment.findUnique({
-    where: {
-      providerTransactionId: paymentID,
-    },
-    select: {
-      id: true,
-      registrationId: true,
-      provider: true,
-      status: true,
-    },
-  });
+	const payment = await prisma.payment.findUnique({
+		where: {
+			providerTransactionId: paymentID,
+		},
+		select: {
+			id: true,
+			registrationId: true,
+			provider: true,
+			status: true,
+		},
+	});
 
-  if (!payment || payment.provider !== PaymentProvider.BKASH) {
-    throw new AppError(httpStatus.NOT_FOUND, "Payment not found");
-  }
+	if (!payment || payment.provider !== PaymentProvider.BKASH) {
+		throw new AppError(httpStatus.NOT_FOUND, "Payment not found");
+	}
 
-  // the callback can arrive twice (refresh, back button)
-  if (payment.status === PaymentStatus.COMPLETED) {
-    return { redirectUrl: getRedirectUrl("success") };
-  }
+	// the callback can arrive twice (refresh, back button)
+	if (payment.status === PaymentStatus.COMPLETED) {
+		return { redirectUrl: getRedirectUrl("success") };
+	}
 
-  const paymentInfo = {
-    paymentId: payment.id,
-    registrationId: payment.registrationId,
-    provider: PaymentProvider.BKASH,
-    providerTransactionId: paymentID,
-  };
+	const paymentInfo = {
+		paymentId: payment.id,
+		registrationId: payment.registrationId,
+		provider: PaymentProvider.BKASH,
+		providerTransactionId: paymentID,
+	};
 
-  if (status !== "success") {
-    await paymentService.closePendingPaymentIntoDB({
-      ...paymentInfo,
-      status:
-        status === "cancel" ? PaymentStatus.CANCELLED : PaymentStatus.FAILED,
-    });
+	if (status !== "success") {
+		await paymentService.closePendingPaymentIntoDB({
+			...paymentInfo,
+			status:
+				status === "cancel" ? PaymentStatus.CANCELLED : PaymentStatus.FAILED,
+		});
 
-    return {
-      redirectUrl: getRedirectUrl(status === "cancel" ? "cancelled" : "failed"),
-    };
-  }
+		return {
+			redirectUrl: getRedirectUrl(status === "cancel" ? "cancelled" : "failed"),
+		};
+	}
 
-  const executedPayment = await bkashRequest("/tokenized/checkout/execute", {
-    paymentID,
-  });
+	const executedPayment = await bkashRequest("/tokenized/checkout/execute", {
+		paymentID,
+	});
 
-  if (
-    executedPayment.statusCode !== "0000" ||
-    executedPayment.transactionStatus !== "Completed"
-  ) {
-    await paymentService.closePendingPaymentIntoDB({
-      ...paymentInfo,
-      status: PaymentStatus.FAILED,
-    });
+	if (
+		executedPayment.statusCode !== "0000" ||
+		executedPayment.transactionStatus !== "Completed"
+	) {
+		await paymentService.closePendingPaymentIntoDB({
+			...paymentInfo,
+			status: PaymentStatus.FAILED,
+		});
 
-    return { redirectUrl: getRedirectUrl("failed") };
-  }
+		return { redirectUrl: getRedirectUrl("failed") };
+	}
 
-  const paidPayment = {
-    ...paymentInfo,
-    amount: executedPayment.amount as string,
-    currency: executedPayment.currency as string,
-  };
+	const paidPayment = {
+		...paymentInfo,
+		amount: executedPayment.amount as string,
+		currency: executedPayment.currency as string,
+	};
 
-  try {
-    await paymentService.completePaymentIntoDB(paidPayment);
-  } catch (error) {
-    if (
-      !(error instanceof AppError) ||
-      error.statusCode !== httpStatus.CONFLICT
-    ) {
-      throw error;
-    }
+	try {
+		await paymentService.completePaymentIntoDB(paidPayment);
+	} catch (error) {
+		if (
+			!(error instanceof AppError) ||
+			error.statusCode !== httpStatus.CONFLICT
+		) {
+			throw error;
+		}
 
-    // the registration was cancelled while the customer was paying
-    await paymentService.refundCancelledRegistrationPaymentIntoDB(paidPayment);
+		// the registration was cancelled while the customer was paying
+		await paymentService.refundCancelledRegistrationPaymentIntoDB(paidPayment);
 
-    return { redirectUrl: getRedirectUrl("cancelled") };
-  }
+		return { redirectUrl: getRedirectUrl("cancelled") };
+	}
 
-  return { redirectUrl: getRedirectUrl("success") };
+	return { redirectUrl: getRedirectUrl("success") };
 };
 
 export const bkashCallback = {
-  handleCallback,
+	handleCallback,
 };

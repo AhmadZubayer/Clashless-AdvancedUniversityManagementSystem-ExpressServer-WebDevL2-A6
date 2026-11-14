@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import type { TokenPayload } from "google-auth-library";
 import httpStatus from "http-status";
 import type { JwtPayload, SignOptions } from "jsonwebtoken";
@@ -59,7 +59,10 @@ const createAuthTokens = (user: {
 	};
 };
 
-const checkUserCanLogin = (user: { status: UserStatus; isDeleted: boolean }) => {
+const checkUserCanLogin = (user: {
+	status: UserStatus;
+	isDeleted: boolean;
+}) => {
 	if (user.status === UserStatus.BLOCKED) {
 		throw new AppError(httpStatus.FORBIDDEN, "User is blocked");
 	}
@@ -77,7 +80,10 @@ const registerUser = async (payload: IRegisterUserPayload) => {
 	});
 
 	if (isUserExists) {
-		throw new AppError(httpStatus.CONFLICT, "User with this email already exists");
+		throw new AppError(
+			httpStatus.CONFLICT,
+			"User with this email already exists",
+		);
 	}
 
 	const hashedPassword = await bcrypt.hash(
@@ -138,7 +144,10 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 	const redisOtp = await redisClient.get(otpKey);
 
 	if (!redisOtp) {
-		throw new AppError(httpStatus.BAD_REQUEST, "OTP Expired. Please register again");
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"OTP Expired. Please register again",
+		);
 	}
 
 	if (redisOtp !== otp) {
@@ -182,7 +191,10 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 		});
 	} catch (error) {
 		// the account exists; a failed welcome email must not fail the request
-		logger.error({ err: error, userId: user.id }, "Failed to send welcome email");
+		logger.error(
+			{ err: error, userId: user.id },
+			"Failed to send welcome email",
+		);
 	}
 
 	const { accessToken, refreshToken } = createAuthTokens(user);
@@ -263,7 +275,10 @@ const refreshToken = async (token: string) => {
 	});
 
 	if (!user || user.isDeleted || user.status !== UserStatus.ACTIVE) {
-		throw new AppError(httpStatus.UNAUTHORIZED, "User is inactive or not found");
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			"User is inactive or not found",
+		);
 	}
 
 	return createAuthTokens(user);
@@ -331,7 +346,10 @@ const resetPassword = async (payload: IResetPasswordPayload) => {
 	const redisOtp = await redisClient.get(key);
 
 	if (!redisOtp) {
-		throw new AppError(httpStatus.BAD_REQUEST, "OTP Expired. Please request a new one");
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"OTP Expired. Please request a new one",
+		);
 	}
 
 	if (redisOtp !== otp) {
@@ -389,7 +407,10 @@ const changePassword = async (
 	);
 
 	if (!isPasswordMatched) {
-		throw new AppError(httpStatus.UNAUTHORIZED, "Current password is incorrect");
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			"Current password is incorrect",
+		);
 	}
 
 	const hashedNewPassword = await bcrypt.hash(
@@ -419,18 +440,27 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 		googleIdTokenPayload = ticket.getPayload();
 	} catch (error) {
 		logger.warn({ err: error }, "Google ID Token Verification Failed");
-		throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Or Expired Google Id Token");
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			"Invalid Or Expired Google Id Token",
+		);
 	}
 
 	if (!googleIdTokenPayload) {
-		throw new AppError(httpStatus.UNAUTHORIZED, "Invalid Or Expired Google Id Token");
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			"Invalid Or Expired Google Id Token",
+		);
 	}
 
 	if (!googleIdTokenPayload.email || !googleIdTokenPayload.email_verified) {
 		throw new AppError(httpStatus.BAD_REQUEST, "Google Email Not Found");
 	}
 	if (!googleIdTokenPayload.name) {
-		throw new AppError(httpStatus.BAD_REQUEST, "Google Email User Name Not Found");
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"Google Email User Name Not Found",
+		);
 	}
 
 	const email = googleIdTokenPayload.email.toLowerCase();
@@ -492,7 +522,10 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
 					},
 				});
 			} catch (error) {
-				logger.error({ err: error, userId: user.id }, "Failed to send welcome email");
+				logger.error(
+					{ err: error, userId: user.id },
+					"Failed to send welcome email",
+				);
 			}
 		}
 	}

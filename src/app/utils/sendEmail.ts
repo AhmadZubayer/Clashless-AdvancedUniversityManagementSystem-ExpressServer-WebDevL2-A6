@@ -1,6 +1,6 @@
 import ejs from "ejs";
 import type { Attachment } from "nodemailer/lib/mailer";
-import path from "path";
+import path from "node:path";
 import config from "../config";
 import { transporter } from "../lib/nodemailer";
 

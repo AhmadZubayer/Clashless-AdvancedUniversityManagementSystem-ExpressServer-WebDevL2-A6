@@ -1,16 +1,20 @@
 import httpStatus from "http-status";
 import { PaymentProvider } from "../../../../generated/prisma/enums";
 import { AppError } from "../../../utils/AppError";
-import { IPaymentProvider } from "../payment.interface";
+import type { IPaymentProvider } from "../payment.interface";
 import { bkashPaymentProvider } from "./bkash/bkash.provider";
 
-export const getPaymentProvider = (provider: PaymentProvider): IPaymentProvider => {
-    switch (provider) {
+export const getPaymentProvider = (
+	provider: PaymentProvider,
+): IPaymentProvider => {
+	switch (provider) {
+		case PaymentProvider.BKASH:
+			return bkashPaymentProvider;
 
-        case PaymentProvider.BKASH:
-            return bkashPaymentProvider;
-
-        default:
-            throw new AppError(httpStatus.NOT_IMPLEMENTED, "Payment provider is not supported");
-    }
-}
+		default:
+			throw new AppError(
+				httpStatus.NOT_IMPLEMENTED,
+				"Payment provider is not supported",
+			);
+	}
+};

@@ -63,7 +63,10 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 
 const getMe = catchAsync(async (req: Request, res: Response) => {
 	if (!req.user) {
-		throw new AppError(httpStatus.UNAUTHORIZED, "User information is missing in the request");
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			"User information is missing in the request",
+		);
 	}
 
 	const result = await authService.getMe(req.user);
@@ -146,7 +149,10 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 
 const changePassword = catchAsync(async (req: Request, res: Response) => {
 	if (!req.user) {
-		throw new AppError(httpStatus.UNAUTHORIZED, "User information is missing in the request");
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			"User information is missing in the request",
+		);
 	}
 
 	await authService.changePassword(req.user, req.body);

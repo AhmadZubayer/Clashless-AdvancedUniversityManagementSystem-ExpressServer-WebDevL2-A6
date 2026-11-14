@@ -6,7 +6,7 @@ import { logger } from "../lib/logger";
 import { AppError } from "../utils/AppError";
 
 export const globalErrorHandler = (
-	err: any,
+	err: unknown,
 	req: Request,
 	res: Response,
 	_next: NextFunction,
@@ -36,7 +36,8 @@ export const globalErrorHandler = (
 				"An operation failed because it depends on one or more records that were required but not found.";
 		} else if (err.code === "P2034") {
 			statusCode = httpStatus.CONFLICT;
-			errorMessage = "Request conflicted with another request. Please try again";
+			errorMessage =
+				"Request conflicted with another request. Please try again";
 		}
 	} else if (err instanceof Prisma.PrismaClientInitializationError) {
 		if (err.errorCode === "P1000") {
@@ -47,10 +48,15 @@ export const globalErrorHandler = (
 		}
 	} else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
 		errorMessage = "Error occurred during query execution";
-	} else if (err?.type === "entity.parse.failed") {
+	} else if (
+		err &&
+		typeof err === "object" &&
+		"type" in err &&
+		err.type === "entity.parse.failed"
+	) {
 		statusCode = httpStatus.BAD_REQUEST;
 		errorMessage = "Request body is not valid JSON";
-	} else if (err?.name === "MulterError") {
+	} else if (err instanceof Error && err.name === "MulterError") {
 		statusCode = httpStatus.BAD_REQUEST;
 		errorMessage = err.message;
 	} else if (err instanceof Error && config.node_env !== "production") {
@@ -67,6 +73,9 @@ export const globalErrorHandler = (
 		statusCode,
 		message: errorMessage,
 		errorDetails:
-			errorDetails ?? (config.node_env === "production" ? null : err?.stack),
+			errorDetails ??
+			(config.node_env === "production" || !(err instanceof Error)
+				? null
+				: err.stack),
 	});
 };

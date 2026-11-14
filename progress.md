@@ -46,7 +46,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 10:20 Asia/Dhaka by Codex
 Handoff notes:
 - Done: scaffold, exact schema/migration, seeds, audit/notification helpers, queues, seat events, grade/time helpers, test harness and README implemented. Static checks and build pass. Demo seed ran twice safely; aggregate counts match the requirements.
-- Half-done: final test run and normal startup verification are running after replacement Redis credentials were supplied.
+- Half-done: none; F0 verification passed and completion commits are being prepared.
 - Next step: finish F0 verification and push, then begin F1 Auth.
 - Traps: shared services require clashless_test schema and clashless:test: Redis keys. Auth/payment code remains scaffold behavior pending F1/F8; payment changes so far only adapt deleted example models.
 ## ⏭️ Next
@@ -73,7 +73,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] `createAuditLogIntoDB` and `createNotificationsIntoDB` service functions (10.2)
 - [x] `lib/queue.ts` (inline when `NODE_ENV=test`), worker bootstrap in `src/app/jobs/` started from `server.ts`, `lib/seatEvents.ts`
 - [x] `utils/grade.ts` and `utils/time.ts`
-- [ ] Test setup from 9.1–9.4: `vitest.config.ts`, `tests/` folders, `.env.test.example`, `.env.test` and `tests/load/tokens.json` added to `.gitignore`; a smoke test (`GET /` answers 200) passes
+- [x] Test setup from 9.1–9.4: `vitest.config.ts`, `tests/` folders, `.env.test.example`, `.env.test` and `tests/load/tokens.json` added to `.gitignore`; a smoke test (`GET /` answers 200) passes
 - [x] README: install, configure, run, seed and test
 - [ ] The skill's verify steps all pass (validate, migrate, generate, format, lint, type check, seed, dev, `/docs`)
 - [ ] Definition of done (10.3) → commit → push
@@ -216,7 +216,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
-- **14 Nov 2026, Codex:** Planning documents pushed as 6f932c0. F0 claimed; express-super-skill downloaded into ignored .agents/skill-library. Node/npm are available only in elevated execution (restricted PATH cannot resolve them). Scaffold created with required flags; both pinned install commands and BullMQ/Vitest/Supertest installs completed. npm reports five dependency advisories (review pending). Initial scaffold client generation and type check pass. Environment checker reports only ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD missing from its groups; UNIVERSITY_EMAIL_DOMAIN and DEMO_PASSWORD also need user values. Asked user once to configure those plus a separate test PostgreSQL and disposable test Redis. Skill requires waiting for environment values before schema work. Exact 36 Prisma files copied from requirements, validated and generated; example models removed; scaffold auth role and payment model references adapted for compilation only. Payment semantics still require full F8 implementation. Initial migration applied successfully including both extra SQL constraints; client generated and type check clean. Super-admin seed succeeded (SUPER_ADMIN plus Admin profile, idempotent); Demo seed succeeded: 96 catalogue courses, 72 faculty, 2100 students, imported B results and planned sections. Audit and notification transaction helpers implemented; queue/pubsub, grade/time helpers and isolated test harness are implemented and undergoing verification.
+- **14 Nov 2026, Codex:** F0 implemented and verified: exact schema and both SQL constraints applied; Super Admin/profile seed; deterministic demo seed safely ran twice (96 courses, 72 faculty, 2100 students, 54600 results, 264 sections, zero overloaded faculty); audit/notification transaction helpers; BullMQ inline test mode and worker bootstrap; Redis seat pub/sub; grade/time helpers; isolated test harness and mocks. npm test: 1 smoke test passed. Type check, lint (no diagnostics), format check and build passed. Normal startup connected DB/Redis/mailer; HTTP welcome, Swagger and seeded admin login returned 200. Replaced failed Redis connection with user-supplied working service. Shared tests use clashless_test schema and clashless:test: keys; never reset public or FLUSHDB. Node/npm need elevated execution because the restricted shell cannot resolve their installation. F1 auth and F8 payment behavior remain scaffold behavior; F0 changed role/model references only. npm install reported five dependency advisories for later review.
 
 - **14 Nov 2026, Claude Code (planning session):** wrote the planning documents only; no code yet. The folder has a git-ignored `.env` (its values weren't checked), an untracked `.gitignore` (already ignores `.env`, `.agents`, `.claude`, `.windsurf`), a stub `README.md`, and one commit (`first commit`) on `main`, pushed to `origin`. Start with F0.
 
@@ -237,7 +237,7 @@ No outstanding questions. First-admin/demo credentials supplied; user chose uni.
 
 One line per feature after its manual pass (requirement.md 9.5): date, feature, what was tried, result.
 
-- 14 Nov 2026, F0: HTTP welcome and Swagger UI returned 200; Swagger init includes login; seeded Super Admin login returned 200. SMTP verify succeeded. Normal bootstrap recheck running with replacement Redis.
+- 14 Nov 2026, F0: HTTP welcome and Swagger UI returned 200; Swagger init includes login; seeded Super Admin login returned 200. SMTP verify succeeded. Normal bootstrap succeeded with database, Redis and Nodemailer connected; welcome and docs returned 200.
 
 ## Environment notes (never write secrets here)
 

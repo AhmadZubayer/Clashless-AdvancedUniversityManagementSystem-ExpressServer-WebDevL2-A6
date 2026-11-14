@@ -1,6 +1,10 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express, { type Application, type Request, type Response } from "express";
+import express, {
+	type Application,
+	type Request,
+	type Response,
+} from "express";
 import httpStatus from "http-status";
 import pinoHttp from "pino-http";
 import swaggerUi from "swagger-ui-express";
@@ -21,7 +25,6 @@ app.use(
 		credentials: true,
 	}),
 );
-
 
 // Middleware to parse JSON bodies
 app.use(express.json());

@@ -1,6 +1,8 @@
 import PDFDocument from "pdfkit";
 
-export const generatePdf = (build: (pdfDocument: PDFKit.PDFDocument) => void) => {
+export const generatePdf = (
+	build: (pdfDocument: PDFKit.PDFDocument) => void,
+) => {
 	return new Promise<Buffer>((resolve, reject) => {
 		const pdfDocument = new PDFDocument({ margin: 50 });
 

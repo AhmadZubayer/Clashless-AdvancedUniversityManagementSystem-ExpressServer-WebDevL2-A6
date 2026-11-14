@@ -26,7 +26,10 @@ const cancelStalePendingPayments = () => {
 				);
 			}
 		} catch (error) {
-			logger.error({ err: error }, "Cron: Failed to cancel stale pending payments");
+			logger.error(
+				{ err: error },
+				"Cron: Failed to cancel stale pending payments",
+			);
 		}
 	});
 };

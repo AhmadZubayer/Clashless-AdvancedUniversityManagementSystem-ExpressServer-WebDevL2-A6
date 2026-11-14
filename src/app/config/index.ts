@@ -1,14 +1,31 @@
 import dotenv from "dotenv";
-import path from "path";
+import path from "node:path";
 
-dotenv.config({ path: path.join(process.cwd(), process.env.NODE_ENV === "test" ? ".env.test" : ".env"), quiet: true });
+dotenv.config({
+	path: path.join(
+		process.cwd(),
+		process.env.NODE_ENV === "test" ? ".env.test" : ".env",
+	),
+	quiet: true,
+});
 
-const databaseUrl = process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL) : undefined;
+const databaseUrl = process.env.DATABASE_URL
+	? new URL(process.env.DATABASE_URL)
+	: undefined;
 if (process.env.NODE_ENV === "test") {
-	if (process.env.DATABASE_SCHEMA !== "clashless_test" || process.env.REDIS_KEY_PREFIX !== "clashless:test:") throw new Error("Tests require isolated database schema and Redis prefix");
+	if (
+		process.env.DATABASE_SCHEMA !== "clashless_test" ||
+		process.env.REDIS_KEY_PREFIX !== "clashless:test:"
+	)
+		throw new Error("Tests require isolated database schema and Redis prefix");
 	databaseUrl?.searchParams.set("schema", "clashless_test");
 }
 
+const requiredEnv = (name: string): string => {
+	const value = process.env[name];
+	if (!value) throw new Error(`Missing environment variable: ${name}`);
+	return value;
+};
 export default {
 	// core
 	node_env: process.env.NODE_ENV,
@@ -16,42 +33,42 @@ export default {
 	app_name: process.env.APP_NAME || "API Server",
 	database_url: databaseUrl?.toString(),
 	database_schema: databaseUrl?.searchParams.get("schema") || "public",
-	server_url: process.env.SERVER_URL!,
+	server_url: requiredEnv("SERVER_URL"),
 	frontend_url: process.env.FRONTEND_URL,
-	university_email_domain: process.env.UNIVERSITY_EMAIL_DOMAIN!,
-	demo_password: process.env.DEMO_PASSWORD!,
+	university_email_domain: requiredEnv("UNIVERSITY_EMAIL_DOMAIN"),
+	demo_password: requiredEnv("DEMO_PASSWORD"),
 
 	// auth
 	bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
-	jwt_access_secret: process.env.JWT_ACCESS_SECRET!,
-	jwt_refresh_secret: process.env.JWT_REFRESH_SECRET!,
-	jwt_access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN!,
-	jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN!,
-	redis_user: process.env.REDIS_USER!,
-	redis_password: process.env.REDIS_PASSWORD!,
-	redis_host: process.env.REDIS_HOST!,
-	redis_port: process.env.REDIS_PORT!,
+	jwt_access_secret: requiredEnv("JWT_ACCESS_SECRET"),
+	jwt_refresh_secret: requiredEnv("JWT_REFRESH_SECRET"),
+	jwt_access_expires_in: requiredEnv("JWT_ACCESS_EXPIRES_IN"),
+	jwt_refresh_expires_in: requiredEnv("JWT_REFRESH_EXPIRES_IN"),
+	redis_user: requiredEnv("REDIS_USER"),
+	redis_password: requiredEnv("REDIS_PASSWORD"),
+	redis_host: requiredEnv("REDIS_HOST"),
+	redis_port: requiredEnv("REDIS_PORT"),
 	redis_key_prefix: process.env.REDIS_KEY_PREFIX || "clashless:",
-	smtp_user: process.env.SMTP_USER!,
-	smtp_password: process.env.SMTP_PASSWORD!,
-	email_sender: process.env.EMAIL_SENDER!,
-	admin_name: process.env.ADMIN_NAME!,
-	admin_email: process.env.ADMIN_EMAIL!,
-	admin_password: process.env.ADMIN_PASSWORD!,
+	redis_tls: process.env.REDIS_TLS === "true",
+	smtp_user: requiredEnv("SMTP_USER"),
+	smtp_password: requiredEnv("SMTP_PASSWORD"),
+	email_sender: requiredEnv("EMAIL_SENDER"),
+	admin_name: requiredEnv("ADMIN_NAME"),
+	admin_email: requiredEnv("ADMIN_EMAIL"),
+	admin_password: requiredEnv("ADMIN_PASSWORD"),
 
 	// google login
-	google_client_id: process.env.GOOGLE_CLIENT_ID!,
+	google_client_id: requiredEnv("GOOGLE_CLIENT_ID"),
 
 	// uploads
-	cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
-	cloudinary_api_key: process.env.CLOUDINARY_API_KEY!,
-	cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET!,
-
+	cloudinary_cloud_name: requiredEnv("CLOUDINARY_CLOUD_NAME"),
+	cloudinary_api_key: requiredEnv("CLOUDINARY_API_KEY"),
+	cloudinary_api_secret: requiredEnv("CLOUDINARY_API_SECRET"),
 
 	// bkash
-	bkash_base_url: process.env.BKASH_BASE_URL!,
-	bkash_username: process.env.BKASH_USERNAME!,
-	bkash_password: process.env.BKASH_PASSWORD!,
-	bkash_app_key: process.env.BKASH_APP_KEY!,
-	bkash_app_secret: process.env.BKASH_APP_SECRET!,
+	bkash_base_url: requiredEnv("BKASH_BASE_URL"),
+	bkash_username: requiredEnv("BKASH_USERNAME"),
+	bkash_password: requiredEnv("BKASH_PASSWORD"),
+	bkash_app_key: requiredEnv("BKASH_APP_KEY"),
+	bkash_app_secret: requiredEnv("BKASH_APP_SECRET"),
 };
