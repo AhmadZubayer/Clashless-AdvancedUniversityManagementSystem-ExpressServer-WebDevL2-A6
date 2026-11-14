@@ -1,7 +1,7 @@
 # Clashless — Progress
 
 > ## Overall: 24% complete (24 of 100 points)
-> **In progress:** nothing · **Next:** F4 Semesters and registration windows
+> **In progress:** F4 Semesters and registration windows · **Next:** F5 Offerings, sections and teacher preferences
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -18,7 +18,7 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F1 | Auth | 7 | ✅ Completed | F0 | 6.3 |
 | F2 | User management | 5 | ✅ Completed | F1 | 6.4 |
 | F3 | Academic setup | 6 | ✅ Completed | F1 | 6.5 |
-| F4 | Semesters and registration windows | 4 | ⏭️ Next | F3 | 6.6 |
+| F4 | Semesters and registration windows | 4 | 🔄 In progress | F3 | 6.6 |
 | F5 | Offerings, sections and teacher preferences | 6 | ⬜ Not started | F2, F4 | 6.7 |
 | F6 | Class routine | 14 | ⬜ Not started | F5 | 6.8 |
 | F7 | Registration | 14 | ⬜ Not started | F6 | 6.9 |
@@ -46,7 +46,14 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 
 ## 🔄 In progress
 
-_Nothing is in progress._
+### F4 — Semesters and registration windows
+Started: 14 Nov 2026 11:56 Asia/Dhaka by Codex
+Handoff notes:
+- Done: F0–F3 complete and pushed; all 39 tests pass and build/static checks clean.
+- Half-done: F4 implementation beginning; no F4 code yet.
+- Next step: semester CRUD/current/detail and rule-field locks, lifecycle gates, then registration windows and T-SEM-01 through T-SEM-09.
+- Traps: use existing schema tables for all gates; no new schema field for published grades. Shared test schema/prefix; explicit ioredis clients for BullMQ. Real notification queue was empty during worker verification.
+
 
 ## ⏭️ Next
 
