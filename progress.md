@@ -1,7 +1,7 @@
 # Clashless — Progress
 
 > ## Overall: 18% complete (18 of 100 points)
-> **In progress:** nothing · **Next:** F3 Academic setup
+> **In progress:** F3 Academic setup · **Next:** F4 Semesters and registration windows
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -17,7 +17,7 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F0 | Project setup | 6 | ✅ Completed | — | 5, 9.1–9.4, 10.2 |
 | F1 | Auth | 7 | ✅ Completed | F0 | 6.3 |
 | F2 | User management | 5 | ✅ Completed | F1 | 6.4 |
-| F3 | Academic setup | 6 | ⏭️ Next | F1 | 6.5 |
+| F3 | Academic setup | 6 | 🔄 In progress | F1 | 6.5 |
 | F4 | Semesters and registration windows | 4 | ⬜ Not started | F3 | 6.6 |
 | F5 | Offerings, sections and teacher preferences | 6 | ⬜ Not started | F2, F4 | 6.7 |
 | F6 | Class routine | 14 | ⬜ Not started | F5 | 6.8 |
@@ -45,7 +45,14 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 
 ## 🔄 In progress
 
-_Nothing is in progress._
+### F3 — Academic setup
+Started: 14 Nov 2026 11:14 Asia/Dhaka by Codex
+Handoff notes:
+- Done: F0–F2 complete and pushed; 27 tests green.
+- Half-done: F3 implementation starting.
+- Next step: departments, programs/curriculum, batches, courses/prerequisites, rooms, time grid and result import in checklist order.
+- Traps: replace T-AUTH-12/13's test-only department route with the real endpoint when departments land.
+
 
 ## ⏭️ Next
 
