@@ -86,12 +86,12 @@ const loginUser = async (payload: ILoginUserPayload) => {
 	}
 
 	checkUserCanLogin(user);
+	if (user.role === UserRole.STUDENT && !user.emailVerified) {
+		throw new AppError(httpStatus.FORBIDDEN, "Activate your account first", { code: "ACCOUNT_NOT_ACTIVATED" });
+	}
 
 	if (user.password === null) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			"User Already Has Account Registered With Google. Try To Login With Google.",
-		);
+		throw new AppError(httpStatus.UNAUTHORIZED, "Invalid credentials");
 	}
 
 	const isPasswordMatched = await bcrypt.compare(password, user.password);
@@ -117,6 +117,7 @@ const getMe = async (user: RequestUser) => {
 		omit: {
 			password: true,
 		},
+		include: { admin: true, faculty: true, student: { include: { program: true, batch: true } } },
 	});
 
 	if (!isUserExists) {
