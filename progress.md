@@ -51,7 +51,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 12:23 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F4 complete and pushed; all 53 tests and static/build checks pass.
-- Half-done: F5 implementation beginning.
+- Half-done: offering create/list/delete and Swagger implemented. Creation and deletion enforce PLANNING; numbered sections are created atomically; enrollment history is preserved. Section management next.
 - Next step: offerings, section management and schedule guards, faculty assignment, class list exports and preferences in checklist order.
 - Traps: cancellation must retain overpaid credit and recalculate Decimal bills; schedule changes must protect teacher and student clashes, and published routine entries must stay consistent.
 
@@ -129,7 +129,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F5 — Offerings, sections and teacher preferences (6 points)
 
-- [ ] Offerings: create with N sections, list, delete
+- [x] Offerings: create with N sections, list, delete
 - [ ] Sections: extra section, update, reschedule, cancel
 - [ ] Bulk teacher assignment (load check, all or nothing); `GET /api/sections/mine`
 - [ ] Class list as JSON, CSV and PDF
