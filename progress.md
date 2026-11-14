@@ -54,7 +54,7 @@ Started: 14 Nov 2026 13:20 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F6 complete and pushed; all 88 tests and static/build/manual checks pass. Demo published routine version 2 exists; semester stays PLANNING.
 - Half-done: select endpoint/core transaction implemented and documented; rate/idempotency guards remain for their checklist item. T-REG-01/02/03/04/10 passed (5 tests, 43.13 seconds); T-REG-11 passed separately (17.84 seconds).
-- Next step: unselect and switch, then Redis rate limit/idempotency, remaining reads/SSE/admin endpoints, demo registration-open seed and T-REG-05 through 21 still missing except 10/11. Reuse locked registration and Decimal totals.
+- Next step: Redis rate limit/idempotency, then reads/cache/SSE/admin endpoints, demo registration-open seed and remaining tests. Unselect/switch implemented with ascending section updates, rollback and retained paid credit. Focused 6 tests passed (T-REG-03/13/14/15/16 and opposite-direction switch); baseline full suite 94 passed in 246.09 seconds.
 - Traps: default isolation for select, serialize same-student writes with registration row locks, ascending section IDs for switches; Decimal bill totals; test schema/prefix isolation remains mandatory.
 
 ## ⏭️ Next
@@ -153,7 +153,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ### F7 — Registration (14 points)
 
 - [x] Select a section exactly as in 6.9.1 (raw insert + `FOR UPDATE`, guarded seat update)
-- [ ] Unselect (6.9.2) and switch (6.9.3)
+- [x] Unselect (6.9.2) and switch (6.9.3)
 - [ ] Idempotency key and rate limit
 - [ ] Fee and `paymentStatus` recalculation
 - [ ] `GET /api/registrations/me` and offerings with per-student flags (catalog cache)
@@ -304,6 +304,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 

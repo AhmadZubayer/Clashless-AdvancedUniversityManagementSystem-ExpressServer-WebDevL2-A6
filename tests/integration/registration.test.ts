@@ -14,6 +14,8 @@ let alternativeId: string;
 let windowId: string;
 let windowEnd: Date;
 const authorization = () => `Bearer ${tokenFor(student)}`;
+let originalEnrollmentId: string;
+let targetStudent: Awaited<ReturnType<typeof createStudent>>;
 beforeAll(async () => {
 	world = await createAcademicWorld();
 	student = await createStudent({ batch: world.batch, program: world.program });
@@ -158,6 +160,158 @@ it("T-REG-04 another section of the same course is rejected", async () => {
 	expect(response.status).toBe(409);
 	expect(response.body.errorDetails.code).toBe("ALREADY_HAS_COURSE");
 });
+it("T-REG-13 unselect drops the enrollment and removes the semester fee without refunding paid credit", async () => {
+	const bill = await prisma.semesterRegistration.findUniqueOrThrow({
+		where: {
+			unique_student_semester: { studentId: student.student!.id, semesterId },
+		},
+	});
+	await prisma.semesterRegistration.update({
+		where: { id: bill.id },
+		data: { paidAmount: 10000 },
+	});
+	const response = await request(app)
+		.delete(`/api/registrations/sections/${sectionId}`)
+		.set("Authorization", authorization());
+	expect(response.status).toBe(200);
+	expect(response.body.data.enrollment.status).toBe("DROPPED");
+	originalEnrollmentId = response.body.data.enrollment.id;
+	expect(response.body.data.registration).toMatchObject({
+		totalCredits: "0",
+		totalFee: "0",
+		paidAmount: "10000",
+		paymentStatus: "FULLY_PAID",
+	});
+	expect(
+		(await prisma.section.findUniqueOrThrow({ where: { id: sectionId } }))
+			.enrolledCount,
+	).toBe(0);
+});
+it("T-REG-14 selecting again reuses the original dropped enrollment", async () => {
+	const response = await request(app)
+		.post(`/api/registrations/sections/${sectionId}`)
+		.set("Authorization", authorization());
+	expect(response.status).toBe(201);
+	expect(response.body.data.enrollment).toMatchObject({
+		id: originalEnrollmentId,
+		status: "ENROLLED",
+		droppedAt: null,
+	});
+	expect(response.body.data.registration).toMatchObject({
+		totalCredits: "3",
+		totalFee: "31500",
+		paidAmount: "10000",
+		paymentStatus: "UNPAID",
+	});
+});
+it("T-REG-15 switching to a full section retains the source enrollment and count", async () => {
+	targetStudent = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	await prisma.section.update({
+		where: { id: alternativeId },
+		data: { capacity: 1 },
+	});
+	const fill = await request(app)
+		.post(`/api/registrations/sections/${alternativeId}`)
+		.set("Authorization", `Bearer ${tokenFor(targetStudent)}`);
+	expect(fill.status).toBe(201);
+	const response = await request(app)
+		.post("/api/registrations/switch")
+		.set("Authorization", authorization())
+		.send({ fromSectionId: sectionId, toSectionId: alternativeId });
+	expect(response.status).toBe(409);
+	expect(response.body.errorDetails.code).toBe("SECTION_FULL");
+	expect(
+		(
+			await prisma.enrollment.findUniqueOrThrow({
+				where: { id: originalEnrollmentId },
+			})
+		).status,
+	).toBe("ENROLLED");
+	expect(
+		(await prisma.section.findUniqueOrThrow({ where: { id: sectionId } }))
+			.enrolledCount,
+	).toBe(1);
+});
+it("T-REG-16 switching to an available section changes both counts and preserves billing", async () => {
+	const release = await request(app)
+		.delete(`/api/registrations/sections/${alternativeId}`)
+		.set("Authorization", `Bearer ${tokenFor(targetStudent)}`);
+	expect(release.status).toBe(200);
+	const response = await request(app)
+		.post("/api/registrations/switch")
+		.set("Authorization", authorization())
+		.send({ fromSectionId: sectionId, toSectionId: alternativeId });
+	expect(response.status).toBe(200);
+	expect(response.body.data.fromEnrollment).toMatchObject({
+		id: originalEnrollmentId,
+		status: "DROPPED",
+	});
+	expect(response.body.data.enrollment).toMatchObject({
+		sectionId: alternativeId,
+		status: "ENROLLED",
+		credits: "3",
+	});
+	expect(response.body.data.registration).toMatchObject({
+		totalCredits: "3",
+		totalFee: "31500",
+		paidAmount: "10000",
+	});
+	expect(
+		(await prisma.section.findUniqueOrThrow({ where: { id: sectionId } }))
+			.enrolledCount,
+	).toBe(0);
+	expect(
+		(await prisma.section.findUniqueOrThrow({ where: { id: alternativeId } }))
+			.enrolledCount,
+	).toBe(1);
+});
+it("F7 opposite switches do not deadlock and both complete when capacity allows", async () => {
+	await prisma.section.update({
+		where: { id: alternativeId },
+		data: { capacity: 4 },
+	});
+	const left = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const right = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	for (const [user, id] of [
+		[left, sectionId],
+		[right, alternativeId],
+	] as const)
+		expect(
+			(
+				await request(app)
+					.post(`/api/registrations/sections/${id}`)
+					.set("Authorization", `Bearer ${tokenFor(user)}`)
+			).status,
+		).toBe(201);
+	const responses = await Promise.all([
+		request(app)
+			.post("/api/registrations/switch")
+			.set("Authorization", `Bearer ${tokenFor(left)}`)
+			.send({ fromSectionId: sectionId, toSectionId: alternativeId }),
+		request(app)
+			.post("/api/registrations/switch")
+			.set("Authorization", `Bearer ${tokenFor(right)}`)
+			.send({ fromSectionId: alternativeId, toSectionId: sectionId }),
+	]);
+	expect(responses.map((response) => response.status)).toEqual([200, 200]);
+	expect(
+		(await prisma.section.findUniqueOrThrow({ where: { id: sectionId } }))
+			.enrolledCount,
+	).toBe(1);
+	expect(
+		(await prisma.section.findUniqueOrThrow({ where: { id: alternativeId } }))
+			.enrolledCount,
+	).toBe(2);
+});
 it("T-REG-11 parallel selections by one student serialize the credit-limit check", async () => {
 	const user = await createStudent({
 		batch: world.batch,
@@ -211,16 +365,14 @@ it("T-REG-11 parallel selections by one student serialize the credit-limit check
 		},
 	});
 	await prisma.enrollment.createMany({
-		data: sections
-			.slice(0, 2)
-			.map((section) => ({
-				studentId: user.student!.id,
-				semesterId,
-				registrationId: registration.id,
-				sectionId: section.id,
-				offeringId: section.offeringId,
-				credits: 3,
-			})),
+		data: sections.slice(0, 2).map((section) => ({
+			studentId: user.student!.id,
+			semesterId,
+			registrationId: registration.id,
+			sectionId: section.id,
+			offeringId: section.offeringId,
+			credits: 3,
+		})),
 	});
 	const responses = await Promise.all(
 		sections.slice(2).map((section) =>
