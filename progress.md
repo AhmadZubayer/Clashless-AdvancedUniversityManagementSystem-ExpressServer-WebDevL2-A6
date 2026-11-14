@@ -1,7 +1,7 @@
 # Clashless — Progress
 
-> ## Overall: 24% complete (24 of 100 points)
-> **In progress:** F4 Semesters and registration windows · **Next:** F5 Offerings, sections and teacher preferences
+> ## Overall: 28% complete (28 of 100 points)
+> **In progress:** nothing · **Next:** F5 Offerings, sections and teacher preferences
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -18,8 +18,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F1 | Auth | 7 | ✅ Completed | F0 | 6.3 |
 | F2 | User management | 5 | ✅ Completed | F1 | 6.4 |
 | F3 | Academic setup | 6 | ✅ Completed | F1 | 6.5 |
-| F4 | Semesters and registration windows | 4 | 🔄 In progress | F3 | 6.6 |
-| F5 | Offerings, sections and teacher preferences | 6 | ⬜ Not started | F2, F4 | 6.7 |
+| F4 | Semesters and registration windows | 4 | ✅ Completed | F3 | 6.6 |
+| F5 | Offerings, sections and teacher preferences | 6 | ⏭️ Next | F2, F4 | 6.7 |
 | F6 | Class routine | 14 | ⬜ Not started | F5 | 6.8 |
 | F7 | Registration | 14 | ⬜ Not started | F6 | 6.9 |
 | F8 | Payments and the discard job | 8 | ⬜ Not started | F7 | 6.10, 7 |
@@ -43,21 +43,15 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | F1 Auth | 14 Nov 2026 | Codex | 15 (16 total) | All auth flows, Swagger, static checks and manual HTTP pass |
 | F2 User management | 14 Nov 2026 | Codex | 11 (27 total) | Endpoints, Swagger, static checks, build and manual pass |
 | F3 Academic setup | 14 Nov 2026 | Codex | 11 (39 total) | All 26 endpoints, Swagger, static checks, build and manual pass |
+| F4 Semesters and registration windows | 14 Nov 2026 | Codex | 14 (53 total) | 9 required IDs plus 5 gate/boundary checks; all 10 endpoints/docs and manual pass |
 
 ## 🔄 In progress
 
-### F4 — Semesters and registration windows
-Started: 14 Nov 2026 11:56 Asia/Dhaka by Codex
-Handoff notes:
-- Done: F0–F3 complete and pushed; all 39 tests pass and build/static checks clean.
-- Half-done: semester CRUD/current/detail endpoints and Swagger implemented. Serializable creation prevents concurrent open semesters; rule fields lock after PLANNING. Baseline 39 tests passed. All phase gates implemented with guarded serializable transitions and audit logs; Window endpoints and Swagger implemented with batch-scoped student visibility, audited running extensions, atomic deadline moves and future-only deletion. All 14 focused F4 tests passed (9 required IDs plus 5 lifecycle/boundary tests). Manual HTTP pass and all 10 Swagger methods verified; full 53-test suite and final build next.
-- Next step: semester CRUD/current/detail and rule-field locks, lifecycle gates, then registration windows and T-SEM-01 through T-SEM-09.
-- Traps: use existing schema tables for all gates; no new schema field for published grades. Shared test schema/prefix; explicit ioredis clients for BullMQ. Real notification queue was empty during worker verification.
-
+_Nothing is in progress._
 
 ## ⏭️ Next
 
-1. Continue claimed **F4 Semesters and registration windows**: implement requirement.md 6.6 and lifecycle gates in section 3.
+1. **F5 Offerings, sections and teacher preferences**: implement requirement.md 6.7; apply hard schedule rules from 6.8.1.
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -124,7 +118,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Phase change with every gate from requirement.md section 3 (the gates read tables that already exist, even before their features are built)
 - [x] Registration windows: create, list (students see only theirs), change (extend only while running; moves `paymentDeadline`), delete
 - [x] Tests T-SEM-01 … T-SEM-09
-- [ ] Definition of done → commit → push
+- [x] Definition of done → commit → push
 
 ### F5 — Offerings, sections and teacher preferences (6 points)
 
@@ -221,6 +215,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ---
 
 ## Handoff notes (newest first)
+
+- **14 Nov 2026, Codex, F4 complete:** All 10 endpoints and Swagger implemented. Full suite 53 passed in 119.49 seconds; type check, lint, format and build pass. Manual flow passed and temporary main-schema registration window was removed. Semester creation and transitions use serializable transactions; every forward gate and transition audit is enforced against existing tables. Running extensions require a reason, cannot shorten/change start/batch/semester, update only the affected batch's bill deadlines and audit atomically. No new schema or env changes. F5 is next; its full section and the routine hard rules were read. Required F5 tests are T-SEC-01 through T-SEC-10; cancellation needs Decimal fee recalculation and notifications, and scheduled sections must obey active room/type/capacity/teacher availability/clash rules.
+
 
 - **14 Nov 2026, Codex, F4 verification:** Semester CRUD/current/admin detail/rule locking, all audited forward-only lifecycle gates, and registration windows implemented. Focused F4 suite: 14 passed, covering every required T-SEM ID and additional gates/window boundaries. Manual HTTP demo-semester/current/counts/default rules/window create-edit-delete/student batch scope and all 10 Swagger methods passed; temporary window removed, demo phase remains PLANNING. No schema or secret changes. Full 53-test suite/build pending before F4 completion.
 
