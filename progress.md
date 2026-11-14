@@ -54,7 +54,7 @@ Started: 14 Nov 2026 13:20 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F6 complete and pushed; all 88 tests and static/build/manual checks pass. Demo published routine version 2 exists; semester stays PLANNING.
 - Half-done: select endpoint/core transaction implemented and documented; rate/idempotency guards remain for their checklist item. T-REG-01/02/03/04/10 passed (5 tests, 43.13 seconds); T-REG-11 passed separately (17.84 seconds).
-- Next step: verify fee/payment-status boundaries, then reads/cache/SSE/admin endpoints, demo registration-open seed and remaining tests. Redis idempotency/rate guards passed 3 focused tests (T-REG-12/17 and concurrent first replay). Unselect/switch implemented with ascending section updates, rollback and retained paid credit. Focused 6 tests passed (T-REG-03/13/14/15/16 and opposite-direction switch); baseline full suite 94 passed in 246.09 seconds.
+- Next step: registration me/catalog reads and student flags, then SSE/admin endpoints, demo registration-open seed and remaining tests. Decimal boundary checks pass (16 unit tests total), including fee rounding, ceil minimum and retained credit after the last drop. Redis idempotency/rate guards passed 3 focused tests (T-REG-12/17 and concurrent first replay). Unselect/switch implemented with ascending section updates, rollback and retained paid credit. Focused 6 tests passed (T-REG-03/13/14/15/16 and opposite-direction switch); baseline full suite 94 passed in 246.09 seconds.
 - Traps: default isolation for select, serialize same-student writes with registration row locks, ascending section IDs for switches; Decimal bill totals; test schema/prefix isolation remains mandatory.
 
 ## ⏭️ Next
@@ -155,7 +155,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Select a section exactly as in 6.9.1 (raw insert + `FOR UPDATE`, guarded seat update)
 - [x] Unselect (6.9.2) and switch (6.9.3)
 - [x] Idempotency key and rate limit
-- [ ] Fee and `paymentStatus` recalculation
+- [x] Fee and `paymentStatus` recalculation
 - [ ] `GET /api/registrations/me` and offerings with per-student flags (catalog cache)
 - [ ] SSE seat stream with Redis pub/sub
 - [ ] Admin list, detail, manual add (bypass) and remove
@@ -305,6 +305,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 
