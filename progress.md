@@ -1,7 +1,7 @@
 # Clashless — Progress
 
-> ## Overall: 91% complete (91 of 100 points)
-> **In progress:** F12 Notifications, dashboards and audit log · **Next:** F13 Load test, performance and delivery
+> ## Overall: 95% complete (95 of 100 points)
+> **In progress:** F13 Load test, performance and delivery · **Next:** none (final feature)
 > **Last updated:** 14 Nov 2026 by Claude Code
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -26,8 +26,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F9 | Exam routine | 7 | ✅ Completed | F7 | 6.11 |
 | F10 | Seat plan and invigilators | 10 | ✅ Completed | F9 | 6.12 |
 | F11 | Grades | 4 | ✅ Completed | F7 | 6.13 |
-| F12 | Notifications, dashboards and audit log | 4 | 🔄 In progress | F8, F10, F11 | 6.14–6.16 |
-| F13 | Load test, performance and delivery | 5 | ⬜ Not started | All | 8, 9.7 |
+| F12 | Notifications, dashboards and audit log | 4 | ✅ Completed | F8, F10, F11 | 6.14–6.16 |
+| F13 | Load test, performance and delivery | 5 | 🔄 In progress | All | 8, 9.7 |
 | | **Total** | **100** | | | |
 
 Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. Only one feature is 🔄 at a time.
@@ -47,6 +47,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | F5 Offerings, sections and teacher preferences | 14 Nov 2026 | Codex | 17 (70 total) | All 13 endpoints/docs, 10 required test IDs, boundary/unit checks and manual pass |
 | F6 Class routine | 14 Nov 2026 | Codex | 18 (88 total) | All 13 endpoints/docs; actual demo 264/264 placed in 552 ms; real BullMQ/manual/PDF pass |
 
+| F12 Notifications, dashboards and audit log | 14 Nov 2026 | Claude Code | 5 (177 total) | notifications, admin/live/me dashboards, audit log; T-MISC-01…05; manual pass done |
 | F11 Grades | 14 Nov 2026 | Claude Code | 6 (177 total) | submit/sheet/status/publish/me; T-GRADE-01…06; CGPA hand-checked incl. retake; manual pass done |
 | F10 Seat plan and invigilators | 14 Nov 2026 | Claude Code | 14 (166 total) | 13 T-SEAT + T-JOB-06, 14 endpoints/docs, validator/generator, invigilators, PDFs, reminder cron; manual pass done |
 | F9 Exam routine | 14 Nov 2026 | Claude Code | 9 (152 total) | slots, generator/validator, worker, move, publish, /me; T-EXAM-01…08; manual pass done |
@@ -55,16 +56,16 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 
 ## 🔄 In progress
 
-### F12 — Notifications, dashboards and audit log
+### F13 — Load test, performance and delivery
 Started: 14 Nov 2026 by Claude Code
 Handoff notes:
-- Done: F0–F11 complete and pushed. F12 implemented and verified (notification, auditLog, analytics modules; tests/integration/misc.test.ts T-MISC-01…05 pass; manual pass done); only the commit/push of F12 remains, then F13.
-- F13 prep already in tree: tests/load/makeTokens.ts and select-section.k6.js. k6 is NOT installed: ask the user to install it (winget install k6). README architecture/results still to write.
-- Traps: full suite 9-14 min with flaky network timeouts (ETIMEDOUT) -> rerun the file alone. Commits: user identity only.
+- Done: F0–F12 complete and pushed. tests/load/makeTokens.ts and select-section.k6.js written. k6 is NOT installed: ask the user to install it (winget install k6).
+- Next step: run the load test (k6 if installed, otherwise a Node equivalent for the numbers), run T-ROUT-14 and T-SEAT-13, write README architecture/design decisions/load results, Swagger review, final full npm test.
+- Traps: the load test mutates the demo section CSC2211 section 1 (40 enrollments); clean up afterwards. Full suite 9-14 min with transient ETIMEDOUT failures; rerun the file alone. Commits: user identity only.
 
 ## ⏭️ Next
 
-1. **F12 Notifications, dashboards and audit log** (in progress).
+1. **F13 Load test, performance and delivery** (in progress).
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -209,11 +210,11 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F12 — Notifications, dashboards and audit log (4 points)
 
-- [ ] Notification endpoints
-- [ ] Admin analytics, live registration view, `/api/analytics/me`
-- [ ] Audit log endpoint
-- [ ] Tests T-MISC-01 … T-MISC-05
-- [ ] Definition of done → commit → push
+- [x] Notification endpoints
+- [x] Admin analytics, live registration view, `/api/analytics/me`
+- [x] Audit log endpoint
+- [x] Tests T-MISC-01 … T-MISC-05
+- [x] Definition of done → commit → push
 
 ### F13 — Load test, performance and delivery (5 points)
 
