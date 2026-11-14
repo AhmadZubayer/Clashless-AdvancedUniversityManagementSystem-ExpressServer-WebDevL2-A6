@@ -8,7 +8,11 @@ const passwordSchema = z
 	.regex(/[0-9]/, "Password must contain atleast 1 Number")
 	.regex(/[^A-Za-z0-9]/, "Password must contain atleast 1 Special Character");
 
-const emailSchema = z.email("Invalid email address").trim().toLowerCase();
+const emailSchema = z
+	.string()
+	.trim()
+	.toLowerCase()
+	.pipe(z.email("Invalid email address"));
 
 const loginUserSchema = z.object({
 	email: emailSchema,
@@ -16,10 +20,17 @@ const loginUserSchema = z.object({
 });
 
 const requestActivationSchema = z.object({ email: emailSchema });
-const activateSchema = z.object({ email: emailSchema, otp: z.string().trim().regex(/^\d{6}$/), password: passwordSchema });
+const activateSchema = z.object({
+	email: emailSchema,
+	otp: z
+		.string()
+		.trim()
+		.regex(/^\d{6}$/),
+	password: passwordSchema,
+});
 
 const googleLoginSchema = z.object({
-	idToken: z.string().min(1, "Google ID token is required"),
+	idToken: z.string().trim().min(1, "Google ID token is required"),
 });
 
 const forgotPasswordSchema = z.object({
@@ -40,7 +51,6 @@ const changePasswordSchema = z.object({
 export const authValidation = {
 	requestActivationSchema,
 	activateSchema,
-
 
 	loginUserSchema,
 	googleLoginSchema,

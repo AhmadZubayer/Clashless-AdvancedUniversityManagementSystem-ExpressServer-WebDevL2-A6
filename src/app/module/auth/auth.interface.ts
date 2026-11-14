@@ -3,7 +3,11 @@ export interface ILoginUserPayload {
 	password: string;
 }
 
-export interface IActivationPayload { email: string; otp: string; password: string }
+export interface IActivationPayload {
+	email: string;
+	otp: string;
+	password: string;
+}
 
 export interface IGoogleLoginPayload {
 	idToken: string;

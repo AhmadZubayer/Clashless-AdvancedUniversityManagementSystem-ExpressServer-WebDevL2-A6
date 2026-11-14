@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import config from "../../src/app/config";
 import { prisma } from "../../src/app/lib/prisma";
 import { UserRole } from "../../src/generated/prisma/enums";
 import type { Batch, Program } from "../../src/generated/prisma/client";
@@ -77,7 +78,7 @@ export async function createStudent(
 	const program = options.program ?? world.program;
 	const batch = options.batch ?? world.batch;
 	const key = unique();
-	const email = `student-${key}@uni.edu`;
+	const email = `student-${key}@${config.university_email_domain}`;
 	const user = await prisma.user.create({
 		data: {
 			name: `Student ${key}`,

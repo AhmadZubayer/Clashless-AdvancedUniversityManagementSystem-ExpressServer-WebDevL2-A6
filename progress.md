@@ -47,11 +47,10 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 ### F1 — Auth
 Started: 14 Nov 2026 10:49 Asia/Dhaka by Codex
 Handoff notes:
-- Done: F0 complete and pushed; baseline smoke test green.
-- Half-done: self-registration removed from routes, services, validation, types and docs. Tokens carry tokenVersion; guard and refresh reject stale or inactive sessions. Password-change guard allows only change-password, me and logout; Login rejects unactivated students; me includes the role profile. Logout bumps tokenVersion and clears cookies; Activation implemented with atomic send limit and wrong-attempt handling, transactional student activation, and safe emails. Google now verifies university-domain identity and links existing students only; Forgot/reset/change implemented with generic OTP responses, shared send limits, atomic OTP consumption, token revocation and fresh change-password cookies. Swagger and all 15 auth tests next.
-- Next step: remove self-registration and implement token-version guards and activation.
-- Traps: shared test services require isolated schema/prefix; external calls mocked.
-
+- Done: all 10 auth endpoints, Swagger, and 15 required auth tests; all 16 tests passed including F0 smoke. Targeted normalization login test also passed after final validation cleanup.
+- Half-done: none; completion commit and push next.
+- Next step: finish F1 completion records and begin F2.
+- Traps: T-AUTH-12/13 use a test-only department route with the real auth guard until the production department endpoint is built in F3.
 
 ## ⏭️ Next
 
@@ -92,7 +91,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Activation: `request-otp` (send limit) and `verify`
 - [x] Google login: students only, university domain, never creates users
 - [x] Forgot, reset and change password changes
-- [ ] Tests T-AUTH-01 … T-AUTH-15
+- [x] Tests T-AUTH-01 … T-AUTH-15
 - [ ] Definition of done → commit → push
 
 ### F2 — User management (5 points)
@@ -220,6 +219,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex, F1:** All auth behavior and Swagger implemented. Full suite: 16 passed (15 auth IDs plus smoke), final normalization test passed separately. Static type/lint/format checks clean. Manual HTTP demo-admin login/me/refresh/logout returned 200, replayed refresh returned 401, removed registration returned 404; Swagger includes activation and omits self-registration. Tests mock all outgoing services. F3 should replace the T-AUTH-12/13 test-only department guard route with the actual production endpoint when available. No user questions pending.
+
+
 - **14 Nov 2026, Codex:** F0 implemented and verified: exact schema and both SQL constraints applied; Super Admin/profile seed; deterministic demo seed safely ran twice (96 courses, 72 faculty, 2100 students, 54600 results, 264 sections, zero overloaded faculty); audit/notification transaction helpers; BullMQ inline test mode and worker bootstrap; Redis seat pub/sub; grade/time helpers; isolated test harness and mocks. npm test: 1 smoke test passed. Type check, lint (no diagnostics), format check and build passed. Normal startup connected DB/Redis/mailer; HTTP welcome, Swagger and seeded admin login returned 200. Replaced failed Redis connection with user-supplied working service. Shared tests use clashless_test schema and clashless:test: keys; never reset public or FLUSHDB. Node/npm need elevated execution because the restricted shell cannot resolve their installation. F1 auth and F8 payment behavior remain scaffold behavior; F0 changed role/model references only. npm install reported five dependency advisories for later review.
 
 - **14 Nov 2026, Claude Code (planning session):** wrote the planning documents only; no code yet. The folder has a git-ignored `.env` (its values weren't checked), an untracked `.gitignore` (already ignores `.env`, `.agents`, `.claude`, `.windsurf`), a stub `README.md`, and one commit (`first commit`) on `main`, pushed to `origin`. Start with F0.
@@ -233,6 +235,7 @@ No outstanding questions. First-admin/demo credentials supplied; user chose uni.
 | Date | Decision | By |
 |---|---|---|
 | 14 Nov 2026 | Assignment override: use supplied database/Redis services for tests, isolated PostgreSQL clashless_test schema and clashless:test: Redis keys; no shared FLUSHDB. Use uni.edu for university email domain. Credentials supplied and stored only in ignored .env. | User / Codex |
+| 14 Nov 2026 | F1 guard tests use a test-only /api/departments route until F3 creates that resource, preserving feature order; replace with production endpoint in F3. | Codex |
 | 14 Nov 2026 | Demo course catalogue taken from the AIUB BSc CSE curriculum (requirement.md Appendix A) | User |
 | 14 Nov 2026 | AGENTS.md is the single instruction file for every agent; CLAUDE.md and GEMINI.md only point to it | Claude Code |
 | 14 Nov 2026 | Work happens on `main` only; push after every completed feature, and also when stopping mid-feature | User / Claude Code |
@@ -242,6 +245,8 @@ No outstanding questions. First-admin/demo credentials supplied; user chose uni.
 One line per feature after its manual pass (requirement.md 9.5): date, feature, what was tried, result.
 
 - 14 Nov 2026, F0: HTTP welcome and Swagger UI returned 200; Swagger init includes login; seeded Super Admin login returned 200. SMTP verify succeeded. Normal bootstrap succeeded with database, Redis and Nodemailer connected; welcome and docs returned 200.
+
+- 14 Nov 2026, F1: manual demo-admin login, role profile, token refresh and logout passed; old refresh rejected (401), self-register removed (404), Swagger paths verified.
 
 ## Environment notes (never write secrets here)
 

@@ -75,13 +75,32 @@ export const auth = (...requiredRoles: UserRole[]) => {
 			);
 		}
 
-		if (!Number.isInteger(decoded.tokenVersion) || decoded.tokenVersion !== user.tokenVersion) {
-			throw new AppError(httpStatus.UNAUTHORIZED, "Session has expired. Please log in again.");
+		if (
+			!Number.isInteger(decoded.tokenVersion) ||
+			decoded.tokenVersion !== user.tokenVersion
+		) {
+			throw new AppError(
+				httpStatus.UNAUTHORIZED,
+				"Session has expired. Please log in again.",
+			);
 		}
 
-		const passwordChangePaths = ["POST /api/auth/change-password", "GET /api/auth/me", "POST /api/auth/logout"];
-		if (user.needPasswordChange && !passwordChangePaths.includes(`${req.method} ${req.originalUrl.split("?")[0]}`)) {
-			throw new AppError(httpStatus.FORBIDDEN, "Change your password to continue", { code: "PASSWORD_CHANGE_REQUIRED" });
+		const passwordChangePaths = [
+			"POST /api/auth/change-password",
+			"GET /api/auth/me",
+			"POST /api/auth/logout",
+		];
+		if (
+			user.needPasswordChange &&
+			!passwordChangePaths.includes(
+				`${req.method} ${req.originalUrl.split("?")[0]}`,
+			)
+		) {
+			throw new AppError(
+				httpStatus.FORBIDDEN,
+				"Change your password to continue",
+				{ code: "PASSWORD_CHANGE_REQUIRED" },
+			);
 		}
 
 		if (requiredRoles.length && !requiredRoles.includes(user.role)) {

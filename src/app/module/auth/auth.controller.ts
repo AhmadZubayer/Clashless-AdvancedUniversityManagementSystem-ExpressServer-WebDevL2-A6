@@ -8,13 +8,23 @@ import { authService } from "./auth.service";
 
 const requestActivationOtp = catchAsync(async (req: Request, res: Response) => {
 	await authService.requestActivationOtp(req.body);
-	sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "If this account is eligible, an OTP has been sent", data: null });
+	sendResponse(res, {
+		success: true,
+		statusCode: httpStatus.OK,
+		message: "If this account is eligible, an OTP has been sent",
+		data: null,
+	});
 });
 
 const activateUser = catchAsync(async (req: Request, res: Response) => {
 	const result = await authService.activateUser(req.body);
 	setAuthCookies(res, result.accessToken, result.refreshToken);
-	sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "Account activated", data: result });
+	sendResponse(res, {
+		success: true,
+		statusCode: httpStatus.OK,
+		message: "Account activated",
+		data: result,
+	});
 });
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
@@ -133,7 +143,7 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 	}
 
 	const result = await authService.changePassword(req.user, req.body);
- setAuthCookies(res, result.accessToken, result.refreshToken);
+	setAuthCookies(res, result.accessToken, result.refreshToken);
 
 	sendResponse(res, {
 		statusCode: httpStatus.OK,
@@ -159,7 +169,6 @@ const logoutUser = catchAsync(async (req: Request, res: Response) => {
 export const authController = {
 	requestActivationOtp,
 	activateUser,
-
 
 	loginUser,
 	getMe,

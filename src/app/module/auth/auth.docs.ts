@@ -2,9 +2,8 @@
  * @openapi
  * /api/auth/login:
  *   post:
- *     tags:
- *       - Auth
- *     summary: Log in with email and password
+ *     tags: [Auth]
+ *     summary: Email/password login; inactive students must activate
  *     requestBody:
  *       required: true
  *       content:
@@ -18,95 +17,109 @@
  *                 format: email
  *               password:
  *                 type: string
+ *                 minLength: 1
  *     responses:
  *       200:
- *         description: Returns the access and refresh tokens and sets the auth cookies
+ *         description: Success. Login returns accessToken, refreshToken and needPasswordChange; activation also returns the safe user.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Token flows set httpOnly accessToken and refreshToken cookies; logout clears them.
+ *             schema:
+ *               type: string
  *       400:
- *         description: Validation failed, or the account uses Google login
+ *         description: Invalid input or INVALID_OTP
  *       401:
- *         description: Invalid credentials
+ *         description: Invalid credentials, missing token, or revoked session
  *       403:
- *         description: User is blocked or deleted
- */
-
-/**
- * @openapi
- * /api/auth/me:
- *   get:
- *     tags:
- *       - Auth
- *     summary: Get the profile of the logged-in user
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: User profile fetched successfully
- *       401:
- *         description: Access token is missing or invalid
- *       403:
- *         description: Account is blocked
+ *         description: Inactive account, ACCOUNT_NOT_ACTIVATED, PASSWORD_CHANGE_REQUIRED or disallowed Google identity
+ *       429:
+ *         description: RATE_LIMITED (OTP sends)
  */
 
 /**
  * @openapi
  * /api/auth/refresh-token:
  *   post:
- *     tags:
- *       - Auth
- *     summary: Get a new access and refresh token using the refresh token cookie
+ *     tags: [Auth]
+ *     summary: Refresh cookies; rejects revoked versions and inactive accounts
+ *     security:
+ *       - refreshCookie: []
  *     responses:
  *       200:
- *         description: New tokens generated successfully
+ *         description: Success. Login returns accessToken, refreshToken and needPasswordChange; activation also returns the safe user.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Token flows set httpOnly accessToken and refreshToken cookies; logout clears them.
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Invalid input or INVALID_OTP
  *       401:
- *         description: Refresh token is missing or invalid, or the user is inactive
+ *         description: Invalid credentials, missing token, or revoked session
+ *       403:
+ *         description: Inactive account, ACCOUNT_NOT_ACTIVATED, PASSWORD_CHANGE_REQUIRED or disallowed Google identity
+ *       429:
+ *         description: RATE_LIMITED (OTP sends)
  */
 
 /**
  * @openapi
  * /api/auth/logout:
  *   post:
- *     tags:
- *       - Auth
- *     summary: Log out by clearing the auth cookies
+ *     tags: [Auth]
+ *     summary: Revoke every session and clear cookies
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User logged out successfully
- */
-
-/**
- * @openapi
- * /api/auth/google:
- *   post:
- *     tags:
- *       - Auth
- *     summary: Log in or register with a Google ID token
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [idToken]
- *             properties:
- *               idToken:
- *                 type: string
- *                 description: The credential returned by Google Identity Services on the frontend
- *     responses:
- *       200:
- *         description: Returns the access and refresh tokens and sets the auth cookies
+ *         description: Success. Login returns accessToken, refreshToken and needPasswordChange; activation also returns the safe user.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Token flows set httpOnly accessToken and refreshToken cookies; logout clears them.
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Invalid input or INVALID_OTP
  *       401:
- *         description: Invalid or expired Google ID token
+ *         description: Invalid credentials, missing token, or revoked session
  *       403:
- *         description: User is blocked or deleted, or the account must use email and password
+ *         description: Inactive account, ACCOUNT_NOT_ACTIVATED, PASSWORD_CHANGE_REQUIRED or disallowed Google identity
+ *       429:
+ *         description: RATE_LIMITED (OTP sends)
  */
 
 /**
  * @openapi
- * /api/auth/forgot-password:
+ * /api/auth/me:
+ *   get:
+ *     tags: [Auth]
+ *     summary: User without password plus role profile, student program, batch, CGPA and earned credits
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Success. Login returns accessToken, refreshToken and needPasswordChange; activation also returns the safe user.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Token flows set httpOnly accessToken and refreshToken cookies; logout clears them.
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Invalid input or INVALID_OTP
+ *       401:
+ *         description: Invalid credentials, missing token, or revoked session
+ *       403:
+ *         description: Inactive account, ACCOUNT_NOT_ACTIVATED, PASSWORD_CHANGE_REQUIRED or disallowed Google identity
+ *       429:
+ *         description: RATE_LIMITED (OTP sends)
+ */
+
+/**
+ * @openapi
+ * /api/auth/activate/request-otp:
  *   post:
- *     tags:
- *       - Auth
- *     summary: Send a password reset OTP to the email
+ *     tags: [Auth]
+ *     summary: Send a 10-minute activation OTP to an eligible student; generic response, 3 sends per 15 minutes
  *     requestBody:
  *       required: true
  *       content:
@@ -120,22 +133,142 @@
  *                 format: email
  *     responses:
  *       200:
- *         description: OTP sent to the email
+ *         description: Success. Login returns accessToken, refreshToken and needPasswordChange; activation also returns the safe user.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Token flows set httpOnly accessToken and refreshToken cookies; logout clears them.
+ *             schema:
+ *               type: string
  *       400:
- *         description: Validation failed, or the account uses Google login
+ *         description: Invalid input or INVALID_OTP
+ *       401:
+ *         description: Invalid credentials, missing token, or revoked session
  *       403:
- *         description: User is blocked or deleted
- *       404:
- *         description: User does not exist
+ *         description: Inactive account, ACCOUNT_NOT_ACTIVATED, PASSWORD_CHANGE_REQUIRED or disallowed Google identity
+ *       429:
+ *         description: RATE_LIMITED (OTP sends)
+ */
+
+/**
+ * @openapi
+ * /api/auth/activate/verify:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Activate an existing student; five wrong tries invalidate the OTP; issues cookies
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, otp, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               otp:
+ *                 type: string
+ *                 minLength: 6
+ *                 maxLength: 6
+ *                 pattern: '^[0-9]{6}$'
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *                 description: Requires lowercase, uppercase, digit and special character
+ *     responses:
+ *       200:
+ *         description: Success. Login returns accessToken, refreshToken and needPasswordChange; activation also returns the safe user.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Token flows set httpOnly accessToken and refreshToken cookies; logout clears them.
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Invalid input or INVALID_OTP
+ *       401:
+ *         description: Invalid credentials, missing token, or revoked session
+ *       403:
+ *         description: Inactive account, ACCOUNT_NOT_ACTIVATED, PASSWORD_CHANGE_REQUIRED or disallowed Google identity
+ *       429:
+ *         description: RATE_LIMITED (OTP sends)
+ */
+
+/**
+ * @openapi
+ * /api/auth/google:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Verify Google identity and link an existing university-domain student; never creates users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [idToken]
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *                 minLength: 1
+ *     responses:
+ *       200:
+ *         description: Success. Login returns accessToken, refreshToken and needPasswordChange; activation also returns the safe user.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Token flows set httpOnly accessToken and refreshToken cookies; logout clears them.
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Invalid input or INVALID_OTP
+ *       401:
+ *         description: Invalid credentials, missing token, or revoked session
+ *       403:
+ *         description: Inactive account, ACCOUNT_NOT_ACTIVATED, PASSWORD_CHANGE_REQUIRED or disallowed Google identity
+ *       429:
+ *         description: RATE_LIMITED (OTP sends)
+ */
+
+/**
+ * @openapi
+ * /api/auth/forgot-password:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Send a 5-minute password reset OTP; generic response, same send limit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Success. Login returns accessToken, refreshToken and needPasswordChange; activation also returns the safe user.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Token flows set httpOnly accessToken and refreshToken cookies; logout clears them.
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Invalid input or INVALID_OTP
+ *       401:
+ *         description: Invalid credentials, missing token, or revoked session
+ *       403:
+ *         description: Inactive account, ACCOUNT_NOT_ACTIVATED, PASSWORD_CHANGE_REQUIRED or disallowed Google identity
+ *       429:
+ *         description: RATE_LIMITED (OTP sends)
  */
 
 /**
  * @openapi
  * /api/auth/reset-password:
  *   post:
- *     tags:
- *       - Auth
- *     summary: Set a new password using the emailed OTP
+ *     tags: [Auth]
+ *     summary: Consume OTP and replace password; revoke every existing session
  *     requestBody:
  *       required: true
  *       content:
@@ -151,25 +284,35 @@
  *                 type: string
  *                 minLength: 6
  *                 maxLength: 6
+ *                 pattern: '^[0-9]{6}$'
  *               newPassword:
  *                 type: string
  *                 minLength: 8
+ *                 description: Requires lowercase, uppercase, digit and special character
  *     responses:
  *       200:
- *         description: Password changed successfully
+ *         description: Success. Login returns accessToken, refreshToken and needPasswordChange; activation also returns the safe user.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Token flows set httpOnly accessToken and refreshToken cookies; logout clears them.
+ *             schema:
+ *               type: string
  *       400:
- *         description: OTP expired, OTP does not match, or validation failed
- *       404:
- *         description: User does not exist
+ *         description: Invalid input or INVALID_OTP
+ *       401:
+ *         description: Invalid credentials, missing token, or revoked session
+ *       403:
+ *         description: Inactive account, ACCOUNT_NOT_ACTIVATED, PASSWORD_CHANGE_REQUIRED or disallowed Google identity
+ *       429:
+ *         description: RATE_LIMITED (OTP sends)
  */
 
 /**
  * @openapi
  * /api/auth/change-password:
  *   post:
- *     tags:
- *       - Auth
- *     summary: Change the password while logged in
+ *     tags: [Auth]
+ *     summary: Check current password, clear first-login restriction, revoke old sessions and issue fresh cookies
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -182,14 +325,25 @@
  *             properties:
  *               currentPassword:
  *                 type: string
+ *                 minLength: 1
  *               newPassword:
  *                 type: string
  *                 minLength: 8
+ *                 description: Requires lowercase, uppercase, digit and special character
  *     responses:
  *       200:
- *         description: Password changed successfully
+ *         description: Success. Login returns accessToken, refreshToken and needPasswordChange; activation also returns the safe user.
+ *         headers:
+ *           Set-Cookie:
+ *             description: Token flows set httpOnly accessToken and refreshToken cookies; logout clears them.
+ *             schema:
+ *               type: string
  *       400:
- *         description: Validation failed, or the account uses Google login
+ *         description: Invalid input or INVALID_OTP
  *       401:
- *         description: Not logged in, or the current password is incorrect
+ *         description: Invalid credentials, missing token, or revoked session
+ *       403:
+ *         description: Inactive account, ACCOUNT_NOT_ACTIVATED, PASSWORD_CHANGE_REQUIRED or disallowed Google identity
+ *       429:
+ *         description: RATE_LIMITED (OTP sends)
  */

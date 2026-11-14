@@ -11,6 +11,7 @@ const options: swaggerJsdoc.OAS3Options = {
 		servers: [{ url: "/" }],
 		components: {
 			securitySchemes: {
+				refreshCookie: { type: "apiKey", in: "cookie", name: "refreshToken" },
 				bearerAuth: {
 					type: "http",
 					scheme: "bearer",
