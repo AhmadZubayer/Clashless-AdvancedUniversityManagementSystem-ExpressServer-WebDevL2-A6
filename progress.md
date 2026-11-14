@@ -39,7 +39,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | Work | Completed on | By | Tests | Notes |
 |---|---|---|---|---|
 | Planning documents: requirement.md, AGENTS.md, progress.md, CLAUDE.md, GEMINI.md | 14 Nov 2026 | Claude Code | — | Not a feature (0 points). Nothing is scaffolded yet |
-| F0 Project setup | 14 Nov 2026 | Codex | 1 | All setup checks and manual HTTP pass; demo seed rerun verified |
+| F0 Project setup | 14 Nov 2026 | Codex | 2 | All setup checks and manual HTTP pass; demo seed rerun verified |
 | F1 Auth | 14 Nov 2026 | Codex | 15 (16 total) | All auth flows, Swagger, static checks and manual HTTP pass |
 | F2 User management | 14 Nov 2026 | Codex | 11 (27 total) | Endpoints, Swagger, static checks, build and manual pass |
 
@@ -50,7 +50,7 @@ Started: 14 Nov 2026 11:14 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F2 complete and pushed; 27 tests green.
 - Half-done: department endpoints/Swagger complete; T-ACAD-01/02 and T-AUTH-12/13 passed against real department route (4 focused tests). Programs/curriculum implemented with exact Decimal fees, registration fee protection, full transactional curriculum replacement and Swagger; T-ACAD-09 passed. Batches implemented with code parsing, uniqueness and Swagger; T-ACAD-03 passed. Courses/prerequisites implemented with Decimal credit increments, offered-course locks, serializable DFS cycle prevention and Swagger; T-ACAD-04/05/06 passed. Rooms implemented with role-restricted listing, filters, unique codes and published-routine deactivation guard; T-ACAD-11 passed. Time slots/day patterns implemented with serializable overlap protection, generated labels, published-slot guard and cardinality checks; T-ACAD-07/08 passed. Result import and T-ACAD-10 passed, including best retakes, F/W handling and Decimal rounding. Full suite found only a fixture search overlap in T-ACAD-01 (2 matching department names instead of 1); narrowed test search to its unique fixture and rerunning.
-- Next step: rerun full 38-test suite after fixture isolation fix, finish manual F3 verification, then commit/push F3 completion.
+- Next step: rerun full 39-test suite after queue runtime fix; manual F3 flow and all 26 Swagger endpoints already verified, then commit/push F3 completion.
 - Traps: auth tests now use production department route; all test data must remain in isolated schema/prefix.
 
 
@@ -220,6 +220,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ---
 
 ## Handoff notes (newest first)
+
+- **14 Nov 2026, Codex, queue runtime fix during F3:** Normal server startup exposed BullMQ's optional ioredis loader failure under native ESM; its error loop flooded logs and caused two otherwise passing academic tests to time out. Stopped that process. Installed ioredis@5, now passes constructed clients, awaits worker readiness, throttles errors and sets run retry delay. Added a real broker regression on a UUID queue under the test prefix; it passed. A no-op probe on the real notification queue was rejected by automatic approval review, so diagnostics used an isolated empty queue instead. No real queued notifications were consumed by the probe. Rerun full suite after this fix before marking F3 done.
+
 
 - **14 Nov 2026, Codex, F2:** User management implemented with 11 required tests; full suite 27 passed. Type check, lint/format (no diagnostics), build clean. Manual HTTP flow created and activated a synthetic student, fetched detail, blocked account (old token 401), soft-deleted it, filtered users and verified Swagger import docs; manual mail delivery was stubbed locally. CSV handles quoting/BOM/newlines, validates each row, reports duplicate/invalid rows, inserts chunks of 500 under serializable retries and queues emails. Worker payloads are removed after completion/final failure and errors log no payloads. Cloudinary helper now supplies url/publicId aliases while retaining native fields. F3 should replace auth tests' temporary department guard fixture with real route. No outstanding user questions.
 

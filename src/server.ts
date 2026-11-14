@@ -24,7 +24,7 @@ const main = async () => {
 
 		// cron
 		startCronJobs();
-		startWorkers();
+		await startWorkers();
 
 		app.listen(PORT, () => {
 			logger.info({ port: PORT }, "Server is running");
