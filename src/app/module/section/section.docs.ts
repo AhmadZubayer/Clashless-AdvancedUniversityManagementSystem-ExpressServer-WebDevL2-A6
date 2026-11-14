@@ -1,5 +1,51 @@
 /**
  * @openapi
+ * /api/admin/sections/faculty-assignments:
+ *   put:
+ *     tags: [Section]
+ *     summary: Assign teachers atomically using their final semester credit loads
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [semesterId, assignments]
+ *             properties:
+ *               semesterId: { type: string, format: uuid }
+ *               assignments:
+ *                 type: array
+ *                 minItems: 1
+ *                 items:
+ *                   type: object
+ *                   required: [sectionId, facultyId]
+ *                   properties:
+ *                     sectionId: { type: string, format: uuid }
+ *                     facultyId: { type: string, format: uuid }
+ *     responses:
+ *       200: { description: Every assignment saved }
+ *       400: { description: Invalid input or duplicate section ID }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin access required }
+ *       404: { description: Semester, active section or active teacher not found }
+ *       409: { description: Teacher overload or HARD_RULE_VIOLATION; no assignments saved }
+ */
+/**
+ * @openapi
+ * /api/sections/mine:
+ *   get:
+ *     tags: [Section]
+ *     summary: Teacher's current-semester sections with enrollment counts
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Assigned sections with course and schedule }
+ *       401: { description: Authentication required }
+ *       403: { description: Faculty access required }
+ *       404: { description: Faculty profile or current semester not found }
+ */
+/**
+ * @openapi
  * /api/admin/sections:
  *   post:
  *     tags: [Section]

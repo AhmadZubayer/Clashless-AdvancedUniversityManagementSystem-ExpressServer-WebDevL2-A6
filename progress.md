@@ -52,7 +52,7 @@ Started: 14 Nov 2026 12:23 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F4 complete and pushed; all 53 tests and static/build checks pass.
 - Half-done: offering create/list/delete and Swagger implemented. Creation and deletion enforce PLANNING; numbered sections are created atomically; enrollment history is preserved. Section management and its four Swagger endpoints now implemented; focused suite 11 passed (8 integration, 3 validator).
-- Next step: bulk faculty assignment and mine, class list exports and preferences in checklist order.
+- Next step: class list exports and preferences. Bulk assignment checks final loads/schedules atomically; overload rollback and teacher mine tests passed.
 - Traps: cancellation must retain overpaid credit and recalculate Decimal bills; schedule changes must protect teacher and student clashes, and published routine entries must stay consistent.
 
 
@@ -131,7 +131,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 - [x] Offerings: create with N sections, list, delete
 - [x] Sections: extra section, update, reschedule, cancel
-- [ ] Bulk teacher assignment (load check, all or nothing); `GET /api/sections/mine`
+- [x] Bulk teacher assignment (load check, all or nothing); `GET /api/sections/mine`
 - [ ] Class list as JSON, CSV and PDF
 - [ ] Teacher slot preferences
 - [ ] Tests T-SEC-01 … T-SEC-10
@@ -290,4 +290,5 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 

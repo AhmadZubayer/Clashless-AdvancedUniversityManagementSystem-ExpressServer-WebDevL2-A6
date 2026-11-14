@@ -55,7 +55,28 @@ const cancelSection = catchAsync(async (req: Request, res: Response) => {
 		data,
 	});
 });
+const assignFaculty = catchAsync(async (req: Request, res: Response) => {
+	const data = await sectionService.assignFacultyIntoDB(req.body);
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "Teachers assigned",
+		data,
+	});
+});
+const getMySections = catchAsync(async (req: Request, res: Response) => {
+	if (!req.user) throw new AppError(401, "Please log in");
+	const data = await sectionService.getMySectionsFromDB(req.user.id);
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "My sections retrieved",
+		data,
+	});
+});
 export const sectionController = {
+	assignFaculty,
+	getMySections,
 	createSection,
 	updateSection,
 	rescheduleSection,

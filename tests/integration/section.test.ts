@@ -262,6 +262,63 @@ async function enroll(
 	return { user, registration };
 }
 
+it("T-SEC-03 bulk assignment rejects 15 credits against a 12-credit limit without partial writes", async () => {
+	const fixture = await scheduledWorld();
+	const sections = [fixture.section];
+	for (let index = 2; index <= 5; index++)
+		sections.push(
+			await prisma.section.create({
+				data: { offeringId: fixture.offering.id, sectionNo: index },
+			}),
+		);
+	const response = await request(app)
+		.put("/api/admin/sections/faculty-assignments")
+		.set("Authorization", authorization())
+		.send({
+			semesterId: fixture.semester.id,
+			assignments: sections.map((row) => ({
+				sectionId: row.id,
+				facultyId: fixture.teacher.faculty!.id,
+			})),
+		});
+	expect(response.status).toBe(409);
+	expect(response.body.errorDetails.totalCredits).toBe("15");
+	const unchanged = await prisma.section.findMany({
+		where: { id: { in: sections.slice(1).map((row) => row.id) } },
+	});
+	expect(unchanged.every((row) => row.facultyId === null)).toBe(true);
+});
+
+it("F5 bulk teacher swaps use final loads and mine returns only current assigned sections", async () => {
+	await prisma.semester.updateMany({
+		where: { phase: { not: "CLOSED" } },
+		data: { phase: "CLOSED" },
+	});
+	const fixture = await scheduledWorld();
+	const response = await request(app)
+		.put("/api/admin/sections/faculty-assignments")
+		.set("Authorization", authorization())
+		.send({
+			semesterId: fixture.semester.id,
+			assignments: [
+				{
+					sectionId: fixture.section.id,
+					facultyId: fixture.otherTeacher.faculty!.id,
+				},
+				{ sectionId: fixture.other.id, facultyId: fixture.teacher.faculty!.id },
+			],
+		});
+	expect(response.status).toBe(200);
+	const mine = await request(app)
+		.get("/api/sections/mine")
+		.set("Authorization", `Bearer ${tokenFor(fixture.teacher)}`);
+	expect(mine.status).toBe(200);
+	expect(mine.body.data.map((row: { id: string }) => row.id)).toEqual([
+		fixture.other.id,
+	]);
+	expect(mine.body.data[0].enrolledCount).toBe(0);
+});
+
 it("T-SEC-04 capacity cannot be reduced below enrolledCount", async () => {
 	const fixture = await scheduledWorld();
 	await enroll(fixture);

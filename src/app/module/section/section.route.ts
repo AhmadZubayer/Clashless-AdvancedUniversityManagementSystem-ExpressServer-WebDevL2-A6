@@ -8,7 +8,17 @@ import { sectionValidation } from "./section.validation";
 
 export const sectionRoutes = Router();
 export const adminSectionRoutes = Router();
+sectionRoutes.get(
+	"/mine",
+	auth(UserRole.FACULTY),
+	sectionController.getMySections,
+);
 adminSectionRoutes.use(auth(UserRole.ADMIN, UserRole.SUPER_ADMIN));
+adminSectionRoutes.put(
+	"/faculty-assignments",
+	validateRequest(sectionValidation.assignmentsSchema),
+	sectionController.assignFaculty,
+);
 adminSectionRoutes.post(
 	"/",
 	validateRequest(sectionValidation.createSchema),

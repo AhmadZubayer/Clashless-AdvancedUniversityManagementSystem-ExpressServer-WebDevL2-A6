@@ -13,6 +13,7 @@ import type {
 	ICreateSection,
 	ISectionSchedule,
 	IUpdateSection,
+	IFacultyAssignments,
 } from "./section.interface";
 
 const sectionInclude = {
@@ -454,7 +455,72 @@ const cancelSectionIntoDB = async (
 	return result.section;
 };
 
+const assignFacultyIntoDB = (payload: IFacultyAssignments) =>
+	prisma.$transaction(async (tx) => {
+		if (
+			!(await tx.semester.findUnique({
+				where: { id: payload.semesterId },
+				select: { id: true },
+			}))
+		)
+			throw new AppError(404, "Semester not found");
+		const assignments = new Map(
+			payload.assignments.map((row) => [row.sectionId, row.facultyId]),
+		);
+		const rows = await tx.section.findMany({
+			where: {
+				id: { in: [...assignments.keys()] },
+				offering: { semesterId: payload.semesterId },
+				status: { not: "CANCELLED" },
+			},
+		});
+		if (rows.length !== assignments.size)
+			throw new AppError(404, "Active section not found in this semester");
+		await checkFacultyLoad(tx, payload.semesterId, assignments);
+		await checkSchedule(
+			tx,
+			payload.semesterId,
+			new Set(assignments.keys()),
+			new Map(),
+			assignments,
+		);
+		for (const [id, facultyId] of assignments)
+			await tx.section.update({ where: { id }, data: { facultyId } });
+		return tx.section.findMany({
+			where: { id: { in: [...assignments.keys()] } },
+			orderBy: [{ offeringId: "asc" }, { sectionNo: "asc" }],
+		});
+	}, transactionOptions);
+
+const getMySectionsFromDB = async (userId: string) => {
+	const faculty = await prisma.faculty.findUnique({
+		where: { userId },
+		select: { id: true },
+	});
+	if (!faculty) throw new AppError(404, "Faculty profile not found");
+	const semester = await prisma.semester.findFirst({
+		where: { phase: { not: "CLOSED" } },
+		select: { id: true },
+	});
+	if (!semester) throw new AppError(404, "No current semester");
+	return prisma.section.findMany({
+		where: {
+			facultyId: faculty.id,
+			offering: { semesterId: semester.id },
+			status: { not: "CANCELLED" },
+		},
+		include: {
+			...sectionInclude,
+			room: true,
+			_count: { select: { enrollments: { where: { status: "ENROLLED" } } } },
+		},
+		orderBy: [{ offering: { course: { code: "asc" } } }, { sectionNo: "asc" }],
+	});
+};
+
 export const sectionService = {
+	assignFacultyIntoDB,
+	getMySectionsFromDB,
 	createSectionIntoDB,
 	updateSectionIntoDB,
 	rescheduleSectionIntoDB,
