@@ -1,0 +1,981 @@
+﻿[
+    {
+        "code":  "MAT1102",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  1,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Differential Calculus \u0026 Co-ordinate Geometry"
+    },
+    {
+        "code":  "PHY1101",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  1,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Physics 1"
+    },
+    {
+        "code":  "PHY1102",
+        "credits":  1,
+        "type":  "LAB",
+        "term":  1,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Physics 1 Lab"
+    },
+    {
+        "code":  "ENG1101",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  1,
+        "prerequisites":  [
+
+                          ],
+        "title":  "English Reading Skills \u0026 Public Speaking"
+    },
+    {
+        "code":  "CSC1101",
+        "credits":  1,
+        "type":  "THEORY",
+        "term":  1,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Introduction to Computer Studies"
+    },
+    {
+        "code":  "CSC1103",
+        "credits":  1,
+        "type":  "LAB",
+        "term":  1,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Introduction to Programming Lab"
+    },
+    {
+        "code":  "CSC1102",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  1,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Introduction to Programming"
+    },
+    {
+        "code":  "CSC1204",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  2,
+        "prerequisites":  [
+                              "MAT1102",
+                              "CSC1102"
+                          ],
+        "title":  "Discrete Mathematics"
+    },
+    {
+        "code":  "MAT1205",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  2,
+        "prerequisites":  [
+                              "MAT1102"
+                          ],
+        "title":  "Integral Calculus \u0026 Ordinary Differential Equations"
+    },
+    {
+        "code":  "CSC1205",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  2,
+        "prerequisites":  [
+                              "CSC1102",
+                              "CSC1103"
+                          ],
+        "title":  "Object Oriented Programming 1"
+    },
+    {
+        "code":  "PHY1203",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  2,
+        "prerequisites":  [
+                              "PHY1101"
+                          ],
+        "title":  "Physics 2"
+    },
+    {
+        "code":  "PHY1204",
+        "credits":  1,
+        "type":  "LAB",
+        "term":  2,
+        "prerequisites":  [
+                              "PHY1102"
+                          ],
+        "title":  "Physics 2 Lab"
+    },
+    {
+        "code":  "ENG1202",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  2,
+        "prerequisites":  [
+                              "ENG1101"
+                          ],
+        "title":  "English Writing Skills \u0026 Communications"
+    },
+    {
+        "code":  "COE2101",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  2,
+        "prerequisites":  [
+                              "PHY1101"
+                          ],
+        "title":  "Introduction to Electrical Circuits"
+    },
+    {
+        "code":  "COE2102",
+        "credits":  1,
+        "type":  "LAB",
+        "term":  2,
+        "prerequisites":  [
+                              "PHY1102"
+                          ],
+        "title":  "Introduction to Electrical Circuits Lab"
+    },
+    {
+        "code":  "CHEM1101",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  3,
+        "prerequisites":  [
+                              "PHY1203"
+                          ],
+        "title":  "Chemistry"
+    },
+    {
+        "code":  "MAT2101",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  3,
+        "prerequisites":  [
+                              "MAT1205"
+                          ],
+        "title":  "Complex Variable, Laplace \u0026 Z-Transformation"
+    },
+    {
+        "code":  "CSC2108",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  3,
+        "prerequisites":  [
+                              "CSC1205"
+                          ],
+        "title":  "Introduction to Database"
+    },
+    {
+        "code":  "EEE2104",
+        "credits":  1,
+        "type":  "LAB",
+        "term":  3,
+        "prerequisites":  [
+                              "COE2102"
+                          ],
+        "title":  "Electronic Devices Lab"
+    },
+    {
+        "code":  "BBA1102",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  3,
+        "prerequisites":  [
+                              "MAT1205"
+                          ],
+        "title":  "Principles of Accounting"
+    },
+    {
+        "code":  "EEE2103",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  3,
+        "prerequisites":  [
+                              "COE2101"
+                          ],
+        "title":  "Electronic Devices"
+    },
+    {
+        "code":  "CSC2106",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  3,
+        "prerequisites":  [
+                              "CSC1204",
+                              "CSC1205"
+                          ],
+        "title":  "Data Structure"
+    },
+    {
+        "code":  "CSC2107",
+        "credits":  1,
+        "type":  "LAB",
+        "term":  3,
+        "prerequisites":  [
+                              "CSC1204",
+                              "CSC1205"
+                          ],
+        "title":  "Data Structure Lab"
+    },
+    {
+        "code":  "BAE2101",
+        "credits":  1,
+        "type":  "LAB",
+        "term":  3,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Computer Aided Design \u0026 Drafting"
+    },
+    {
+        "code":  "CSC2211",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  4,
+        "prerequisites":  [
+                              "CSC2106"
+                          ],
+        "title":  "Algorithms"
+    },
+    {
+        "code":  "MAT2202",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  4,
+        "prerequisites":  [
+                              "MAT2101"
+                          ],
+        "title":  "Matrices, Vectors, Fourier Analysis"
+    },
+    {
+        "code":  "CSC2210",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  4,
+        "prerequisites":  [
+                              "CSC2106",
+                              "CSC2108"
+                          ],
+        "title":  "Object Oriented Programming 2"
+    },
+    {
+        "code":  "CSC2209",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  4,
+        "prerequisites":  [
+                              "CSC2108"
+                          ],
+        "title":  "Object Oriented Analysis and Design"
+    },
+    {
+        "code":  "BAS2101",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  4,
+        "prerequisites":  [
+                              "CSC1101"
+                          ],
+        "title":  "Bangladesh Studies"
+    },
+    {
+        "code":  "EEE3101",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  4,
+        "prerequisites":  [
+                              "EEE2103"
+                          ],
+        "title":  "Digital Logic and Circuits"
+    },
+    {
+        "code":  "EEE3102",
+        "credits":  1,
+        "type":  "LAB",
+        "term":  4,
+        "prerequisites":  [
+                              "EEE2104"
+                          ],
+        "title":  "Digital Logic and Circuits Lab"
+    },
+    {
+        "code":  "MAT3103",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  4,
+        "prerequisites":  [
+                              "MAT2101"
+                          ],
+        "title":  "Computational Statistics and Probability"
+    },
+    {
+        "code":  "CSC3113",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  5,
+        "prerequisites":  [
+                              "CSC2211"
+                          ],
+        "title":  "Theory of Computation"
+    },
+    {
+        "code":  "ECO3150",
+        "credits":  2,
+        "type":  "THEORY",
+        "term":  5,
+        "prerequisites":  [
+                              "MAT3103"
+                          ],
+        "title":  "Principles of Economics"
+    },
+    {
+        "code":  "ENG2103",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  5,
+        "prerequisites":  [
+                              "BAS2101"
+                          ],
+        "title":  "Business Communication"
+    },
+    {
+        "code":  "MAT3101",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  5,
+        "prerequisites":  [
+                              "MAT2202"
+                          ],
+        "title":  "Numerical Methods for Science and Engineering"
+    },
+    {
+        "code":  "COE3103",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  5,
+        "prerequisites":  [
+                              "EEE3101",
+                              "EEE3102"
+                          ],
+        "title":  "Data Communication"
+    },
+    {
+        "code":  "COE3104",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  5,
+        "prerequisites":  [
+                              "EEE3101",
+                              "EEE3102"
+                          ],
+        "title":  "Microprocessor and Embedded Systems"
+    },
+    {
+        "code":  "CSC3112",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  5,
+        "prerequisites":  [
+                              "CSC2209"
+                          ],
+        "title":  "Software Engineering"
+    },
+    {
+        "code":  "CSC3217",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  6,
+        "prerequisites":  [
+                              "CSC2211",
+                              "MAT3103"
+                          ],
+        "title":  "Artificial Intelligence and Expert System"
+    },
+    {
+        "code":  "COE3206",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  6,
+        "prerequisites":  [
+                              "COE3103"
+                          ],
+        "title":  "Computer Networks"
+    },
+    {
+        "code":  "COE3205",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  6,
+        "prerequisites":  [
+                              "COE3104"
+                          ],
+        "title":  "Computer Organization and Architecture"
+    },
+    {
+        "code":  "CSC3214",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  6,
+        "prerequisites":  [
+                              "CSC2211",
+                              "COE3104"
+                          ],
+        "title":  "Operating System"
+    },
+    {
+        "code":  "CSC3215",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  6,
+        "prerequisites":  [
+                              "CSC3112"
+                          ],
+        "title":  "Web Technologies"
+    },
+    {
+        "code":  "EEE2216",
+        "credits":  2,
+        "type":  "THEORY",
+        "term":  6,
+        "prerequisites":  [
+                              "CSC3112",
+                              "COE3104"
+                          ],
+        "title":  "Engineering Ethics"
+    },
+    {
+        "code":  "CSC3216",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  6,
+        "prerequisites":  [
+                              "CSC3113"
+                          ],
+        "title":  "Compiler Design"
+    },
+    {
+        "code":  "CSC4118",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  7,
+        "prerequisites":  [
+                              "CSC2211",
+                              "MAT2202"
+                          ],
+        "title":  "Computer Graphics"
+    },
+    {
+        "code":  "MGT3202",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  7,
+        "prerequisites":  [
+                              "EEE2216"
+                          ],
+        "title":  "Engineering Management"
+    },
+    {
+        "code":  "CSC4197",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  7,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Research Methodology"
+    },
+    {
+        "code":  "CSC4298",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  8,
+        "prerequisites":  [
+                              "CSC4197"
+                          ],
+        "title":  "Thesis / Project"
+    },
+    {
+        "code":  "CSC4299",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  8,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Internship"
+    },
+    {
+        "code":  "CSC4181",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC2108"
+                          ],
+        "title":  "Advance Database Management System"
+    },
+    {
+        "code":  "MIS3101",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3112"
+                          ],
+        "title":  "Management Information System"
+    },
+    {
+        "code":  "MIS4011",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "MIS3101",
+                              "CSC3112"
+                          ],
+        "title":  "Enterprise Resource Planning"
+    },
+    {
+        "code":  "CSC4285",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC2211",
+                              "MAT3103"
+                          ],
+        "title":  "Data Warehouse and Data Mining"
+    },
+    {
+        "code":  "CSC4182",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3217",
+                              "CSC3215"
+                          ],
+        "title":  "Human Computer Interaction"
+    },
+    {
+        "code":  "MIS4014",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Business Intelligence and Decision Support Systems"
+    },
+    {
+        "code":  "CSC4180",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Introduction to Data Science"
+    },
+    {
+        "code":  "CSC4183",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Cyber Laws \u0026 Information Security"
+    },
+    {
+        "code":  "MIS4007",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+
+                          ],
+        "title":  "Digital Marketing"
+    },
+    {
+        "code":  "MIS4012",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+
+                          ],
+        "title":  "E-Commerce, E-Governance \u0026 E-Series"
+    },
+    {
+        "code":  "CSC4270",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3112"
+                          ],
+        "title":  "Software Development Project Management"
+    },
+    {
+        "code":  "CSC4160",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3112"
+                          ],
+        "title":  "Software Requirement Engineering"
+    },
+    {
+        "code":  "CSC4271",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3112"
+                          ],
+        "title":  "Software Quality and Testing"
+    },
+    {
+        "code":  "CSC4162",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3215"
+                          ],
+        "title":  "Programming in Python"
+    },
+    {
+        "code":  "CSC4274",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC2210"
+                          ],
+        "title":  "Virtual Reality Systems Design"
+    },
+    {
+        "code":  "CSC4163",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3215"
+                          ],
+        "title":  "Advanced Programming with Java"
+    },
+    {
+        "code":  "CSC4164",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3215"
+                          ],
+        "title":  "Advanced Programming with .NET"
+    },
+    {
+        "code":  "CSC4161",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3215"
+                          ],
+        "title":  "Advanced Programming in Web Technology"
+    },
+    {
+        "code":  "CSC4272",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3215"
+                          ],
+        "title":  "Mobile Application Development"
+    },
+    {
+        "code":  "CSC4273",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3112"
+                          ],
+        "title":  "Software Architecture and Design Patterns"
+    },
+    {
+        "code":  "CSC4125",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC2211",
+                              "MAT3101"
+                          ],
+        "title":  "Computer Science Mathematics"
+    },
+    {
+        "code":  "CSC4126",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC2211"
+                          ],
+        "title":  "Basic Graph Theory"
+    },
+    {
+        "code":  "CSC4127",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3217"
+                          ],
+        "title":  "Advanced Algorithm Techniques"
+    },
+    {
+        "code":  "CSC4233",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3217",
+                              "CSC4162"
+                          ],
+        "title":  "Natural Language Processing"
+    },
+    {
+        "code":  "CSC4128",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3217",
+                              "MAT3103"
+                          ],
+        "title":  "Linear Programming"
+    },
+    {
+        "code":  "CSC4231",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3217"
+                          ],
+        "title":  "Parallel Computing"
+    },
+    {
+        "code":  "CSC4232",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3217"
+                          ],
+        "title":  "Machine Learning"
+    },
+    {
+        "code":  "BAE1201",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "PHY1203"
+                          ],
+        "title":  "Basic Mechanical Engineering"
+    },
+    {
+        "code":  "EEE3103",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "EEE2213"
+                          ],
+        "title":  "Digital Signal Processing"
+    },
+    {
+        "code":  "EEE4217",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "EEE3101",
+                              "EEE3102"
+                          ],
+        "title":  "VLSI Circuit Design"
+    },
+    {
+        "code":  "EEE2213",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "MAT2202"
+                          ],
+        "title":  "Signals \u0026 Linear System"
+    },
+    {
+        "code":  "COE4128",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "COE3205"
+                          ],
+        "title":  "Digital System Design"
+    },
+    {
+        "code":  "COE4231",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC4118",
+                              "EEE2213"
+                          ],
+        "title":  "Image Processing"
+    },
+    {
+        "code":  "COE4129",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3215"
+                          ],
+        "title":  "Multimedia Systems"
+    },
+    {
+        "code":  "COE4230",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3217"
+                          ],
+        "title":  "Simulation and Modeling"
+    },
+    {
+        "code":  "COE4126",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "COE3206"
+                          ],
+        "title":  "Advanced Computer Networks"
+    },
+    {
+        "code":  "COE4234",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC4118"
+                          ],
+        "title":  "Computer Vision and Pattern Recognition"
+    },
+    {
+        "code":  "COE4232",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "COE3103"
+                          ],
+        "title":  "Network Security"
+    },
+    {
+        "code":  "COE4125",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3214"
+                          ],
+        "title":  "Advanced Operating System"
+    },
+    {
+        "code":  "EEE4233",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "EEE4217"
+                          ],
+        "title":  "Digital Design with System (Verilog, VHDL \u0026 FPGAs)"
+    },
+    {
+        "code":  "COE4235",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "CSC3217"
+                          ],
+        "title":  "Robotics Engineering"
+    },
+    {
+        "code":  "EEE4209",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "COE3103"
+                          ],
+        "title":  "Telecommunications Engineering"
+    },
+    {
+        "code":  "COE4127",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "COE3103"
+                          ],
+        "title":  "Network Resource Management \u0026 Organization"
+    },
+    {
+        "code":  "COE4233",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "COE3103"
+                          ],
+        "title":  "Wireless Sensor Networks"
+    },
+    {
+        "code":  "EEE4241",
+        "credits":  3,
+        "type":  "THEORY",
+        "term":  null,
+        "prerequisites":  [
+                              "EEE3101"
+                          ],
+        "title":  "Industrial Electronics, Drives \u0026 Instrumentation"
+    }
+]
