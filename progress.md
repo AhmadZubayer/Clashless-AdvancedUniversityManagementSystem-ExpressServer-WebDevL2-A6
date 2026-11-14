@@ -84,7 +84,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] `npm run db:seed` creates the first SUPER_ADMIN with an Admin profile
 - [x] `prisma/seedDemo.ts` and the `db:seed:demo` script (requirement.md 9.6 and Appendix A, without `--registration-open`)
 - [x] `createAuditLogIntoDB` and `createNotificationsIntoDB` service functions (10.2)
-- [ ] `lib/queue.ts` (inline when `NODE_ENV=test`), worker bootstrap in `src/app/jobs/` started from `server.ts`, `lib/seatEvents.ts`
+- [x] `lib/queue.ts` (inline when `NODE_ENV=test`), worker bootstrap in `src/app/jobs/` started from `server.ts`, `lib/seatEvents.ts`
 - [ ] `utils/grade.ts` and `utils/time.ts`
 - [ ] Test setup from 9.1–9.4: `vitest.config.ts`, `tests/` folders, `.env.test.example`, `.env.test` and `tests/load/tokens.json` added to `.gitignore`; a smoke test (`GET /` answers 200) passes
 - [ ] README: install, configure, run, seed and test

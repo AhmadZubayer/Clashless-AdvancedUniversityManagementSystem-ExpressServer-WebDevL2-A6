@@ -1,14 +1,21 @@
 import dotenv from "dotenv";
 import path from "path";
 
-dotenv.config({ path: path.join(process.cwd(), ".env") });
+dotenv.config({ path: path.join(process.cwd(), process.env.NODE_ENV === "test" ? ".env.test" : ".env"), quiet: true });
+
+const databaseUrl = process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL) : undefined;
+if (process.env.NODE_ENV === "test") {
+	if (process.env.DATABASE_SCHEMA !== "clashless_test" || process.env.REDIS_KEY_PREFIX !== "clashless:test:") throw new Error("Tests require isolated database schema and Redis prefix");
+	databaseUrl?.searchParams.set("schema", "clashless_test");
+}
 
 export default {
 	// core
 	node_env: process.env.NODE_ENV,
 	port: process.env.PORT,
 	app_name: process.env.APP_NAME || "API Server",
-	database_url: process.env.DATABASE_URL,
+	database_url: databaseUrl?.toString(),
+	database_schema: databaseUrl?.searchParams.get("schema") || "public",
 	server_url: process.env.SERVER_URL!,
 	frontend_url: process.env.FRONTEND_URL,
 	university_email_domain: process.env.UNIVERSITY_EMAIL_DOMAIN!,
@@ -24,6 +31,7 @@ export default {
 	redis_password: process.env.REDIS_PASSWORD!,
 	redis_host: process.env.REDIS_HOST!,
 	redis_port: process.env.REDIS_PORT!,
+	redis_key_prefix: process.env.REDIS_KEY_PREFIX || "clashless:",
 	smtp_user: process.env.SMTP_USER!,
 	smtp_password: process.env.SMTP_PASSWORD!,
 	email_sender: process.env.EMAIL_SENDER!,

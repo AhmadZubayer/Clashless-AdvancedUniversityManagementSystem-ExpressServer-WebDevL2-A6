@@ -1,5 +1,6 @@
 import "dotenv/config";
 import config from "./app/config";
+import { startWorkers } from "./app/jobs";
 import { startCronJobs } from "./app/lib/cron";
 import { logger } from "./app/lib/logger";
 import { transporter } from "./app/lib/nodemailer";
@@ -23,6 +24,7 @@ const main = async () => {
 
 		// cron
 		startCronJobs();
+		startWorkers();
 
 		app.listen(PORT, () => {
 			logger.info({ port: PORT }, "Server is running");

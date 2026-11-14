@@ -9,7 +9,7 @@ import config from "../../config";
 import { googleClient } from "../../lib/googleAuth";
 import { logger } from "../../lib/logger";
 import { prisma } from "../../lib/prisma";
-import { redisClient } from "../../lib/redis";
+import { redisClient, redisKey } from "../../lib/redis";
 import type { RequestUser } from "../../middleware/checkAuth";
 import { AppError } from "../../utils/AppError";
 import { jwtUtils } from "../../utils/jwt";
@@ -85,7 +85,7 @@ const registerUser = async (payload: IRegisterUserPayload) => {
 		Number(config.bcrypt_salt_rounds),
 	);
 
-	const otpKey = `registration-otp:${email}`;
+	const otpKey = redisKey(`registration-otp:${email}`);
 	const otpValue = generateOtp();
 
 	await redisClient.set(otpKey, otpValue, {
@@ -95,7 +95,7 @@ const registerUser = async (payload: IRegisterUserPayload) => {
 		},
 	});
 
-	const registrationKey = `registration-data:${email}`;
+	const registrationKey = redisKey(`registration-data:${email}`);
 	const redisUserDataPayload = {
 		name,
 		email,
@@ -133,7 +133,7 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 		throw new AppError(httpStatus.CONFLICT, "Email Already Verified");
 	}
 
-	const otpKey = `registration-otp:${email}`;
+	const otpKey = redisKey(`registration-otp:${email}`);
 
 	const redisOtp = await redisClient.get(otpKey);
 
@@ -145,7 +145,7 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 		throw new AppError(httpStatus.BAD_REQUEST, "OTP Does Not Match");
 	}
 
-	const registrationKey = `registration-data:${email}`;
+	const registrationKey = redisKey(`registration-data:${email}`);
 
 	const redisUserData = await redisClient.get(registrationKey);
 
@@ -290,7 +290,7 @@ const forgotPassword = async (payload: IForgotPasswordPayload) => {
 
 	const otp = generateOtp();
 
-	const key = `forgot-password-otp:${isUserExist.email}`;
+	const key = redisKey(`forgot-password-otp:${isUserExist.email}`);
 
 	await redisClient.set(key, otp, {
 		expiration: {
@@ -326,7 +326,7 @@ const resetPassword = async (payload: IResetPasswordPayload) => {
 
 	checkUserCanLogin(isUserExist);
 
-	const key = `forgot-password-otp:${isUserExist.email}`;
+	const key = redisKey(`forgot-password-otp:${isUserExist.email}`);
 
 	const redisOtp = await redisClient.get(key);
 
