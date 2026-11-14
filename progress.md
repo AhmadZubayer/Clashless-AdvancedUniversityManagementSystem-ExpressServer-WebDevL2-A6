@@ -50,14 +50,14 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 11:56 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F3 complete and pushed; all 39 tests pass and build/static checks clean.
-- Half-done: F4 implementation beginning; no F4 code yet.
+- Half-done: F4 claimed only; no F4 application code yet. Continuation checkpoint is committed and pushed.
 - Next step: semester CRUD/current/detail and rule-field locks, lifecycle gates, then registration windows and T-SEM-01 through T-SEM-09.
 - Traps: use existing schema tables for all gates; no new schema field for published grades. Shared test schema/prefix; explicit ioredis clients for BullMQ. Real notification queue was empty during worker verification.
 
 
 ## ⏭️ Next
 
-1. **F4 Semesters and registration windows**: implement requirement.md 6.6 and lifecycle gates in section 3.
+1. Continue claimed **F4 Semesters and registration windows**: implement requirement.md 6.6 and lifecycle gates in section 3.
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -221,6 +221,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ---
 
 ## Handoff notes (newest first)
+
+- **14 Nov 2026, Codex, continuation checkpoint for F4:** F0–F3 are complete (24%) and pushed; F4 is claimed but no F4 application files have been created yet. Latest full suite: 39 passed in 82.44 seconds after the worker fix; type check, lint, format and build pass. Next: build semester module (create/list/current/admin detail/update), phase gates from section 3, then registrationWindow module and T-SEM-01 through T-SEM-09. Requirement 6.6 and lifecycle gates were read. Existing schema has no grades-published flag: inspect CourseResult rows for semester/student/course matches against ENROLLED enrollments when implementing the CLOSED gate, consistent with F11 publication; avoid adding schema fields. Keep all tests in clashless_test and all disposable Redis keys in clashless:test:. The domain chosen by the user is uni.edu; secrets and replacement working Redis values are only in ignored .env/.env.test. Use the skill checker rather than printing those files. Node/npm need elevated tool execution here. The diagnostic dev server has been stopped. No user input is pending. Read AGENTS.md and follow the session routine on continuation.
+
 
 - **14 Nov 2026, Codex, F3 verified:** All 26 academic endpoints and Swagger implemented: departments, programs/curriculum, batches, courses/prerequisites, rooms, time slots/day patterns, historical result import and Decimal best-attempt CGPA. Full suite now 39 passed (11 academic, 11 user, 15 auth, smoke and real broker regression). Type check, lint/format and build pass. Manual HTTP department create/update/delete, invalid credits, all academic list/detail routes and all 26 Swagger methods passed. Normal server startup with real email worker passed after confirming its queue and schedulers were empty. The retry loop is fixed; test timeouts disappeared with no timeout increase or omitted assertions. Synthetic manual department was soft-deleted. Auth tests now use the actual department endpoint. F4 is next; all schemas for its gates already exist. No unresolved user questions.
 
