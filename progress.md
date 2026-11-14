@@ -49,8 +49,8 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 11:14 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F2 complete and pushed; 27 tests green.
-- Half-done: department endpoints/Swagger complete; T-ACAD-01/02 and T-AUTH-12/13 passed against real department route (4 focused tests). Programs/curriculum implemented with exact Decimal fees, registration fee protection, full transactional curriculum replacement and Swagger; T-ACAD-09 passed. Batches implemented with code parsing, uniqueness and Swagger; focused T-ACAD-03 running. Courses/prerequisites next.
-- Next step: finish batch test, then courses/prerequisites, rooms, time grid and result import.
+- Half-done: department endpoints/Swagger complete; T-ACAD-01/02 and T-AUTH-12/13 passed against real department route (4 focused tests). Programs/curriculum implemented with exact Decimal fees, registration fee protection, full transactional curriculum replacement and Swagger; T-ACAD-09 passed. Batches implemented with code parsing, uniqueness and Swagger; T-ACAD-03 passed. Courses/prerequisites implemented with Decimal credit increments, offered-course locks, serializable DFS cycle prevention and Swagger; T-ACAD-04/05/06 running. Rooms next.
+- Next step: finish course tests, then rooms, time grid and result import.
 - Traps: auth tests now use production department route; all test data must remain in isolated schema/prefix.
 
 
@@ -110,7 +110,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Departments
 - [x] Programs and curriculum
 - [x] Batches (code parsing)
-- [ ] Courses and prerequisites (cycle check)
+- [x] Courses and prerequisites (cycle check)
 - [ ] Rooms
 - [ ] Time slots (overlap check) and day patterns
 - [ ] Results import, with CGPA and earned-credit recalculation

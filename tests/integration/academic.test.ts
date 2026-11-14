@@ -91,6 +91,106 @@ it("T-ACAD-03 batch code derives intake values and rejects term four", async () 
 	).toBe(200);
 });
 
+it("T-ACAD-04 course credits require half-credit increments", async () => {
+	const world = await createAcademicWorld();
+	const response = await request(app)
+		.post("/api/admin/courses")
+		.set("Authorization", authorization())
+		.send({
+			code: "BADCR",
+			title: "Invalid credits",
+			credits: 2.25,
+			type: "THEORY",
+			departmentId: world.department.id,
+		});
+	expect(response.status).toBe(400);
+});
+
+it("T-ACAD-05 reject prerequisite cycles and protect offered course rules", async () => {
+	const world = await createAcademicWorld();
+	const create = (code: string) =>
+		request(app)
+			.post("/api/admin/courses")
+			.set("Authorization", authorization())
+			.send({
+				code,
+				title: code,
+				credits: 3,
+				type: "THEORY",
+				departmentId: world.department.id,
+			});
+	const a = await create("cyclea");
+	const b = await create("cycleb");
+	expect(a.status).toBe(201);
+	expect(a.body.data.code).toBe("CYCLEA");
+	expect(b.status).toBe(201);
+	const first = await request(app)
+		.put(`/api/admin/courses/${a.body.data.id}/prerequisites`)
+		.set("Authorization", authorization())
+		.send([{ prerequisiteId: b.body.data.id }]);
+	expect(first.status).toBe(200);
+	expect(first.body.data[0].minGrade).toBe("D");
+	expect(
+		(
+			await request(app)
+				.put(`/api/admin/courses/${b.body.data.id}/prerequisites`)
+				.set("Authorization", authorization())
+				.send([{ prerequisiteId: a.body.data.id, minGrade: "D" }])
+		).status,
+	).toBe(409);
+	const detail = await request(app)
+		.get(`/api/courses/${a.body.data.id}`)
+		.set("Authorization", authorization());
+	expect(detail.status).toBe(200);
+	expect(detail.body.data.prerequisites).toHaveLength(1);
+	const semester = await prisma.semester.create({
+		data: { code: "COURSE-TEST", name: "Course test", phase: "REGISTRATION" },
+	});
+	await prisma.courseOffering.create({
+		data: { semesterId: semester.id, courseId: a.body.data.id },
+	});
+	expect(
+		(
+			await request(app)
+				.patch(`/api/admin/courses/${a.body.data.id}`)
+				.set("Authorization", authorization())
+				.send({ credits: 4 })
+		).status,
+	).toBe(409);
+	expect(
+		(
+			await request(app)
+				.delete(`/api/admin/courses/${a.body.data.id}`)
+				.set("Authorization", authorization())
+		).status,
+	).toBe(409);
+	await prisma.semester.update({
+		where: { id: semester.id },
+		data: { phase: "CLOSED" },
+	});
+});
+
+it("T-ACAD-06 reject a course requiring itself", async () => {
+	const world = await createAcademicWorld();
+	const course = await prisma.course.create({
+		data: {
+			code: "SELF101",
+			title: "Self",
+			credits: 3,
+			type: "THEORY",
+			departmentId: world.department.id,
+		},
+	});
+	expect(
+		(
+			await request(app)
+				.put(`/api/admin/courses/${course.id}/prerequisites`)
+				.set("Authorization", authorization())
+				.send([{ prerequisiteId: course.id, minGrade: "D" }])
+		).status,
+	).toBe(409);
+});
+
 it("T-ACAD-09 curriculum replacement removes previous rows and program fees obey phase", async () => {
 	const world = await createAcademicWorld();
 	const created = await request(app)
