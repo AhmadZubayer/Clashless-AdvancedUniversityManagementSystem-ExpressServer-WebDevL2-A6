@@ -27,3 +27,19 @@ export function registrationTotals(input: {
 				: "UNPAID";
 	return { totalCredits, totalFee, paymentStatus } as const;
 }
+
+export function minimumPaymentOf(totalFee: Prisma.Decimal, percent: number) {
+	return totalFee.mul(percent).div(100).ceil();
+}
+
+export function paymentStatusOf(
+	totalFee: Prisma.Decimal,
+	paidAmount: Prisma.Decimal,
+	minPaymentPercent: number,
+) {
+	if (totalFee.lte(0)) return "UNPAID" as const;
+	if (paidAmount.gte(totalFee)) return "FULLY_PAID" as const;
+	return paidAmount.gte(minimumPaymentOf(totalFee, minPaymentPercent))
+		? ("MINIMUM_PAID" as const)
+		: ("UNPAID" as const);
+}

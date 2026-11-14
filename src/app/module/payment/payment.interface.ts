@@ -1,11 +1,24 @@
+import type { Prisma } from "../../../generated/prisma/client";
 import type {
 	PaymentProvider,
 	PaymentStatus,
 } from "../../../generated/prisma/enums";
 
 export interface ICreatePayment {
-	registrationId: string;
+	amount: Prisma.Decimal;
 	provider?: PaymentProvider;
+}
+
+export interface IAdminPaymentQuery {
+	status?: PaymentStatus;
+	from?: Date;
+	to?: Date;
+	batchId?: string;
+	searchTerm?: string;
+	page: number;
+	limit: number;
+	sortBy: "createdAt" | "amount";
+	sortOrder: "asc" | "desc";
 }
 
 // Strategy pattern

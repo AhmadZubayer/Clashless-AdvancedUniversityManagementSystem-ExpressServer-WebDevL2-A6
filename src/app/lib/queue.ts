@@ -64,9 +64,9 @@ export async function enqueueJob(
 	}
 	const job = await queue.add(name, data, {
 		jobId,
-		removeOnComplete: name === "account-email" ? true : 100,
-		removeOnFail: name === "account-email" ? true : 100,
-		attempts: name === "account-email" ? 3 : 1,
+		removeOnComplete: name === "account-email" || name === "email" ? true : 100,
+		removeOnFail: name === "account-email" || name === "email" ? true : 100,
+		attempts: name === "account-email" || name === "email" ? 3 : 1,
 		backoff: { type: "exponential", delay: 1000 },
 	});
 	return { id: job.id ?? jobId };

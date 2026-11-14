@@ -1,7 +1,7 @@
 # Clashless — Progress
 
-> ## Overall: 62% complete (62 of 100 points)
-> **In progress:** F8 Payments and the discard job · **Next:** F9 Exam routine
+> ## Overall: 70% complete (70 of 100 points)
+> **In progress:** F9 Exam routine · **Next:** F10 Seat plan and invigilators
 > **Last updated:** 14 Nov 2026 by Claude Code
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -22,8 +22,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F5 | Offerings, sections and teacher preferences | 6 | ✅ Completed | F2, F4 | 6.7 |
 | F6 | Class routine | 14 | ✅ Completed | F5 | 6.8 |
 | F7 | Registration | 14 | ✅ Completed | F6 | 6.9 |
-| F8 | Payments and the discard job | 8 | 🔄 In progress | F7 | 6.10, 7 |
-| F9 | Exam routine | 7 | ⬜ Not started | F7 | 6.11 |
+| F8 | Payments and the discard job | 8 | ✅ Completed | F7 | 6.10, 7 |
+| F9 | Exam routine | 7 | 🔄 In progress | F7 | 6.11 |
 | F10 | Seat plan and invigilators | 10 | ⬜ Not started | F9 | 6.12 |
 | F11 | Grades | 4 | ⬜ Not started | F7 | 6.13 |
 | F12 | Notifications, dashboards and audit log | 4 | ⬜ Not started | F8, F10, F11 | 6.14–6.16 |
@@ -47,20 +47,21 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | F5 Offerings, sections and teacher preferences | 14 Nov 2026 | Codex | 17 (70 total) | All 13 endpoints/docs, 10 required test IDs, boundary/unit checks and manual pass |
 | F6 Class routine | 14 Nov 2026 | Codex | 18 (88 total) | All 13 endpoints/docs; actual demo 264/264 placed in 552 ms; real BullMQ/manual/PDF pass |
 
+| F8 Payments and the discard job | 14 Nov 2026 | Claude Code | 15 (143 total) | create/callback/me/:id/receipt/admin list, discard + reminder + abandoned jobs, cron; T-PAY-01…11, T-JOB-01…05; manual pass done |
 | F7 Registration | 14 Nov 2026 | Claude Code (built by Codex) | 40 (128 total) | All 10 endpoints/docs; full suite 128 passed, type/lint/format/build clean, manual pass done |
 
 ## 🔄 In progress
 
-### F8 — Payments and the discard job
+### F9 — Exam routine
 Started: 14 Nov 2026 by Claude Code
 Handoff notes:
-- Done: F0–F7 complete. Scaffold payment module exists (still Booking-style: needs adapting to SemesterRegistration per requirement 6.10).
-- Next step: adapt payment module, create/callback/me/:id/receipt/admin list, then jobs (discard, reminders, abandoned) and T-PAY/T-JOB tests.
-- Traps: bKash only; mocks in tests/helpers/mocks.ts; commits must have only the user's git identity, no Co-Authored-By lines.
+- Done: F0–F8 complete. F9 code written but not yet mounted/verified: engine/examRoutineGenerator+Validator (unit tests T-EXAM-01..03 pass), module/examSlot, module/examRoutine, jobs/examRoutine.ts, template exam-routine-published.ejs, tests/integration/examRoutine.test.ts (T-EXAM-04..08).
+- Next step: mount examSlot/examRoutine routes in src/app.ts (/api/exam-slots, /api/admin/exam-slots, /api/exam-routines, /api/admin/exam-routines), tsc, run the integration test, lint/format, manual pass, full suite.
+- Traps: full suite can take 14 min on a slow DB (transient 30s timeouts in section tests; rerun file alone). Commits: user identity only, no Co-Authored-By.
 
 ## ⏭️ Next
 
-1. **F8 Payments and the discard job** (in progress).
+1. **F9 Exam routine** (in progress).
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -166,13 +167,13 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F8 — Payments and the discard job (8 points)
 
-- [ ] Adapt the skill's payment module to `SemesterRegistration` (mapping table in 6.10), bKash only
-- [ ] `POST /api/payments/create` amount rules and `PAYMENT_IN_PROGRESS`
-- [ ] Callback: `paidAmount` and `paymentStatus` in the same transaction; receipt email
-- [ ] `me`, `:id`, receipt PDF, admin list
-- [ ] Discard job, payment reminders, abandoned-payment job (section 7)
-- [ ] Tests T-PAY-01 … T-PAY-11 and T-JOB-01 … T-JOB-05
-- [ ] Definition of done → commit → push
+- [x] Adapt the skill's payment module to `SemesterRegistration` (mapping table in 6.10), bKash only
+- [x] `POST /api/payments/create` amount rules and `PAYMENT_IN_PROGRESS`
+- [x] Callback: `paidAmount` and `paymentStatus` in the same transaction; receipt email
+- [x] `me`, `:id`, receipt PDF, admin list
+- [x] Discard job, payment reminders, abandoned-payment job (section 7)
+- [x] Tests T-PAY-01 … T-PAY-11 and T-JOB-01 … T-JOB-05
+- [x] Definition of done → commit → push
 
 ### F9 — Exam routine (7 points)
 

@@ -1,41 +1,36 @@
 import cron from "node-cron";
-import { PaymentStatus } from "../../generated/prisma/enums";
+import {
+	discardUnpaidRegistrations,
+	sendPaymentReminders,
+	settleAbandonedPayments,
+} from "../module/payment/payment.jobs";
 import { logger } from "./logger";
-import { prisma } from "./prisma";
 
-// every 10 minutes: close payments that were started but never finished
-const cancelStalePendingPayments = () => {
-	cron.schedule("*/10 * * * *", async () => {
-		try {
-			const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-
-			const cancelledPayments = await prisma.payment.updateMany({
-				where: {
-					status: PaymentStatus.PENDING,
-					createdAt: { lt: oneHourAgo },
-				},
-				data: {
-					status: PaymentStatus.CANCELLED,
-				},
-			});
-
-			if (cancelledPayments.count > 0) {
-				logger.info(
-					{ count: cancelledPayments.count },
-					"Cron: Cancelled stale pending payments older than 1 hour",
-				);
+const schedule = (
+	name: string,
+	expression: string,
+	job: () => Promise<unknown>,
+) =>
+	cron.schedule(
+		expression,
+		async () => {
+			try {
+				const result = await job();
+				logger.info({ result }, `Cron: ${name} finished`);
+			} catch (error) {
+				logger.error({ err: error }, `Cron: ${name} failed`);
 			}
-		} catch (error) {
-			logger.error(
-				{ err: error },
-				"Cron: Failed to cancel stale pending payments",
-			);
-		}
-	});
-};
+		},
+		{ timezone: "Asia/Dhaka" },
+	);
 
 export const startCronJobs = () => {
-	cancelStalePendingPayments();
-
+	schedule(
+		"discard unpaid registrations",
+		"0 * * * *",
+		discardUnpaidRegistrations,
+	);
+	schedule("payment reminders", "0 10 * * *", sendPaymentReminders);
+	schedule("abandoned payments", "*/15 * * * *", settleAbandonedPayments);
 	logger.info("Cron jobs scheduled");
 };

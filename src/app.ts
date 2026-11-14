@@ -67,7 +67,10 @@ import {
 	departmentRoutes,
 	adminDepartmentRoutes,
 } from "./app/module/department/department.route";
-import { paymentRoutes } from "./app/module/payment/payment.route";
+import {
+	adminPaymentRoutes,
+	paymentRoutes,
+} from "./app/module/payment/payment.route";
 import { bkashRoutes } from "./app/module/payment/providers/bkash/bkash.route";
 
 const app: Application = express();
@@ -131,6 +134,7 @@ app.use("/api/faculty-preferences", facultyPreferenceRoutes);
 app.use("/api/admin/faculty-preferences", adminFacultyPreferenceRoutes);
 app.use("/api/payments/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/admin/payments", adminPaymentRoutes);
 
 app.use(notFound);
 app.use(globalErrorHandler);
