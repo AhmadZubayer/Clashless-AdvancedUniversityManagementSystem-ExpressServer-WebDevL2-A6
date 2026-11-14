@@ -30,3 +30,20 @@ adminRoutineRoutes.get(
 	validateParams(routineValidation.idSchema),
 	routineController.getRoutineReport,
 );
+adminRoutineRoutes.patch(
+	"/:id/entries/:entryId",
+	validateParams(routineValidation.entryParamsSchema),
+	validateRequest(routineValidation.moveSchema),
+	routineController.moveRoutineEntry,
+);
+adminRoutineRoutes.post(
+	"/:id/entries/swap",
+	validateParams(routineValidation.idSchema),
+	validateRequest(routineValidation.swapSchema),
+	routineController.swapRoutineEntries,
+);
+adminRoutineRoutes.patch(
+	"/:id/entries/:entryId/pin",
+	validateParams(routineValidation.entryParamsSchema),
+	routineController.toggleRoutineEntryPin,
+);

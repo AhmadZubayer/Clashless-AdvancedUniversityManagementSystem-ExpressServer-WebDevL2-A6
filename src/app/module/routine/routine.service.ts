@@ -9,6 +9,7 @@ import type {
 	IGenerateRoutine,
 	IRoutineListQuery,
 	IRoutineViewQuery,
+	IRoutineEntryChange,
 } from "./routine.interface";
 import "../../jobs/routine";
 
@@ -392,7 +393,140 @@ const getRoutineReportFromDB = async (id: string) => {
 	};
 };
 
+async function getDraftRoutine(tx: Prisma.TransactionClient, id: string) {
+	const routine = await tx.routine.findUnique({
+		where: { id },
+		include: { entries: true },
+	});
+	if (!routine) throw new AppError(404, "Routine not found");
+	if (routine.status !== "DRAFT")
+		throw new AppError(409, "Only draft routines may be edited");
+	return routine;
+}
+
+async function saveEditedRoutine(
+	tx: Prisma.TransactionClient,
+	routine: Awaited<ReturnType<typeof getDraftRoutine>>,
+	entries: typeof routine.entries,
+	changedIds: Set<string>,
+) {
+	const input = await loadRoutineInputFromDB(tx, routine.semesterId);
+	const validation = validateRoutine({ ...input, entries });
+	const conflicts = validation.violations.filter((row) =>
+		row.sectionIds.some((id) => changedIds.has(id)),
+	);
+	if (conflicts.length)
+		throw new AppError(409, conflicts[0].message, {
+			code: "HARD_RULE_VIOLATION",
+			violations: conflicts,
+		});
+	const score = scoreRoutine(input, entries);
+	const placed = new Set(entries.map((row) => row.sectionId));
+	const previous = routine.report as {
+		unplaced?: { sectionId: string; reason: string }[];
+	} | null;
+	const unplaced = input.sections
+		.filter((row) => !placed.has(row.id))
+		.map((row) => ({
+			sectionId: row.id,
+			reason:
+				previous?.unplaced?.find((item) => item.sectionId === row.id)?.reason ??
+				"Section is not placed in this version",
+		}));
+	await tx.routine.update({
+		where: { id: routine.id },
+		data: {
+			score: score.total,
+			report: {
+				softRules: score.breakdown,
+				unplaced,
+				validation,
+			} as unknown as Prisma.InputJsonValue,
+		},
+	});
+	return { score: score.total, violations: validation.violations };
+}
+
+const moveRoutineEntryIntoDB = (
+	id: string,
+	entryId: string,
+	payload: IRoutineEntryChange,
+) =>
+	prisma.$transaction(async (tx) => {
+		const routine = await getDraftRoutine(tx, id);
+		const entry = routine.entries.find((row) => row.id === entryId);
+		if (!entry) throw new AppError(404, "Entry not found in this routine");
+		const proposed = routine.entries.map((row) =>
+			row.id === entryId ? { ...row, ...payload } : row,
+		);
+		const result = await saveEditedRoutine(
+			tx,
+			routine,
+			proposed,
+			new Set([entry.sectionId]),
+		);
+		const after = await tx.routineEntry.update({
+			where: { id: entryId },
+			data: payload,
+		});
+		return { entry: after, ...result };
+	}, transactionOptions);
+
+const swapRoutineEntriesIntoDB = (
+	id: string,
+	entryAId: string,
+	entryBId: string,
+) =>
+	prisma.$transaction(async (tx) => {
+		const routine = await getDraftRoutine(tx, id);
+		const a = routine.entries.find((row) => row.id === entryAId);
+		const b = routine.entries.find((row) => row.id === entryBId);
+		if (!a || !b)
+			throw new AppError(404, "Both entries must belong to this routine");
+		const schedule = (entry: typeof a) => ({
+			roomId: entry.roomId,
+			dayPatternId: entry.dayPatternId,
+			timeSlotId: entry.timeSlotId,
+		});
+		const proposed = routine.entries.map((row) =>
+			row.id === a.id
+				? { ...row, ...schedule(b) }
+				: row.id === b.id
+					? { ...row, ...schedule(a) }
+					: row,
+		);
+		const result = await saveEditedRoutine(
+			tx,
+			routine,
+			proposed,
+			new Set([a.sectionId, b.sectionId]),
+		);
+		const afterA = await tx.routineEntry.update({
+			where: { id: a.id },
+			data: schedule(b),
+		});
+		const afterB = await tx.routineEntry.update({
+			where: { id: b.id },
+			data: schedule(a),
+		});
+		return { entries: [afterA, afterB], ...result };
+	}, transactionOptions);
+
+const toggleRoutineEntryPinIntoDB = (id: string, entryId: string) =>
+	prisma.$transaction(async (tx) => {
+		const routine = await getDraftRoutine(tx, id);
+		const entry = routine.entries.find((row) => row.id === entryId);
+		if (!entry) throw new AppError(404, "Entry not found in this routine");
+		return tx.routineEntry.update({
+			where: { id: entryId },
+			data: { isPinned: !entry.isPinned },
+		});
+	}, transactionOptions);
+
 export const routineService = {
+	moveRoutineEntryIntoDB,
+	swapRoutineEntriesIntoDB,
+	toggleRoutineEntryPinIntoDB,
 	getAllRoutinesFromDB,
 	getRoutineByIdFromDB,
 	getRoutineReportFromDB,

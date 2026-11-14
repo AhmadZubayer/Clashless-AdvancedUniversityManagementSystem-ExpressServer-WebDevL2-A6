@@ -15,6 +15,7 @@ let teacher: Awaited<ReturnType<typeof createFaculty>>;
 let semesterId: string;
 let sectionId: string;
 let routineId: string;
+let secondRoutineId: string;
 const authorization = () => `Bearer ${tokenFor(admin)}`;
 beforeAll(async () => {
 	admin = await createAdmin();
@@ -192,4 +193,119 @@ it("F6 lists versions, filters views and reports fresh hard-rule violations", as
 		"ROOM_INCOMPATIBLE",
 	);
 	await prisma.room.update({ where: { id: roomId }, data: { capacity: 40 } });
+});
+
+it("T-ROUT-09 a room clash is rejected atomically; valid moves and swaps recompute the score", async () => {
+	const first = await prisma.routineEntry.findFirstOrThrow({
+		where: { routineId },
+	});
+	const section = await prisma.section.findUniqueOrThrow({
+		where: { id: sectionId },
+	});
+	const otherTeacher = await createFaculty(world.department.id);
+	const second = await prisma.section.create({
+		data: {
+			offeringId: section.offeringId,
+			sectionNo: 2,
+			facultyId: otherTeacher.faculty!.id,
+		},
+	});
+	const room = await prisma.room.create({
+		data: {
+			code: "F6-R2",
+			building: "F6",
+			roomNo: "2",
+			type: "CLASSROOM",
+			capacity: 40,
+		},
+	});
+	const entry = await prisma.routineEntry.create({
+		data: {
+			routineId,
+			sectionId: second.id,
+			roomId: room.id,
+			dayPatternId: first.dayPatternId,
+			timeSlotId: first.timeSlotId,
+		},
+	});
+	const conflict = await request(app)
+		.patch(`/api/admin/routines/${routineId}/entries/${entry.id}`)
+		.set("Authorization", authorization())
+		.send({ roomId: first.roomId });
+	expect(conflict.status).toBe(409);
+	expect(conflict.body.errorDetails.code).toBe("HARD_RULE_VIOLATION");
+	expect(conflict.body.message).toContain("F6-R1");
+	expect(
+		(await prisma.routineEntry.findUniqueOrThrow({ where: { id: entry.id } }))
+			.roomId,
+	).toBe(room.id);
+	const slot = await prisma.timeSlot.create({
+		data: {
+			label: "10:10-11:40",
+			type: "THEORY",
+			startMinute: 610,
+			endMinute: 700,
+		},
+	});
+	const moved = await request(app)
+		.patch(`/api/admin/routines/${routineId}/entries/${entry.id}`)
+		.set("Authorization", authorization())
+		.send({ timeSlotId: slot.id });
+	expect(moved.status).toBe(200);
+	expect(moved.body.data).toMatchObject({
+		score: 0,
+		violations: [],
+		entry: { timeSlotId: slot.id },
+	});
+	const swap = await request(app)
+		.post(`/api/admin/routines/${routineId}/entries/swap`)
+		.set("Authorization", authorization())
+		.send({ entryAId: first.id, entryBId: entry.id });
+	expect(swap.status).toBe(200);
+	expect(swap.body.data.entries[0]).toMatchObject({
+		id: first.id,
+		roomId: room.id,
+		timeSlotId: slot.id,
+	});
+	expect(swap.body.data.entries[1]).toMatchObject({
+		id: entry.id,
+		roomId: first.roomId,
+		timeSlotId: first.timeSlotId,
+	});
+	expect(swap.body.data.violations).toEqual([]);
+});
+
+it("T-ROUT-10 pinning and regenerating preserves the exact pinned placement in version 2", async () => {
+	const entry = await prisma.routineEntry.findFirstOrThrow({
+		where: { routineId, sectionId },
+	});
+	const pinned = await request(app)
+		.patch(`/api/admin/routines/${routineId}/entries/${entry.id}/pin`)
+		.set("Authorization", authorization());
+	expect(pinned.status).toBe(200);
+	expect(pinned.body.data.isPinned).toBe(true);
+	const response = await request(app)
+		.post("/api/admin/routines/generate")
+		.set("Authorization", authorization())
+		.send({ semesterId, keepPinnedFrom: routineId });
+	expect(response.status).toBe(202);
+	const job = await prisma.generationJob.findUniqueOrThrow({
+		where: { id: response.body.data.jobId },
+	});
+	expect(job.status).toBe("SUCCEEDED");
+	secondRoutineId = job.resultId!;
+	const version = await prisma.routine.findUniqueOrThrow({
+		where: { id: secondRoutineId },
+		include: { entries: true },
+	});
+	expect(version.version).toBe(2);
+	expect(version.entries).toHaveLength(2);
+	expect(
+		version.entries.find((row) => row.sectionId === sectionId),
+	).toMatchObject({
+		isPinned: true,
+		roomId: entry.roomId,
+		dayPatternId: entry.dayPatternId,
+		timeSlotId: entry.timeSlotId,
+	});
 });

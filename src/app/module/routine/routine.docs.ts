@@ -1,5 +1,79 @@
 /**
  * @openapi
+ * /api/admin/routines/{id}/entries/{entryId}:
+ *   patch:
+ *     tags: [Routine]
+ *     summary: Move a draft entry and recompute its version's score
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *       - { in: path, name: entryId, required: true, schema: { type: string, format: uuid } }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             minProperties: 1
+ *             properties:
+ *               roomId: { type: string, format: uuid }
+ *               dayPatternId: { type: string, format: uuid }
+ *               timeSlotId: { type: string, format: uuid }
+ *     responses:
+ *       200: { description: Updated entry, new score and violations }
+ *       400: { description: Invalid or empty input }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin access required }
+ *       404: { description: Routine or entry not found }
+ *       409: { description: Not DRAFT or HARD_RULE_VIOLATION naming conflicts }
+ */
+/**
+ * @openapi
+ * /api/admin/routines/{id}/entries/swap:
+ *   post:
+ *     tags: [Routine]
+ *     summary: Atomically swap two draft entries' rooms, patterns and times
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [entryAId, entryBId]
+ *             properties:
+ *               entryAId: { type: string, format: uuid }
+ *               entryBId: { type: string, format: uuid }
+ *     responses:
+ *       200: { description: Both updated entries, score and violations }
+ *       400: { description: Invalid IDs or same entry chosen twice }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin access required }
+ *       404: { description: Routine or entries not found }
+ *       409: { description: Not DRAFT or HARD_RULE_VIOLATION; no partial changes }
+ */
+/**
+ * @openapi
+ * /api/admin/routines/{id}/entries/{entryId}/pin:
+ *   patch:
+ *     tags: [Routine]
+ *     summary: Toggle a draft entry's pin for subsequent generation
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *       - { in: path, name: entryId, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200: { description: Entry with toggled isPinned }
+ *       400: { description: Invalid ID }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin access required }
+ *       404: { description: Routine or entry not found }
+ *       409: { description: Only DRAFT routines may be edited }
+ */
+/**
+ * @openapi
  * /api/admin/routines:
  *   get:
  *     tags: [Routine]

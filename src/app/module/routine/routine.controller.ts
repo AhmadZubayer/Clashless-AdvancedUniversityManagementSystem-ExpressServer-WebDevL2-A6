@@ -50,7 +50,49 @@ const getRoutineReport = catchAsync(async (_req: Request, res: Response) => {
 		data,
 	});
 });
+const moveRoutineEntry = catchAsync(async (req: Request, res: Response) => {
+	const { id, entryId } = res.locals.validatedParams;
+	const data = await routineService.moveRoutineEntryIntoDB(
+		id,
+		entryId,
+		req.body,
+	);
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "Routine entry moved",
+		data,
+	});
+});
+const swapRoutineEntries = catchAsync(async (req: Request, res: Response) => {
+	const data = await routineService.swapRoutineEntriesIntoDB(
+		res.locals.validatedParams.id,
+		req.body.entryAId,
+		req.body.entryBId,
+	);
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "Routine entries swapped",
+		data,
+	});
+});
+const toggleRoutineEntryPin = catchAsync(
+	async (_req: Request, res: Response) => {
+		const { id, entryId } = res.locals.validatedParams;
+		const data = await routineService.toggleRoutineEntryPinIntoDB(id, entryId);
+		sendResponse(res, {
+			success: true,
+			statusCode: 200,
+			message: "Routine pin toggled",
+			data,
+		});
+	},
+);
 export const routineController = {
+	moveRoutineEntry,
+	swapRoutineEntries,
+	toggleRoutineEntryPin,
 	generateRoutine,
 	getAllRoutines,
 	getRoutineById,

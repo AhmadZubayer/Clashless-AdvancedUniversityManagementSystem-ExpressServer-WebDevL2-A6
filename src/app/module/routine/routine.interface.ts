@@ -17,3 +17,8 @@ export interface IRoutineViewQuery {
 	programId?: string;
 	term?: number;
 }
+export interface IRoutineEntryChange {
+	roomId?: string;
+	dayPatternId?: string;
+	timeSlotId?: string;
+}

@@ -33,6 +33,23 @@ const viewQuerySchema = z
 		"Program view requires programId and term",
 	);
 export const routineValidation = {
+	entryParamsSchema: z.object({ id: z.uuid(), entryId: z.uuid() }),
+	moveSchema: z
+		.object({
+			roomId: z.uuid().optional(),
+			dayPatternId: z.uuid().optional(),
+			timeSlotId: z.uuid().optional(),
+		})
+		.refine(
+			(value) => Object.keys(value).length > 0,
+			"At least one schedule field is required",
+		),
+	swapSchema: z
+		.object({ entryAId: z.uuid(), entryBId: z.uuid() })
+		.refine(
+			(value) => value.entryAId !== value.entryBId,
+			"Choose two different entries",
+		),
 	generateSchema,
 	idSchema,
 	listQuerySchema,
