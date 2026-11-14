@@ -45,7 +45,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 ### F0 — Project setup
 Started: 14 Nov 2026 by Codex
 Handoff notes:
-- Done: planning documents committed and pushed; required skill downloaded.
+- Done: planning documents pushed; required skill downloaded; scaffold created with required features, ignore rules merged and README expanded. Initial type check passes.
 - Half-done: no application code yet.
 - Next step: scaffold, install pinned packages, run env checker.
 - Traps: type checking is unavailable until scaffold and packages exist.
@@ -76,7 +76,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ### F0 — Project setup (6 points)
 
 - [x] Get the skill into `.agents/skill-library` (AGENTS.md section 2)
-- [ ] Scaffold into this folder with `--features google,uploads,pdf,bkash,cron`. Merge the skipped `.gitignore` and `README.md` by hand
+- [x] Scaffold into this folder with `--features google,uploads,pdf,bkash,cron`. Merge the skipped `.gitignore` and `README.md` by hand
 - [ ] Install packages with the two pinned commands the scaffold prints; add Vitest, Supertest, BullMQ
 - [ ] Fill `.env` using the skill's env checker; ask the user for missing values. Add `UNIVERSITY_EMAIL_DOMAIN` and `DEMO_PASSWORD` to `config/index.ts`, `.env.example` and `.env`
 - [ ] Replace the Prisma models with requirement.md section 5. Delete the example models (`booking`, `service`, `category`) and `BookingStatus`, and fix the code that used them

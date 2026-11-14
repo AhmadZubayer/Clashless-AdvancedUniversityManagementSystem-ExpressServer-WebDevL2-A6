@@ -8,3 +8,10 @@ logs/
 .agents
 .claude
 .windsurf
+
+.env.*
+!.env.example
+!.env.test.example
+src/generated/
+coverage/
+tests/load/tokens.json
