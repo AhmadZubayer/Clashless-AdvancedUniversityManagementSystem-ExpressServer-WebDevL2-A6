@@ -320,67 +320,7 @@ it("F7 opposite switches do not deadlock and both complete when capacity allows"
 	).toBe(2);
 });
 it("T-REG-11 parallel selections by one student serialize the credit-limit check", async () => {
-	const user = await createStudent({
-		batch: world.batch,
-		program: world.program,
-	});
-	const original = await prisma.section.findUniqueOrThrow({
-		where: { id: sectionId },
-	});
-	const courses = Array.from({ length: 7 }, (_, index) => ({
-		id: randomUUID(),
-		code: `F7-PARALLEL-${index}`,
-		title: `Parallel ${index}`,
-		credits: 3,
-		type: "THEORY" as const,
-		departmentId: world.department.id,
-	}));
-	const offerings = courses.map((course) => ({
-		id: randomUUID(),
-		courseId: course.id,
-		semesterId,
-	}));
-	const slots = courses.map((_course, index) => ({
-		id: randomUUID(),
-		label: `Parallel ${index}`,
-		type: "THEORY" as const,
-		startMinute: 610 + index * 90,
-		endMinute: 700 + index * 90,
-	}));
-	const sections = offerings.map((offering, index) => ({
-		id: randomUUID(),
-		offeringId: offering.id,
-		sectionNo: 1,
-		roomId: original.roomId,
-		dayPatternId: original.dayPatternId,
-		timeSlotId: slots[index].id,
-		enrolledCount: index < 2 ? 1 : 0,
-	}));
-	await prisma.$transaction([
-		prisma.course.createMany({ data: courses }),
-		prisma.courseOffering.createMany({ data: offerings }),
-		prisma.timeSlot.createMany({ data: slots }),
-		prisma.section.createMany({ data: sections }),
-	]);
-	const registration = await prisma.semesterRegistration.create({
-		data: {
-			semesterId,
-			studentId: user.student!.id,
-			paymentDeadline: new Date(windowEnd.getTime() + 12 * 86400000),
-			totalCredits: 6,
-			totalFee: 51000,
-		},
-	});
-	await prisma.enrollment.createMany({
-		data: sections.slice(0, 2).map((section) => ({
-			studentId: user.student!.id,
-			semesterId,
-			registrationId: registration.id,
-			sectionId: section.id,
-			offeringId: section.offeringId,
-			credits: 3,
-		})),
-	});
+	const { user, sections, registration } = parallelFixture;
 	const responses = await Promise.all(
 		sections.slice(2).map((section) =>
 			request(app)
@@ -412,53 +352,7 @@ it("T-REG-11 parallel selections by one student serialize the credit-limit check
 	).toBe(5);
 });
 it("T-REG-10 one hundred students race for exactly forty seats", async () => {
-	const original = await prisma.section.findUniqueOrThrow({
-		where: { id: sectionId },
-	});
-	const course = await prisma.course.create({
-		data: {
-			code: "F7-RACE",
-			title: "Concurrency course",
-			credits: 3,
-			type: "THEORY",
-			departmentId: world.department.id,
-		},
-	});
-	const offering = await prisma.courseOffering.create({
-		data: { semesterId, courseId: course.id },
-	});
-	const section = await prisma.section.create({
-		data: {
-			offeringId: offering.id,
-			sectionNo: 1,
-			capacity: 40,
-			roomId: original.roomId,
-			dayPatternId: original.dayPatternId,
-			timeSlotId: original.timeSlotId,
-		},
-	});
-	const users = Array.from({ length: 100 }, (_, index) => ({
-		id: randomUUID(),
-		name: `Race ${index}`,
-		email: `race-${index}@uni.edu`,
-		role: "STUDENT" as const,
-		tokenVersion: 0,
-		emailVerified: true,
-	}));
-	await prisma.$transaction([
-		prisma.user.createMany({ data: users }),
-		prisma.student.createMany({
-			data: users.map((user, index) => ({
-				id: randomUUID(),
-				name: user.name,
-				email: user.email,
-				universityId: `F7-RACE-${index}`,
-				userId: user.id,
-				programId: world.program.id,
-				batchId: world.batch.id,
-			})),
-		}),
-	]);
+	const { users, section } = raceFixture;
 	const responses = await Promise.all(
 		users.map((user) =>
 			request(app)
@@ -559,15 +453,17 @@ it("F7 simultaneous first requests with one idempotency key share one response a
 });
 
 it("T-REG-17 the eleventh registration request within ten seconds is rate limited", async () => {
-	const user = await createStudent({
-		batch: world.batch,
-		program: world.program,
-	});
+	const user = readStudent;
+	await redisClient.del(
+		redisKey(`rate-limit-registration:${user.student!.id}`),
+	);
+	// Valid cached retries still count, as the rate guard precedes idempotency.
 	const responses = await Promise.all(
 		Array.from({ length: 10 }, () =>
 			request(app)
-				.post(`/api/registrations/sections/${sectionId}`)
-				.set("Authorization", `Bearer ${tokenFor(user)}`),
+				.post(`/api/registrations/sections/${readSectionId}`)
+				.set("Authorization", `Bearer ${tokenFor(user)}`)
+				.set("Idempotency-Key", rateIdempotencyKey),
 		),
 	);
 	expect(
@@ -576,8 +472,9 @@ it("T-REG-17 the eleventh registration request within ten seconds is rate limite
 		),
 	).toBe(true);
 	const last = await request(app)
-		.post(`/api/registrations/sections/${sectionId}`)
-		.set("Authorization", `Bearer ${tokenFor(user)}`);
+		.post(`/api/registrations/sections/${readSectionId}`)
+		.set("Authorization", `Bearer ${tokenFor(user)}`)
+		.set("Idempotency-Key", rateIdempotencyKey);
 	expect(last.status).toBe(429);
 	expect(last.body.errorDetails.code).toBe("RATE_LIMITED");
 	const ttl = await redisClient.pTTL(
@@ -797,4 +694,138 @@ it("T-REG-20 the seat stream receives another student's selection and unsubscrib
 		count = (await redisClient.pubSubNumSub(channel))[channel];
 	}
 	expect(count).toBe(baseline);
+});
+
+let parallelFixture: Awaited<ReturnType<typeof createParallelFixture>>;
+async function createParallelFixture() {
+	const user = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const original = await prisma.section.findUniqueOrThrow({
+		where: { id: sectionId },
+	});
+	const courses = Array.from({ length: 7 }, (_, index) => ({
+		id: randomUUID(),
+		code: `F7-PARALLEL-${index}`,
+		title: `Parallel ${index}`,
+		credits: 3,
+		type: "THEORY" as const,
+		departmentId: world.department.id,
+	}));
+	const offerings = courses.map((course) => ({
+		id: randomUUID(),
+		courseId: course.id,
+		semesterId,
+	}));
+	const slots = courses.map((_course, index) => ({
+		id: randomUUID(),
+		label: `Parallel ${index}`,
+		type: "THEORY" as const,
+		startMinute: 610 + index * 90,
+		endMinute: 700 + index * 90,
+	}));
+	const sections = offerings.map((offering, index) => ({
+		id: randomUUID(),
+		offeringId: offering.id,
+		sectionNo: 1,
+		roomId: original.roomId,
+		dayPatternId: original.dayPatternId,
+		timeSlotId: slots[index].id,
+		enrolledCount: index < 2 ? 1 : 0,
+	}));
+	await prisma.$transaction([
+		prisma.course.createMany({ data: courses }),
+		prisma.courseOffering.createMany({ data: offerings }),
+		prisma.timeSlot.createMany({ data: slots }),
+		prisma.section.createMany({ data: sections }),
+	]);
+	const registration = await prisma.semesterRegistration.create({
+		data: {
+			semesterId,
+			studentId: user.student!.id,
+			paymentDeadline: new Date(windowEnd.getTime() + 12 * 86400000),
+			totalCredits: 6,
+			totalFee: 51000,
+		},
+	});
+	await prisma.enrollment.createMany({
+		data: sections.slice(0, 2).map((section) => ({
+			studentId: user.student!.id,
+			semesterId,
+			registrationId: registration.id,
+			sectionId: section.id,
+			offeringId: section.offeringId,
+			credits: 3,
+		})),
+	});
+
+	return { user, sections, registration };
+}
+beforeAll(async () => {
+	parallelFixture = await createParallelFixture();
+});
+
+let raceFixture: Awaited<ReturnType<typeof createRaceFixture>>;
+async function createRaceFixture() {
+	const original = await prisma.section.findUniqueOrThrow({
+		where: { id: sectionId },
+	});
+	const course = await prisma.course.create({
+		data: {
+			code: "F7-RACE",
+			title: "Concurrency course",
+			credits: 3,
+			type: "THEORY",
+			departmentId: world.department.id,
+		},
+	});
+	const offering = await prisma.courseOffering.create({
+		data: { semesterId, courseId: course.id },
+	});
+	const section = await prisma.section.create({
+		data: {
+			offeringId: offering.id,
+			sectionNo: 1,
+			capacity: 40,
+			roomId: original.roomId,
+			dayPatternId: original.dayPatternId,
+			timeSlotId: original.timeSlotId,
+		},
+	});
+	const users = Array.from({ length: 100 }, (_, index) => ({
+		id: randomUUID(),
+		name: `Race ${index}`,
+		email: `race-${index}@uni.edu`,
+		role: "STUDENT" as const,
+		tokenVersion: 0,
+		emailVerified: true,
+	}));
+	await prisma.$transaction([
+		prisma.user.createMany({ data: users }),
+		prisma.student.createMany({
+			data: users.map((user, index) => ({
+				id: randomUUID(),
+				name: user.name,
+				email: user.email,
+				universityId: `F7-RACE-${index}`,
+				userId: user.id,
+				programId: world.program.id,
+				batchId: world.batch.id,
+			})),
+		}),
+	]);
+
+	return { users, section };
+}
+beforeAll(async () => {
+	raceFixture = await createRaceFixture();
+});
+const rateIdempotencyKey = randomUUID();
+beforeAll(async () => {
+	const prime = await request(app)
+		.post(`/api/registrations/sections/${readSectionId}`)
+		.set("Authorization", `Bearer ${tokenFor(readStudent)}`)
+		.set("Idempotency-Key", rateIdempotencyKey);
+	expect(prime.status).toBe(200);
 });
