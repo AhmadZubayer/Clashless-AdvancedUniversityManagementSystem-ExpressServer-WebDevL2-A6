@@ -33,6 +33,7 @@ export default {
 	app_name: process.env.APP_NAME || "API Server",
 	database_url: databaseUrl?.toString(),
 	database_schema: databaseUrl?.searchParams.get("schema") || "public",
+	database_pool_max: Number(process.env.DATABASE_POOL_MAX) || 10,
 	server_url: requiredEnv("SERVER_URL"),
 	frontend_url: process.env.FRONTEND_URL,
 	university_email_domain: requiredEnv("UNIVERSITY_EMAIL_DOMAIN"),

@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { createServer } from "node:http";
 import config from "./app/config";
 import { startWorkers } from "./app/jobs";
 import { startCronJobs } from "./app/lib/cron";
@@ -26,7 +27,9 @@ const main = async () => {
 		startCronJobs();
 		await startWorkers();
 
-		app.listen(PORT, () => {
+		// A large backlog lets a registration rush (1,000 students at once) connect
+		// instead of timing out in the operating system's accept queue.
+		createServer(app).listen({ port: Number(PORT), backlog: 4096 }, () => {
 			logger.info({ port: PORT }, "Server is running");
 		});
 	} catch (error) {

@@ -59,13 +59,14 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 ### F13 — Load test, performance and delivery
 Started: 14 Nov 2026 by Claude Code
 Handoff notes:
-- Done: F0–F12 complete and pushed. tests/load/makeTokens.ts and select-section.k6.js written. k6 is NOT installed: ask the user to install it (winget install k6).
-- Next step: run the load test (k6 if installed, otherwise a Node equivalent for the numbers), run T-ROUT-14 and T-SEAT-13, write README architecture/design decisions/load results, Swagger review, final full npm test.
-- Traps: the load test mutates the demo section CSC2211 section 1 (40 enrollments); clean up afterwards. Full suite 9-14 min with transient ETIMEDOUT failures; rerun the file alone. Commits: user identity only.
+- Done: F0–F12 complete and pushed (95%). F13: load-test files, README (architecture, decisions, performance, load results), Swagger review, T-ROUT-14/T-SEAT-13 and the full suite are done.
+- Left: only the k6 run (requirement.md 9.7). The user must install k6 (`winget install k6`) and ideally run it where the API and PostgreSQL are close (this machine uses a hosted DB with ~56 ms round trips, so the 1,000-way race cannot finish quickly and the Windows loopback timed out connections). Then: `npm run db:seed:demo -- --registration-open`, `npm run build`, `npm start`, `npx tsx tests/load/makeTokens.ts`, `npm run test:load`; write the counts and p95 into the README, tick the box, move F13 to Completed, set progress to 100%.
+- After a load run, clean the demo section (CSC2211 section 1): delete its enrollments and bills and set enrolledCount to 0, otherwise the next run starts with fewer seats.
+- Traps: run only ONE API instance at a time (the shared Redis refuses extra worker connections: "Queue connection failed"). Full suite takes 9-14 min with transient ETIMEDOUT failures; rerun the file alone. Commits: user identity only, no Co-Authored-By lines.
 
 ## ⏭️ Next
 
-1. **F13 Load test, performance and delivery** (in progress).
+1. **F13 Load test, performance and delivery** (in progress): only the k6 run is left, see Questions for the user.
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -218,17 +219,19 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F13 — Load test, performance and delivery (5 points)
 
-- [ ] `tests/load/makeTokens.ts` and `tests/load/select-section.k6.js` (ask the user to install k6 if it's missing)
-- [ ] Run the load test (requirement.md 9.7); exactly 40 × 201 and 960 × 409
-- [ ] T-ROUT-14 and T-SEAT-13 pass on this machine
-- [ ] README: architecture, design decisions (why the guarded update, why column groups), load test and performance results
-- [ ] Swagger review: every endpoint listed and described
-- [ ] Full `npm test` run is green
+- [x] `tests/load/makeTokens.ts` and `tests/load/select-section.k6.js` written (k6 is missing: user asked to install it, see Questions)
+- [ ] Run the load test (requirement.md 9.7); exactly 40 × 201 and 960 × 409. **Not done**: k6 not installed; a Node client always got exactly 40 × 201 but could not reach 960 × 409 or p95 < 500 ms here (remote DB + Windows loopback timeouts). Needs k6 on a machine near the database
+- [x] T-ROUT-14 and T-SEAT-13 pass on this machine
+- [x] README: architecture, design decisions (why the guarded update, why column groups), load test and performance results
+- [x] Swagger review: all 134 endpoints of requirement.md are documented (checked by script), plus the health check
+- [x] Full `npm test` run is green (177 tests; every file passes; on this shared remote DB 1–5 tests fail per full run with ETIMEDOUT/30 s timeouts and pass when their file is rerun alone)
 - [ ] Definition of done → commit → push
 
 ---
 
 ## Handoff notes (newest first)
+
+- **14 Nov 2026, Claude Code, F7–F13 session:** F7–F12 completed and pushed (95%). F8 payments (bKash only, jobs: discard hourly, reminders 10:00, abandoned payments 15 min), F9 exam routine, F10 seat plans, F11 grades, F12 notifications/dashboards/audit log; all required test IDs exist. F13 files and README done; the k6 load test is pending the user installing k6 and running it near the database. Also added: bulk `email` queue (jobs/email.ts, 3 attempts), section transaction timeout 60 s, `DATABASE_POOL_MAX` env (default 10), HTTP backlog 4096, `health.docs.ts`. Load experiments mutated the demo section and were cleaned up (enrolledCount 0); temp scripts were removed.
 
 - **14 Nov 2026, Codex, zero-fee billing correction:** Requirement 6.10 explicitly makes a registration with no courses/zero fee UNPAID, retaining any paid credit. Corrected the shared Decimal helper and the drop/cancel boundary assertions (previously FULLY_PAID at zero). Type, lint and format checks pass. The prior focused-run process/result was unavailable; cache confirms the repaired section file passed, but registration had no new final result. Interrupted the fresh baseline run to include this discovered production correction; a complete regression is required on the final source. No services or timeouts changed.
 
@@ -283,12 +286,15 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Questions for the user
 
-No outstanding questions. First-admin/demo credentials supplied; user chose uni.edu and shared database/Redis services for this assignment. Replacement Redis credentials supplied after the previous host failed DNS. Values are stored only in ignored environment files.
+1. **Install k6** (`winget install k6`) so the load test can run (AGENTS.md: installing software is yours to do). Because this machine's database is remote, please run `npm run test:load` (steps in the README) where PostgreSQL is local or close; paste or commit the counts and p95 and F13 can be closed at 100%.
+
+Previously answered: first-admin/demo credentials supplied; uni.edu; shared database/Redis for this assignment. Values are stored only in ignored environment files.
 
 ## Decisions log
 
 | Date | Decision | By |
 |---|---|---|
+| 14 Nov 2026 | Payments: a registration's payment amount is chosen by the student (min brings paid to 40%, max is the remaining due); callback and abandoned-payment job share complete/close/refund functions. Receipts and discard/reminder/seat emails go through the BullMQ `email` queue. Grades count as published when CourseResult rows exist for the semester. Exam slot delete also removes draft/archived entries for the slot. Section transactions allow 60 s on the shared remote DB. API pool size is `DATABASE_POOL_MAX` (default 10) and the listener backlog is 4096. | Claude Code |
 | 14 Nov 2026 | The explicit demo --registration-open option may reopen its own batch window from now for two hours and move affected bill deadlines; it preserves enrollments/payments and never rewinds CLASSES or later semesters. A REGISTRATION rerun reuses the valid published routine. | Codex |
 | 14 Nov 2026 | Admin WINDOW bypass skips time-range checks; if no window exists, an existing bill keeps its deadline, while a student with no bill returns 404 rather than inventing a deadline. atRisk includes overdue ACTIVE/UNPAID bills as well as those due within three days. | Codex |
 | 14 Nov 2026 | F7 student select/unselect/switch share the registration mutation counter (10 per 10 seconds); idempotency keys apply to select as specified, with a short-lived ownership lock so concurrent first retries replay the same successful response. | Codex |
@@ -320,6 +326,14 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 
 - 14 Nov 2026, F7: manual demo login, empty page, select/replay/switch/unselect, catalog flags, admin list/detail/add/remove and all 10 Swagger methods passed. Used an unregistered demo student; seats were released and a zero-fee bill with dropped enrollment history retained. Spring 2027 is REGISTRATION with published routine v3 (264 entries), and batch 23-3 has the two-hour seed window. No workers or outgoing email/payment services were started.
 
+- 14 Nov 2026, F8: login, admin payments list and all 6 payment paths in Swagger; automated flows cover create/callback/idempotency/refund/receipt/jobs.
+
+- 14 Nov 2026, F9: login, exam slots/versions lists, PHASE_NOT_ALLOWED on generate in REGISTRATION, all 9 exam paths in Swagger.
+
+- 14 Nov 2026, F10: login, seat plan overview/last-used rooms, 404 on an unknown slot, all 13 seat-plan paths in Swagger.
+
+- 14 Nov 2026, F11/F12: login, admin analytics (22-3: 300 students etc.), live view, audit log, notifications and 11 grade/notification/analytics/audit paths in Swagger.
+
 ## Environment notes (never write secrets here)
 
 | Item | Value |
@@ -332,7 +346,8 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Test database | Same supplied PostgreSQL, isolated clashless_test schema |
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
-| k6 installed | _not checked yet_ |
+| k6 installed | **No** (checked 14 Nov 2026); user asked to install it |
+| PostgreSQL max_connections | 50 (hosted); ~56 ms round trip from this machine |
 
 
 

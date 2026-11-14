@@ -246,7 +246,7 @@ describe("seat plan", () => {
 			.get(`/api/seat-plans/${plan1}/rooms/${summary.body.data.rooms[0].id}`)
 			.set("Authorization", bearer(teacher));
 		expect(denied.status).toBe(403);
-	});
+	}, 90000);
 
 	it("T-SEAT-09 a swap that puts the same course side by side is refused", async () => {
 		const seats = await prisma.seatAssignment.findMany({
