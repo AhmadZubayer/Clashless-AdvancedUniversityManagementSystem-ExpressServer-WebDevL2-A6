@@ -1059,3 +1059,13 @@ ALTER TABLE "students" ADD CONSTRAINT "students_programId_fkey" FOREIGN KEY ("pr
 
 -- AddForeignKey
 ALTER TABLE "students" ADD CONSTRAINT "students_batchId_fkey" FOREIGN KEY ("batchId") REFERENCES "batches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- Last line of defence against overbooking: the database refuses enrolledCount > capacity.
+ALTER TABLE sections
+  ADD CONSTRAINT sections_enrolled_within_capacity
+  CHECK ("enrolledCount" >= 0 AND "enrolledCount" <= capacity);
+
+-- A student can hold only one ENROLLED section per course.
+-- DROPPED, DISCARDED and CANCELLED rows stay as history and don't count.
+CREATE UNIQUE INDEX one_section_per_course
+  ON enrollments ("studentId", "offeringId")
+  WHERE status = 'ENROLLED';
