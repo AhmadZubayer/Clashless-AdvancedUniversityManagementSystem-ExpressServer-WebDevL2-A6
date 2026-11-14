@@ -309,3 +309,70 @@ it("T-ROUT-10 pinning and regenerating preserves the exact pinned placement in v
 		timeSlotId: entry.timeSlotId,
 	});
 });
+
+it("T-ROUT-12 publication rejects missing sections even when the saved report claims none", async () => {
+	const entry = await prisma.routineEntry.findFirstOrThrow({
+		where: { routineId },
+	});
+	const incomplete = await prisma.routine.create({
+		data: {
+			semesterId,
+			version: 3,
+			report: { unplaced: [] },
+			entries: {
+				create: {
+					sectionId: entry.sectionId,
+					roomId: entry.roomId,
+					dayPatternId: entry.dayPatternId,
+					timeSlotId: entry.timeSlotId,
+				},
+			},
+		},
+	});
+	const response = await request(app)
+		.post(`/api/admin/routines/${incomplete.id}/publish`)
+		.set("Authorization", authorization());
+	expect(response.status).toBe(409);
+	expect(response.body.errorDetails.unplaced).toHaveLength(1);
+	expect(
+		(await prisma.routine.findUniqueOrThrow({ where: { id: incomplete.id } }))
+			.status,
+	).toBe("DRAFT");
+});
+
+it("T-ROUT-11 publication copies schedules and archives the previous published version", async () => {
+	for (const id of [routineId, secondRoutineId]) {
+		const response = await request(app)
+			.post(`/api/admin/routines/${id}/publish`)
+			.set("Authorization", authorization());
+		expect(response.status).toBe(200);
+		expect(response.body.data.status).toBe("PUBLISHED");
+		expect(response.body.data.publishedAt).toEqual(expect.any(String));
+	}
+	expect(
+		(await prisma.routine.findUniqueOrThrow({ where: { id: routineId } }))
+			.status,
+	).toBe("ARCHIVED");
+	expect(
+		await prisma.routine.count({ where: { semesterId, status: "PUBLISHED" } }),
+	).toBe(1);
+	const entries = await prisma.routineEntry.findMany({
+		where: { routineId: secondRoutineId },
+	});
+	for (const entry of entries) {
+		const section = await prisma.section.findUniqueOrThrow({
+			where: { id: entry.sectionId },
+		});
+		expect(section).toMatchObject({
+			roomId: entry.roomId,
+			dayPatternId: entry.dayPatternId,
+			timeSlotId: entry.timeSlotId,
+		});
+	}
+	const pin = await request(app)
+		.patch(
+			`/api/admin/routines/${secondRoutineId}/entries/${entries[0].id}/pin`,
+		)
+		.set("Authorization", authorization());
+	expect(pin.status).toBe(409);
+});

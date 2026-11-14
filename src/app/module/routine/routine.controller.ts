@@ -89,7 +89,19 @@ const toggleRoutineEntryPin = catchAsync(
 		});
 	},
 );
+const publishRoutine = catchAsync(async (_req: Request, res: Response) => {
+	const data = await routineService.publishRoutineIntoDB(
+		res.locals.validatedParams.id,
+	);
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "Routine published",
+		data,
+	});
+});
 export const routineController = {
+	publishRoutine,
 	moveRoutineEntry,
 	swapRoutineEntries,
 	toggleRoutineEntryPin,

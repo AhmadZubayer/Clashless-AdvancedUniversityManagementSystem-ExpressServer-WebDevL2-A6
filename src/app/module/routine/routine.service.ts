@@ -1,4 +1,5 @@
 import { Prisma } from "../../../generated/prisma/client";
+import config from "../../config";
 import { generateRoutine, scoreRoutine } from "../../engine/routineGenerator";
 import type { IRoutineGenerationInput } from "../../engine/routineGenerator";
 import { validateRoutine } from "../../engine/routineValidator";
@@ -523,7 +524,66 @@ const toggleRoutineEntryPinIntoDB = (id: string, entryId: string) =>
 		});
 	}, transactionOptions);
 
+const publishRoutineIntoDB = (id: string) =>
+	prisma.$transaction(async (tx) => {
+		const routine = await getDraftRoutine(tx, id);
+		const semester = await tx.semester.findUniqueOrThrow({
+			where: { id: routine.semesterId },
+			select: { phase: true },
+		});
+		if (semester.phase !== "PLANNING")
+			throw new AppError(409, "Routine publication requires PLANNING", {
+				code: "PHASE_NOT_ALLOWED",
+			});
+		const input = await loadRoutineInputFromDB(tx, routine.semesterId);
+		const placedIds = new Set(routine.entries.map((entry) => entry.sectionId));
+		const unplaced = input.sections
+			.filter((section) => !placedIds.has(section.id))
+			.map((section) => ({ sectionId: section.id, label: section.label }));
+		if (unplaced.length)
+			throw new AppError(
+				409,
+				"Every section must be placed before publication",
+				{ unplaced },
+			);
+		const validation = validateRoutine({ ...input, entries: routine.entries });
+		if (!validation.ok)
+			throw new AppError(409, "Routine violates hard rules", {
+				code: "HARD_RULE_VIOLATION",
+				violations: validation.violations,
+			});
+		await tx.routine.updateMany({
+			where: { semesterId: routine.semesterId, status: "PUBLISHED" },
+			data: { status: "ARCHIVED" },
+		});
+		if (routine.entries.length) {
+			if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(config.database_schema))
+				throw new Error("Unsupported database schema identifier");
+			const sectionsTable = Prisma.raw(
+				`"${config.database_schema}"."sections"`,
+			);
+			await tx.$executeRaw(
+				Prisma.sql`UPDATE ${sectionsTable} AS s SET "roomId" = v."roomId", "dayPatternId" = v."dayPatternId", "timeSlotId" = v."timeSlotId", "updatedAt" = CURRENT_TIMESTAMP FROM (VALUES ${Prisma.join(routine.entries.map((entry) => Prisma.sql`(${entry.sectionId}, ${entry.roomId}, ${entry.dayPatternId}, ${entry.timeSlotId})`))}) AS v("id", "roomId", "dayPatternId", "timeSlotId") WHERE s."id" = v."id"`,
+			);
+		}
+		const score = scoreRoutine(input, routine.entries);
+		return tx.routine.update({
+			where: { id },
+			data: {
+				status: "PUBLISHED",
+				publishedAt: new Date(),
+				score: score.total,
+				report: {
+					unplaced: [],
+					softRules: score.breakdown,
+					validation,
+				} as unknown as Prisma.InputJsonValue,
+			},
+		});
+	}, transactionOptions);
+
 export const routineService = {
+	publishRoutineIntoDB,
 	moveRoutineEntryIntoDB,
 	swapRoutineEntriesIntoDB,
 	toggleRoutineEntryPinIntoDB,

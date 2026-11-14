@@ -1,5 +1,23 @@
 /**
  * @openapi
+ * /api/admin/routines/{id}/publish:
+ *   post:
+ *     tags: [Routine]
+ *     summary: Publish a complete valid draft during PLANNING
+ *     description: Atomically archives the old published version and copies all placements onto sections.
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200: { description: Published version with publishedAt }
+ *       400: { description: Invalid ID }
+ *       401: { description: Authentication required }
+ *       403: { description: Admin access required }
+ *       404: { description: Routine not found }
+ *       409: { description: Not DRAFT, PHASE_NOT_ALLOWED, unplaced sections or HARD_RULE_VIOLATION }
+ */
+/**
+ * @openapi
  * /api/admin/routines/{id}/entries/{entryId}:
  *   patch:
  *     tags: [Routine]

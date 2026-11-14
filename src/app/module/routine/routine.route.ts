@@ -30,6 +30,11 @@ adminRoutineRoutes.get(
 	validateParams(routineValidation.idSchema),
 	routineController.getRoutineReport,
 );
+adminRoutineRoutes.post(
+	"/:id/publish",
+	validateParams(routineValidation.idSchema),
+	routineController.publishRoutine,
+);
 adminRoutineRoutes.patch(
 	"/:id/entries/:entryId",
 	validateParams(routineValidation.entryParamsSchema),
