@@ -1,8 +1,8 @@
 # Clashless — Progress
 
-> ## Overall: 48% complete (48 of 100 points)
-> **In progress:** F7 Registration · **Next:** F8 Payments and the discard job
-> **Last updated:** 14 Nov 2026 by Codex
+> ## Overall: 62% complete (62 of 100 points)
+> **In progress:** F8 Payments and the discard job · **Next:** F9 Exam routine
+> **Last updated:** 14 Nov 2026 by Claude Code
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
 
@@ -21,8 +21,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F4 | Semesters and registration windows | 4 | ✅ Completed | F3 | 6.6 |
 | F5 | Offerings, sections and teacher preferences | 6 | ✅ Completed | F2, F4 | 6.7 |
 | F6 | Class routine | 14 | ✅ Completed | F5 | 6.8 |
-| F7 | Registration | 14 | 🔄 In progress | F6 | 6.9 |
-| F8 | Payments and the discard job | 8 | ⬜ Not started | F7 | 6.10, 7 |
+| F7 | Registration | 14 | ✅ Completed | F6 | 6.9 |
+| F8 | Payments and the discard job | 8 | 🔄 In progress | F7 | 6.10, 7 |
 | F9 | Exam routine | 7 | ⬜ Not started | F7 | 6.11 |
 | F10 | Seat plan and invigilators | 10 | ⬜ Not started | F9 | 6.12 |
 | F11 | Grades | 4 | ⬜ Not started | F7 | 6.13 |
@@ -47,19 +47,20 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | F5 Offerings, sections and teacher preferences | 14 Nov 2026 | Codex | 17 (70 total) | All 13 endpoints/docs, 10 required test IDs, boundary/unit checks and manual pass |
 | F6 Class routine | 14 Nov 2026 | Codex | 18 (88 total) | All 13 endpoints/docs; actual demo 264/264 placed in 552 ms; real BullMQ/manual/PDF pass |
 
+| F7 Registration | 14 Nov 2026 | Claude Code (built by Codex) | 40 (128 total) | All 10 endpoints/docs; full suite 128 passed, type/lint/format/build clean, manual pass done |
+
 ## 🔄 In progress
 
-### F7 — Registration
-Started: 14 Nov 2026 13:20 Asia/Dhaka by Codex
+### F8 — Payments and the discard job
+Started: 14 Nov 2026 by Claude Code
 Handoff notes:
-- Done: F0–F6 complete and pushed; all 88 tests and static/build/manual checks pass. Demo published routine version 2 exists; semester stays PLANNING.
-- Half-done: all ten endpoints/docs and registration-open seed implemented. All required test IDs now exist; the completed registration suite and final full/build/manual checks remain.
-- Next step: final full regression and build, then complete and push F7. All 24 student registration cases passed together in 106.39 seconds; admin suite 8 passed; seed suite 3 passed; main manual HTTP flow and all 10 Swagger methods passed.
-- Traps: default isolation for select, serialize same-student writes with registration row locks, ascending section IDs for switches; Decimal bill totals; test schema/prefix isolation remains mandatory.
+- Done: F0–F7 complete. Scaffold payment module exists (still Booking-style: needs adapting to SemesterRegistration per requirement 6.10).
+- Next step: adapt payment module, create/callback/me/:id/receipt/admin list, then jobs (discard, reminders, abandoned) and T-PAY/T-JOB tests.
+- Traps: bKash only; mocks in tests/helpers/mocks.ts; commits must have only the user's git identity, no Co-Authored-By lines.
 
 ## ⏭️ Next
 
-1. **F7 Registration**: implement requirement.md 6.9 in checklist order, preserving the exact locking/guarded-seat flow.
+1. **F8 Payments and the discard job** (in progress).
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -160,8 +161,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] SSE seat stream with Redis pub/sub
 - [x] Admin list, detail, manual add (bypass) and remove
 - [x] `--registration-open` option for `db:seed:demo`
-- [ ] Tests T-REG-01 … T-REG-21
-- [ ] Definition of done → commit → push
+- [x] Tests T-REG-01 … T-REG-21
+- [x] Definition of done → commit → push
 
 ### F8 — Payments and the discard job (8 points)
 
