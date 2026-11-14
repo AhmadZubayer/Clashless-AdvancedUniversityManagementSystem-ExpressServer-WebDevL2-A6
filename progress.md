@@ -1,7 +1,7 @@
 ﻿# Clashless — Progress
 
 > ## Overall: 34% complete (34 of 100 points)
-> **In progress:** None · **Next:** F6 Class routine
+> **In progress:** F6 Class routine · **Next:** F7 Registration
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -20,7 +20,7 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F3 | Academic setup | 6 | ✅ Completed | F1 | 6.5 |
 | F4 | Semesters and registration windows | 4 | ✅ Completed | F3 | 6.6 |
 | F5 | Offerings, sections and teacher preferences | 6 | ✅ Completed | F2, F4 | 6.7 |
-| F6 | Class routine | 14 | ⏭️ Next | F5 | 6.8 |
+| F6 | Class routine | 14 | 🔄 In progress | F5 | 6.8 |
 | F7 | Registration | 14 | ⬜ Not started | F6 | 6.9 |
 | F8 | Payments and the discard job | 8 | ⬜ Not started | F7 | 6.10, 7 |
 | F9 | Exam routine | 7 | ⬜ Not started | F7 | 6.11 |
@@ -129,7 +129,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Class list as JSON, CSV and PDF
 - [x] Teacher slot preferences
 - [x] Tests T-SEC-01 … T-SEC-10
-- [ ] Definition of done → commit → push
+- [x] Definition of done → commit → push
 
 ### F6 — Class routine (14 points)
 
@@ -289,6 +289,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 
