@@ -49,9 +49,9 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 11:14 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F2 complete and pushed; 27 tests green.
-- Half-done: F3 implementation starting.
-- Next step: departments, programs/curriculum, batches, courses/prerequisites, rooms, time grid and result import in checklist order.
-- Traps: replace T-AUTH-12/13's test-only department route with the real endpoint when departments land.
+- Half-done: department endpoints/Swagger complete; T-ACAD-01/02 and T-AUTH-12/13 passed against real department route (4 focused tests). Programs/curriculum next.
+- Next step: programs/curriculum, then batches, courses/prerequisites, rooms, time grid and result import.
+- Traps: auth tests now use production department route; all test data must remain in isolated schema/prefix.
 
 
 ## ⏭️ Next
@@ -107,7 +107,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F3 — Academic setup (6 points)
 
-- [ ] Departments
+- [x] Departments
 - [ ] Programs and curriculum
 - [ ] Batches (code parsing)
 - [ ] Courses and prerequisites (cycle check)

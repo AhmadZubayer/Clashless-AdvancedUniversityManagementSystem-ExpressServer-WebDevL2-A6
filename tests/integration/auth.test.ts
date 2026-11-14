@@ -1,12 +1,10 @@
-import express from "express";
 import bcrypt from "bcryptjs";
 import request from "supertest";
 import { beforeAll, expect, it } from "vitest";
 import app from "../../src/app";
 import config from "../../src/app/config";
 import { prisma } from "../../src/app/lib/prisma";
-import { auth } from "../../src/app/middleware/checkAuth";
-import { globalErrorHandler } from "../../src/app/middleware/globalErrorHandler";
+
 import type { User } from "../../src/generated/prisma/client";
 import { createAdmin, createFaculty, createStudent } from "../helpers/factory";
 import { tokenFor } from "../helpers/auth";
@@ -50,14 +48,6 @@ const refresh = (token: string) =>
 	request(app)
 		.post("/api/auth/refresh-token")
 		.set("Cookie", `refreshToken=${token}`);
-
-// F3 introduces the department resource. This test-only route exercises the real
-// auth guard at that exact path without implementing F3 ahead of its build order.
-const guardApp = express();
-guardApp.get("/api/departments", auth(), (_req, res) => {
-	res.status(200).json({ success: true });
-});
-guardApp.use(globalErrorHandler);
 
 it("T-AUTH-01 login sets two cookies and returns needPasswordChange", async () => {
 	const user = await passwordUser({ needsChange: true });
@@ -223,7 +213,7 @@ it("T-AUTH-11 reset password with captured OTP and reject old refresh token", as
 
 it("T-AUTH-12 first-login password change blocks protected resources", async () => {
 	const user = await passwordUser({ needsChange: true });
-	const response = await request(guardApp)
+	const response = await request(app)
 		.get("/api/departments")
 		.set("Authorization", `Bearer ${tokenFor(user)}`);
 	expect(response.status).toBe(403);
@@ -247,7 +237,7 @@ it("T-AUTH-13 change password issues a working fresh session", async () => {
 	expect(response.headers["set-cookie"]).toHaveLength(2);
 	expect(
 		(
-			await request(guardApp)
+			await request(app)
 				.get("/api/departments")
 				.set("Authorization", `Bearer ${response.body.data.accessToken}`)
 		).status,
