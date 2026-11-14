@@ -52,8 +52,8 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 12:51 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F5 complete and pushed; all 70 tests, static/build/manual checks pass. Pure routineValidator and T-ROUT-05 already implemented in F5.
-- Half-done: no generator or routine/job module yet.
-- Next step: confirm validator checklist, then deterministic generator and remaining unit tests, including demo performance.
+- Half-done: pure generator implemented and verified; routine/job modules and worker not started.
+- Next step: routine worker/job module and version APIs. Unit suite 10 passed; integration health passed. Read-only demo performance: 264/264 sections, 38 rooms, 72 teachers, no violations, score 0, 552 ms.
 - Traps: pinned entries never move; repair may move one unpinned blocker only; use occupancy maps and seeded local search; never change teacher assignments.
 
 ## ⏭️ Next
@@ -140,7 +140,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ### F6 — Class routine (14 points)
 
 - [x] `engine/routineValidator.ts` with unit tests (T-ROUT-05)
-- [ ] `engine/routineGenerator.ts`: candidates, ordering, greedy placement, repair, seeded local search, penalty (T-ROUT-01 … T-ROUT-04, T-ROUT-06)
+- [x] `engine/routineGenerator.ts`: candidates, ordering, greedy placement, repair, seeded local search, penalty (T-ROUT-01 … T-ROUT-04, T-ROUT-06)
 - [ ] BullMQ `routine` worker and the `job` module (`GET /api/admin/jobs/:id`)
 - [ ] Generate, list versions, view, report
 - [ ] Move, swap, pin
@@ -223,6 +223,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex, F6 generator:** Pure generator uses seeded random search, room/teacher/day occupancy maps, hardest-first candidates, greedy added penalty, one-unpinned-blocker repair, immutable pins, full hard validation and soft score breakdown. T-ROUT-01 through 06 pass (10 unit tests including shared validator). Read-only actual demo performance: all 264 sections placed across 38 rooms and 72 teachers in 552 ms, score 0, no hard violations. Unit tests now run independently of database/Redis using Vitest projects; integration setup remains isolated and health passed after a transient migrate setup error. No env changes. A quota-related automatic approval review failure interrupted one check; user continued and checks resumed. Next: routine worker/job module, versions/report, editing/publish, weekly grids and PDFs.
+
 - **14 Nov 2026, Codex, F5 complete:** All 13 endpoints and Swagger implemented. Full suite 70 passed in 186.13 seconds; type check, lint, format and build pass. Manual HTTP pass verified offerings, teacher mine, class-list JSON/CSV/PDF, preference lists, capacity update and all docs. Shared pure engine/routineValidator.ts checks active/type/capacity resources, room/teacher overlap and cross-slot unavailability; unit T-ROUT-05 is already implemented. Sections use serializable transactions, guard student clashes on rescheduling, synchronize published entries and retain overpaid credit on cancellation. registrationTotals.ts provides Decimal fee/payment-status calculation for F7 reuse. Preferences are locked once any routine version exists. No schema/env changes or pending questions. Next: F6 generator, worker/job module, routine version APIs and remaining T-ROUT tests.
 
 - **14 Nov 2026, Codex, F4 complete:** All 10 endpoints and Swagger implemented. Full suite 53 passed in 119.49 seconds; type check, lint, format and build pass. Manual flow passed and temporary main-schema registration window was removed. Semester creation and transitions use serializable transactions; every forward gate and transition audit is enforced against existing tables. Running extensions require a reason, cannot shorten/change start/batch/semester, update only the affected batch's bill deadlines and audit atomically. No new schema or env changes. F5 is next; its full section and the routine hard rules were read. Required F5 tests are T-SEC-01 through T-SEC-10; cancellation needs Decimal fee recalculation and notifications, and scheduled sections must obey active room/type/capacity/teacher availability/clash rules.
@@ -295,6 +297,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 
