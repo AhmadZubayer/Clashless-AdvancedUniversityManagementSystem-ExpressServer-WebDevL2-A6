@@ -52,7 +52,7 @@ Started: 14 Nov 2026 12:23 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F4 complete and pushed; all 53 tests and static/build checks pass.
 - Half-done: offering create/list/delete and Swagger implemented. Creation and deletion enforce PLANNING; numbered sections are created atomically; enrollment history is preserved. Section management and its four Swagger endpoints now implemented; focused suite 11 passed (8 integration, 3 validator).
-- Next step: full F5 suite/static checks and manual HTTP pass. All 13 endpoints/docs now implemented. Preference replace/clear, teacher scope, duplicates, phase lock and any-routine lock pass.
+- Next step: finalize F5 and push. Full suite 70 passed in 186.13 seconds; type/lint/format/build and manual HTTP pass are clean. All 13 endpoints/docs implemented.
 - Traps: cancellation must retain overpaid credit and recalculate Decimal bills; schedule changes must protect teacher and student clashes, and published routine entries must stay consistent.
 
 
@@ -134,7 +134,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Bulk teacher assignment (load check, all or nothing); `GET /api/sections/mine`
 - [x] Class list as JSON, CSV and PDF
 - [x] Teacher slot preferences
-- [ ] Tests T-SEC-01 … T-SEC-10
+- [x] Tests T-SEC-01 … T-SEC-10
 - [ ] Definition of done → commit → push
 
 ### F6 — Class routine (14 points)
@@ -256,6 +256,7 @@ No outstanding questions. First-admin/demo credentials supplied; user chose uni.
 
 | Date | Decision | By |
 |---|---|---|
+| 14 Nov 2026 | F5 extra scheduled sections are added to the published RoutineEntry grid; cancellation removes their published entry while retaining draft/archive history and all paid credit. Shared routineValidator implements hard rules now for F5 and will be reused by F6. | Codex |
 | 14 Nov 2026 | F4 current-semester student response uses registrationWindow and serverTime; CLOSED grade gate will derive publication from matching CourseResult rows without schema changes. Zero percent/day rules are accepted as nonnegative configuration; credits remain positive Decimal. | Codex |
 | 14 Nov 2026 | Assignment override: use supplied database/Redis services for tests, isolated PostgreSQL clashless_test schema and clashless:test: Redis keys; no shared FLUSHDB. Use uni.edu for university email domain. Credentials supplied and stored only in ignored .env. | User / Codex |
 | 14 Nov 2026 | F1 guard tests use a test-only /api/departments route until F3 creates that resource, preserving feature order; replace with production endpoint in F3. | Codex |
@@ -277,6 +278,8 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 
 - 14 Nov 2026, F4: manual HTTP current/detail/date update, rejected duplicate semester, temporary future window create/edit/delete, student own window/serverTime, missing-routine phase gate and all 10 Swagger methods passed. Temporary window removed; demo remains PLANNING.
 
+- 14 Nov 2026, F5: manual HTTP offerings, assigned teacher mine, class-list JSON/CSV/PDF, preference lists, unchanged-capacity update and all 13 Swagger methods passed. Tokens stayed in memory; no outgoing emails or demo schedule changes.
+
 ## Environment notes (never write secrets here)
 
 | Item | Value |
@@ -290,6 +293,9 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
+
+
 
 
 

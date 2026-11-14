@@ -568,7 +568,7 @@ const getSectionStudentsFromDB = async (
 		];
 		return {
 			buffer: Buffer.from(
-				rows.map((row) => row.map(cell).join(",")).join("\r\n") + "\r\n",
+				`${rows.map((row) => row.map(cell).join(",")).join("\r\n")}\r\n`,
 			),
 		};
 	}
