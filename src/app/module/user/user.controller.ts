@@ -4,6 +4,7 @@ import { AppError } from "../../utils/AppError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { userService } from "./user.service";
+import type { IUserQuery } from "./user.interface";
 
 const updateProfile = catchAsync(async (req: Request, res: Response) => {
 	if (!req.user) throw new AppError(httpStatus.UNAUTHORIZED, "Please log in");
@@ -34,4 +35,23 @@ const importUsers = catchAsync(async (req: Request, res: Response) => {
 	sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "Import completed", data: result });
 });
 
-export const userController = { updateProfile, createAdmin, createFaculty, createStudent, importUsers };
+const getAllUsers = catchAsync(async (_req: Request, res: Response) => {
+	const result = await userService.getAllUsersFromDB(res.locals.validatedQuery as IUserQuery);
+	sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "Users retrieved", data: result.data, meta: result.meta });
+});
+const getUserById = catchAsync(async (_req: Request, res: Response) => {
+	const user = await userService.getUserByIdFromDB(res.locals.validatedParams.id);
+	sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "User retrieved", data: user });
+});
+const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
+	if (!req.user) throw new AppError(httpStatus.UNAUTHORIZED, "Please log in");
+	const user = await userService.updateUserStatusIntoDB(req.user, res.locals.validatedParams.id, req.body.status);
+	sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "User status updated", data: user });
+});
+const deleteUser = catchAsync(async (req: Request, res: Response) => {
+	if (!req.user) throw new AppError(httpStatus.UNAUTHORIZED, "Please log in");
+	const user = await userService.deleteUserFromDB(req.user, res.locals.validatedParams.id);
+	sendResponse(res, { success: true, statusCode: httpStatus.OK, message: "User deleted", data: user });
+});
+
+export const userController = { updateProfile, createAdmin, createFaculty, createStudent, importUsers, getAllUsers, getUserById, updateUserStatus, deleteUser };

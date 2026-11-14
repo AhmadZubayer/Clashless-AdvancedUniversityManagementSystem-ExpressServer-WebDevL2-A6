@@ -68,13 +68,6 @@ export const auth = (...requiredRoles: UserRole[]) => {
 			);
 		}
 
-		if (user.status === UserStatus.BLOCKED) {
-			throw new AppError(
-				httpStatus.FORBIDDEN,
-				"Your account has been blocked. Please contact support.",
-			);
-		}
-
 		if (
 			!Number.isInteger(decoded.tokenVersion) ||
 			decoded.tokenVersion !== user.tokenVersion
@@ -82,6 +75,13 @@ export const auth = (...requiredRoles: UserRole[]) => {
 			throw new AppError(
 				httpStatus.UNAUTHORIZED,
 				"Session has expired. Please log in again.",
+			);
+		}
+
+		if (user.status === UserStatus.BLOCKED) {
+			throw new AppError(
+				httpStatus.FORBIDDEN,
+				"Your account has been blocked. Please contact support.",
 			);
 		}
 

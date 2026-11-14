@@ -16,7 +16,7 @@ import { userValidation } from "./user.validation";
 import { createAuditLogIntoDB } from "../auditLog/auditLog.service";
 import { AppError } from "../../utils/AppError";
 import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/uploadToCloudinary";
-import type { IUpdateProfile, ICreateAdmin, ICreateFaculty, ICreateStudent } from "./user.interface";
+import type { IUpdateProfile, ICreateAdmin, ICreateFaculty, ICreateStudent, IUserQuery } from "./user.interface";
 
 const emailCreatedAccount = async (user: { id: string; name: string; email: string }, to: string, password?: string) => {
 	try { await sendEmail({ to, subject: password ? `Welcome to ${config.app_name}` : `Activate your ${config.app_name} account`, templateName: password ? "staff-welcome" : "student-invite", templateData: { name: user.name, email: user.email, ...(password ? { password } : {}) } }); }
@@ -128,6 +128,51 @@ const importUsersIntoDB = async (actor: RequestUser, type: "student" | "faculty"
 	return { created, failed: failed.sort((a, b) => a.row - b.row) };
 };
 
+const getAllUsersFromDB = async (query: IUserQuery) => {
+	const where: Prisma.UserWhereInput = { isDeleted: false, ...(query.role ? { role: query.role } : {}), ...(query.status ? { status: query.status } : {}) };
+	if (query.departmentId) where.faculty = { departmentId: query.departmentId };
+	if (query.programId || query.batchId) where.student = { ...(query.programId ? { programId: query.programId } : {}), ...(query.batchId ? { batchId: query.batchId } : {}) };
+	if (query.searchTerm) where.OR = [{ name: { contains: query.searchTerm, mode: "insensitive" } }, { email: { contains: query.searchTerm, mode: "insensitive" } }, { student: { universityId: { contains: query.searchTerm, mode: "insensitive" } } }];
+	const [data, total] = await prisma.$transaction([
+		prisma.user.findMany({ where, take: query.limit, skip: (query.page - 1) * query.limit, orderBy: { [query.sortBy]: query.sortOrder }, omit: { password: true }, include: { admin: true, faculty: true, student: true } }),
+		prisma.user.count({ where }),
+	]);
+	return { data, meta: { page: query.page, limit: query.limit, total, totalPages: Math.ceil(total / query.limit) } };
+};
+
+const getUserByIdFromDB = async (id: string) => {
+	const user = await prisma.user.findFirst({ where: { id, isDeleted: false }, omit: { password: true }, include: { admin: true, faculty: true, student: { include: { program: true, batch: true, registrations: { where: { semester: { phase: { not: "CLOSED" } } }, take: 1, include: { enrollments: true } } } } } });
+	if (!user) throw new AppError(httpStatus.NOT_FOUND, "User not found");
+	return user;
+};
+
+const ensureCanManage = (actor: RequestUser, target: { id: string; role: UserRole }) => {
+	if (actor.id === target.id) throw new AppError(httpStatus.FORBIDDEN, "You cannot change your own status or delete yourself");
+	if ((target.role === UserRole.ADMIN || target.role === UserRole.SUPER_ADMIN) && actor.role !== UserRole.SUPER_ADMIN) throw new AppError(httpStatus.FORBIDDEN, "Only a Super Admin may manage staff administrators");
+};
+
+const updateUserStatusIntoDB = (actor: RequestUser, id: string, status: "ACTIVE" | "BLOCKED") => prisma.$transaction(async (tx) => {
+	const target = await tx.user.findFirst({ where: { id, isDeleted: false } });
+	if (!target) throw new AppError(httpStatus.NOT_FOUND, "User not found");
+	ensureCanManage(actor, target);
+	const changed = await tx.user.updateMany({ where: { id, status: target.status, tokenVersion: target.tokenVersion, isDeleted: false }, data: { status, ...(status === "BLOCKED" ? { tokenVersion: { increment: 1 } } : {}) } });
+	if (changed.count !== 1) throw new AppError(httpStatus.CONFLICT, "Account changed; please retry");
+	await createAuditLogIntoDB(tx, { actorId: actor.id, action: "USER_STATUS_CHANGED", entity: "User", entityId: id, before: { status: target.status }, after: { status } });
+	return tx.user.findUniqueOrThrow({ where: { id }, omit: { password: true } });
+});
+
+const deleteUserFromDB = (actor: RequestUser, id: string) => prisma.$transaction(async (tx) => {
+	const target = await tx.user.findFirst({ where: { id, isDeleted: false } });
+	if (!target) throw new AppError(httpStatus.NOT_FOUND, "User not found");
+	ensureCanManage(actor, target);
+	const changed = await tx.user.updateMany({ where: { id, tokenVersion: target.tokenVersion, isDeleted: false }, data: { isDeleted: true, deletedAt: new Date(), status: "DELETED", tokenVersion: { increment: 1 } } });
+	if (changed.count !== 1) throw new AppError(httpStatus.CONFLICT, "Account changed; please retry");
+	if (target.role === UserRole.FACULTY) await tx.faculty.updateMany({ where: { userId: id }, data: { isDeleted: true } });
+	if (target.role === UserRole.STUDENT) await tx.student.updateMany({ where: { userId: id }, data: { isDeleted: true } });
+	await createAuditLogIntoDB(tx, { actorId: actor.id, action: "USER_DELETED", entity: "User", entityId: id, before: { status: target.status, isDeleted: false }, after: { status: "DELETED", isDeleted: true } });
+	return tx.user.findUniqueOrThrow({ where: { id }, omit: { password: true } });
+});
+
 const updateProfileIntoDB = async (userId: string, payload: IUpdateProfile, photo?: Buffer) => {
 	const uploaded = photo ? await uploadToCloudinary(photo) : undefined;
 	let oldImage: string | undefined;
@@ -151,4 +196,4 @@ const updateProfileIntoDB = async (userId: string, payload: IUpdateProfile, phot
 	return user;
 };
 
-export const userService = { updateProfileIntoDB, createAdminIntoDB, createFacultyIntoDB, createStudentIntoDB, importUsersIntoDB };
+export const userService = { updateProfileIntoDB, createAdminIntoDB, createFacultyIntoDB, createStudentIntoDB, importUsersIntoDB, getAllUsersFromDB, getUserByIdFromDB, updateUserStatusIntoDB, deleteUserFromDB };
