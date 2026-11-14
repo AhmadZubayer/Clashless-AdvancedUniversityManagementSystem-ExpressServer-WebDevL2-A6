@@ -1,7 +1,7 @@
 ﻿# Clashless — Progress
 
 > ## Overall: 48% complete (48 of 100 points)
-> **In progress:** None · **Next:** F7 Registration
+> **In progress:** F7 Registration · **Next:** F8 Payments and the discard job
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -21,7 +21,7 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F4 | Semesters and registration windows | 4 | ✅ Completed | F3 | 6.6 |
 | F5 | Offerings, sections and teacher preferences | 6 | ✅ Completed | F2, F4 | 6.7 |
 | F6 | Class routine | 14 | ✅ Completed | F5 | 6.8 |
-| F7 | Registration | 14 | ⏭️ Next | F6 | 6.9 |
+| F7 | Registration | 14 | 🔄 In progress | F6 | 6.9 |
 | F8 | Payments and the discard job | 8 | ⬜ Not started | F7 | 6.10, 7 |
 | F9 | Exam routine | 7 | ⬜ Not started | F7 | 6.11 |
 | F10 | Seat plan and invigilators | 10 | ⬜ Not started | F9 | 6.12 |
@@ -49,7 +49,13 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 
 ## 🔄 In progress
 
-None.
+### F7 — Registration
+Started: 14 Nov 2026 13:20 Asia/Dhaka by Codex
+Handoff notes:
+- Done: F0–F6 complete and pushed; all 88 tests and static/build/manual checks pass. Demo published routine version 2 exists; semester stays PLANNING.
+- Half-done: F7 implementation not started.
+- Next step: registration select with raw insert/FOR UPDATE and guarded seat update, following requirement 6.9.1 exactly.
+- Traps: default isolation for select, serialize same-student writes with registration row locks, ascending section IDs for switches; Decimal bill totals; test schema/prefix isolation remains mandatory.
 
 ## ⏭️ Next
 
@@ -296,6 +302,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 
