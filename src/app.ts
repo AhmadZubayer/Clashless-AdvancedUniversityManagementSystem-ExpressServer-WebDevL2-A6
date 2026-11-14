@@ -15,6 +15,10 @@ import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { authRoutes } from "./app/module/auth/auth.route";
 import {
+	registrationWindowRoutes,
+	adminRegistrationWindowRoutes,
+} from "./app/module/registrationWindow/registrationWindow.route";
+import {
 	semesterRoutes,
 	adminSemesterRoutes,
 } from "./app/module/semester/semester.route";
@@ -91,6 +95,8 @@ app.use("/api/admin/day-patterns", adminDayPatternRoutes);
 app.use("/api/admin/results", adminResultRoutes);
 app.use("/api/semesters", semesterRoutes);
 app.use("/api/admin/semesters", adminSemesterRoutes);
+app.use("/api/registration-windows", registrationWindowRoutes);
+app.use("/api/admin/registration-windows", adminRegistrationWindowRoutes);
 app.use("/api/payments/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
 
