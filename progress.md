@@ -1,7 +1,7 @@
 ﻿# Clashless — Progress
 
-> ## Overall: 28% complete (28 of 100 points)
-> **In progress:** F5 Offerings, sections and teacher preferences · **Next:** F6 Class routine
+> ## Overall: 34% complete (34 of 100 points)
+> **In progress:** None · **Next:** F6 Class routine
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -19,8 +19,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F2 | User management | 5 | ✅ Completed | F1 | 6.4 |
 | F3 | Academic setup | 6 | ✅ Completed | F1 | 6.5 |
 | F4 | Semesters and registration windows | 4 | ✅ Completed | F3 | 6.6 |
-| F5 | Offerings, sections and teacher preferences | 6 | 🔄 In progress | F2, F4 | 6.7 |
-| F6 | Class routine | 14 | ⬜ Not started | F5 | 6.8 |
+| F5 | Offerings, sections and teacher preferences | 6 | ✅ Completed | F2, F4 | 6.7 |
+| F6 | Class routine | 14 | ⏭️ Next | F5 | 6.8 |
 | F7 | Registration | 14 | ⬜ Not started | F6 | 6.9 |
 | F8 | Payments and the discard job | 8 | ⬜ Not started | F7 | 6.10, 7 |
 | F9 | Exam routine | 7 | ⬜ Not started | F7 | 6.11 |
@@ -44,21 +44,15 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | F2 User management | 14 Nov 2026 | Codex | 11 (27 total) | Endpoints, Swagger, static checks, build and manual pass |
 | F3 Academic setup | 14 Nov 2026 | Codex | 11 (39 total) | All 26 endpoints, Swagger, static checks, build and manual pass |
 | F4 Semesters and registration windows | 14 Nov 2026 | Codex | 14 (53 total) | 9 required IDs plus 5 gate/boundary checks; all 10 endpoints/docs and manual pass |
+| F5 Offerings, sections and teacher preferences | 14 Nov 2026 | Codex | 17 (70 total) | All 13 endpoints/docs, 10 required test IDs, boundary/unit checks and manual pass |
 
 ## 🔄 In progress
 
-### F5 — Offerings, sections and teacher preferences
-Started: 14 Nov 2026 12:23 Asia/Dhaka by Codex
-Handoff notes:
-- Done: F0–F4 complete and pushed; all 53 tests and static/build checks pass.
-- Half-done: offering create/list/delete and Swagger implemented. Creation and deletion enforce PLANNING; numbered sections are created atomically; enrollment history is preserved. Section management and its four Swagger endpoints now implemented; focused suite 11 passed (8 integration, 3 validator).
-- Next step: finalize F5 and push. Full suite 70 passed in 186.13 seconds; type/lint/format/build and manual HTTP pass are clean. All 13 endpoints/docs implemented.
-- Traps: cancellation must retain overpaid credit and recalculate Decimal bills; schedule changes must protect teacher and student clashes, and published routine entries must stay consistent.
-
+None.
 
 ## ⏭️ Next
 
-1. **F5 Offerings, sections and teacher preferences**: implement requirement.md 6.7; apply hard schedule rules from 6.8.1.
+1. **F6 Class routine**: implement requirement.md 6.8; reuse the pure routineValidator and its T-ROUT-05 unit test from F5.
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -223,6 +217,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex, F5 complete:** All 13 endpoints and Swagger implemented. Full suite 70 passed in 186.13 seconds; type check, lint, format and build pass. Manual HTTP pass verified offerings, teacher mine, class-list JSON/CSV/PDF, preference lists, capacity update and all docs. Shared pure engine/routineValidator.ts checks active/type/capacity resources, room/teacher overlap and cross-slot unavailability; unit T-ROUT-05 is already implemented. Sections use serializable transactions, guard student clashes on rescheduling, synchronize published entries and retain overpaid credit on cancellation. registrationTotals.ts provides Decimal fee/payment-status calculation for F7 reuse. Preferences are locked once any routine version exists. No schema/env changes or pending questions. Next: F6 generator, worker/job module, routine version APIs and remaining T-ROUT tests.
+
 - **14 Nov 2026, Codex, F4 complete:** All 10 endpoints and Swagger implemented. Full suite 53 passed in 119.49 seconds; type check, lint, format and build pass. Manual flow passed and temporary main-schema registration window was removed. Semester creation and transitions use serializable transactions; every forward gate and transition audit is enforced against existing tables. Running extensions require a reason, cannot shorten/change start/batch/semester, update only the affected batch's bill deadlines and audit atomically. No new schema or env changes. F5 is next; its full section and the routine hard rules were read. Required F5 tests are T-SEC-01 through T-SEC-10; cancellation needs Decimal fee recalculation and notifications, and scheduled sections must obey active room/type/capacity/teacher availability/clash rules.
 
 
@@ -293,6 +289,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 
