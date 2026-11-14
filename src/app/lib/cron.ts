@@ -4,6 +4,7 @@ import {
 	sendPaymentReminders,
 	settleAbandonedPayments,
 } from "../module/payment/payment.jobs";
+import { sendExamSeatReminders } from "../module/seatPlan/seatPlan.jobs";
 import { logger } from "./logger";
 
 const schedule = (
@@ -32,5 +33,6 @@ export const startCronJobs = () => {
 	);
 	schedule("payment reminders", "0 10 * * *", sendPaymentReminders);
 	schedule("abandoned payments", "*/15 * * * *", settleAbandonedPayments);
+	schedule("exam seat reminders", "0 18 * * *", sendExamSeatReminders);
 	logger.info("Cron jobs scheduled");
 };

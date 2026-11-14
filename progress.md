@@ -1,7 +1,7 @@
 # Clashless — Progress
 
-> ## Overall: 77% complete (77 of 100 points)
-> **In progress:** F10 Seat plan and invigilators · **Next:** F11 Grades
+> ## Overall: 87% complete (87 of 100 points)
+> **In progress:** F11 Grades · **Next:** F12 Notifications, dashboards and audit log
 > **Last updated:** 14 Nov 2026 by Claude Code
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -24,8 +24,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F7 | Registration | 14 | ✅ Completed | F6 | 6.9 |
 | F8 | Payments and the discard job | 8 | ✅ Completed | F7 | 6.10, 7 |
 | F9 | Exam routine | 7 | ✅ Completed | F7 | 6.11 |
-| F10 | Seat plan and invigilators | 10 | 🔄 In progress | F9 | 6.12 |
-| F11 | Grades | 4 | ⬜ Not started | F7 | 6.13 |
+| F10 | Seat plan and invigilators | 10 | ✅ Completed | F9 | 6.12 |
+| F11 | Grades | 4 | 🔄 In progress | F7 | 6.13 |
 | F12 | Notifications, dashboards and audit log | 4 | ⬜ Not started | F8, F10, F11 | 6.14–6.16 |
 | F13 | Load test, performance and delivery | 5 | ⬜ Not started | All | 8, 9.7 |
 | | **Total** | **100** | | | |
@@ -47,22 +47,23 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | F5 Offerings, sections and teacher preferences | 14 Nov 2026 | Codex | 17 (70 total) | All 13 endpoints/docs, 10 required test IDs, boundary/unit checks and manual pass |
 | F6 Class routine | 14 Nov 2026 | Codex | 18 (88 total) | All 13 endpoints/docs; actual demo 264/264 placed in 552 ms; real BullMQ/manual/PDF pass |
 
+| F10 Seat plan and invigilators | 14 Nov 2026 | Claude Code | 14 (166 total) | 13 T-SEAT + T-JOB-06, 14 endpoints/docs, validator/generator, invigilators, PDFs, reminder cron; manual pass done |
 | F9 Exam routine | 14 Nov 2026 | Claude Code | 9 (152 total) | slots, generator/validator, worker, move, publish, /me; T-EXAM-01…08; manual pass done |
 | F8 Payments and the discard job | 14 Nov 2026 | Claude Code | 15 (143 total) | create/callback/me/:id/receipt/admin list, discard + reminder + abandoned jobs, cron; T-PAY-01…11, T-JOB-01…05; manual pass done |
 | F7 Registration | 14 Nov 2026 | Claude Code (built by Codex) | 40 (128 total) | All 10 endpoints/docs; full suite 128 passed, type/lint/format/build clean, manual pass done |
 
 ## 🔄 In progress
 
-### F10 — Seat plan and invigilators
+### F11 — Grades
 Started: 14 Nov 2026 by Claude Code
 Handoff notes:
-- Done: F0–F9 complete. F10 implemented and verified (module/seatPlan, engine/seatPlan*, seatPlan.jobs reminder + cron, tests/unit/seatPlanGenerator, tests/integration/seatPlan); full suite last run 164 passed (one worker crash, file passes alone).
-- Next step: commit F10, then F11 grades (module/grade written, tests/integration/grade.test.ts written, not mounted) and F12 (notification/auditLog/analytics modules + tests/integration/misc.test.ts written, not mounted).
-- Traps: full suite takes 7-14 min on this DB; transient timeouts/worker crashes happen, rerun the file alone. Commits: user identity only, no Co-Authored-By.
+- Done: F0–F10 complete and pushed. F11 code written (module/grade, tests/integration/grade.test.ts) but not mounted/verified; F12 modules + tests/integration/misc.test.ts also written but unmounted.
+- Next step: mount gradeRoutes (/api/grades), adminGradeRoutes (/api/admin/grades) in src/app.ts, tsc, run grade tests, manual pass, then F12 mounting (notifications, /api/admin/analytics, /api/analytics, /api/admin/audit-logs).
+- Traps: grades published == CourseResult rows exist for the semester; full suite 7-14 min, flaky timeouts/worker crash -> rerun file alone. Commits: user identity only.
 
 ## ⏭️ Next
 
-1. **F10 Seat plan and invigilators** (in progress).
+1. **F11 Grades** (in progress).
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -187,15 +188,15 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ### F10 — Seat plan and invigilators (10 points)
 
-- [ ] `engine/seatPlanValidator.ts` and `engine/seatPlanGenerator.ts` (T-SEAT-01 … T-SEAT-06)
-- [ ] Create, overview, rooms, last-used rooms, generate, summary, room grid
-- [ ] Swap and late student
-- [ ] Publish with bulk email
-- [ ] PDF exports: door, full, attendance
-- [ ] Invigilators: automatic and by hand
-- [ ] `GET /api/seat-plans/me`; exam seat reminder job
-- [ ] Tests T-SEAT-07 … T-SEAT-13 and T-JOB-06
-- [ ] Definition of done → commit → push
+- [x] `engine/seatPlanValidator.ts` and `engine/seatPlanGenerator.ts` (T-SEAT-01 … T-SEAT-06)
+- [x] Create, overview, rooms, last-used rooms, generate, summary, room grid
+- [x] Swap and late student
+- [x] Publish with bulk email
+- [x] PDF exports: door, full, attendance
+- [x] Invigilators: automatic and by hand
+- [x] `GET /api/seat-plans/me`; exam seat reminder job
+- [x] Tests T-SEAT-07 … T-SEAT-13 and T-JOB-06
+- [x] Definition of done → commit → push
 
 ### F11 — Grades (4 points)
 

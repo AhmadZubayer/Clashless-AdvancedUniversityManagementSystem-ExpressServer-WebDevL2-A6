@@ -10,7 +10,11 @@ import {
 	settleAbandonedPayments,
 } from "../../src/app/module/payment/payment.jobs";
 import { tokenFor } from "../helpers/auth";
-import { createAdmin, createRegistrationWorld, createStudent } from "../helpers/factory";
+import {
+	createAdmin,
+	createRegistrationWorld,
+	createStudent,
+} from "../helpers/factory";
 import { externalMocks } from "../helpers/mocks";
 
 type World = Awaited<ReturnType<typeof createRegistrationWorld>>;
@@ -23,7 +27,10 @@ const FEE = 31500; // 3 credits x 6500 + 12000
 const MIN = 12600; // ceil(40%)
 
 // One extra section of a new course for the same semester.
-async function addSection(options: { startMinute: number; enrollIn?: boolean }) {
+async function addSection(options: {
+	startMinute: number;
+	enrollIn?: boolean;
+}) {
 	const course = await prisma.course.create({
 		data: {
 			code: `EXT-${randomUUID().slice(0, 8)}`,
@@ -102,7 +109,8 @@ async function newBilledStudent(
 			totalFee: overrides.totalFee ?? FEE,
 			paidAmount: overrides.paidAmount ?? 0,
 			paymentStatus: overrides.paymentStatus ?? "UNPAID",
-			paymentDeadline: overrides.deadline ?? new Date(Date.now() + 86400000 * 10),
+			paymentDeadline:
+				overrides.deadline ?? new Date(Date.now() + 86400000 * 10),
 		},
 	});
 	return { user, registration };
@@ -188,7 +196,9 @@ describe("payments", () => {
 		executed(MIN);
 		const first = await callback(providerId, "success");
 		expect(first.status).toBe(302);
-		expect(first.headers.location).toBe(`${config.frontend_url}/payment/success`);
+		expect(first.headers.location).toBe(
+			`${config.frontend_url}/payment/success`,
+		);
 		const paid = async () =>
 			prisma.semesterRegistration.findUniqueOrThrow({
 				where: { id: registration.id },
@@ -203,13 +213,14 @@ describe("payments", () => {
 			).status,
 		).toBe("COMPLETED");
 		const again = await callback(providerId, "success");
-		expect(again.headers.location).toBe(`${config.frontend_url}/payment/success`);
+		expect(again.headers.location).toBe(
+			`${config.frontend_url}/payment/success`,
+		);
 		expect((await paid()).paidAmount.toString()).toBe(String(MIN));
 		expect(
 			externalMocks.emails.some(
 				(mail) =>
-					mail.to === user.student!.email &&
-					mail.templateData.transactionId,
+					mail.to === user.student!.email && mail.templateData.transactionId,
 			),
 		).toBe(true);
 	});
@@ -218,7 +229,9 @@ describe("payments", () => {
 		const { user, registration } = await newBilledStudent();
 		const { response, providerId } = await startPayment(user, MIN);
 		const result = await callback(providerId, "cancel");
-		expect(result.headers.location).toBe(`${config.frontend_url}/payment/cancelled`);
+		expect(result.headers.location).toBe(
+			`${config.frontend_url}/payment/cancelled`,
+		);
 		expect(
 			(
 				await prisma.payment.findUniqueOrThrow({
@@ -261,7 +274,9 @@ describe("payments", () => {
 		});
 		executed(MIN);
 		const result = await callback(providerId, "success");
-		expect(result.headers.location).toBe(`${config.frontend_url}/payment/cancelled`);
+		expect(result.headers.location).toBe(
+			`${config.frontend_url}/payment/cancelled`,
+		);
 		expect(externalMocks.refund).toHaveBeenCalledTimes(1);
 		const row = await prisma.semesterRegistration.findUniqueOrThrow({
 			where: { id: registration.id },
