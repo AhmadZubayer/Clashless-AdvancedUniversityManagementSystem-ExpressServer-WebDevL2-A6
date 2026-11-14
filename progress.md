@@ -224,6 +224,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex, F7 concurrency query reduction:** A subsequent 24-case registration run still timed out T-REG-11 and returned only 32 SECTION_FULL responses in T-REG-10, so fixture separation alone was insufficient. Changed lockRegistrationIntoDB to the specified SELECT * FOR UPDATE and use that returned row directly, removing a redundant ORM fetch while the row lock is held. Student/program and current-semester reads now run concurrently. Added a shared, documented 60-second transaction wait/timeout constant without changing default isolation or existing limits. A broader eight-case run (first select, unselect/reselect, failed/valid/opposite switches, same-student race and 100-student race) passed in 70.46 seconds. Read-only probe showed warm DB round trips 51–57 ms; only aggregate wait categories were inspected, no row data or connection values printed. Probe removed. Need the full 24-case registration run and final all-suite verification before completion.
+
 - **14 Nov 2026, Codex, F7 registration-open seed verified:** Added prisma/openDemoRegistration.ts and --registration-open wiring/preflight in seedDemo.ts plus README instructions. Generates/publishes synchronously during PLANNING using the shared pure engine and publish service, upserts a two-hour batch window, updates affected bill deadlines and transitions through the normal semester service. REGISTRATION reruns reuse a valid complete publication and reopen the demo window while preserving bills/enrollments/payments; CLASSES and later are rejected before seed writes. Three integration checks passed in 15.14 seconds. Actual npm run db:seed:demo -- --registration-open succeeded at 14:14 Dhaka, retaining 96 courses/2100 students. Main Spring 2027 is now REGISTRATION, with a new published routine; batch 23-3 closes at 16:14 Dhaka on 14 Nov. Remaining required guard tests have been added and compile; next run all registration tests and final full/build/manual verification. No env/schema changes.
 
 - **14 Nov 2026, Codex, F7 admin verified:** Four admin endpoints and Swagger complete. Shared select/unselect core preserves registration locks and guarded seat changes. Explicit bypasses are independently enforced; CAPACITY adds one before the guarded increment, reason/actor/bypasses and before/after bill/seat values are audit-logged in the same transaction. Admin list supports risk/batch/status/payment/search/pagination; detail includes all enrollments and payments without User credentials. Removal works outside the window in REGISTRATION/CLASSES and retains paid credit. All 8 admin tests passed in 26.67 seconds, including 41 genuine ENROLLED rows for T-REG-19. Repaired rate test passed in 17.70 seconds. No schema/env changes. Next: registration-open demo seed, missing T-REG-05/06/07/08/09/18, final all-tests/build/manual checks before F7 completion.
@@ -317,6 +319,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 

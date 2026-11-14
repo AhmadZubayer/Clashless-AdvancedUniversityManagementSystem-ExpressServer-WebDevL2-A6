@@ -1,4 +1,7 @@
-import { Prisma } from "../../../generated/prisma/client";
+import {
+	Prisma,
+	type SemesterRegistration,
+} from "../../../generated/prisma/client";
 import { randomUUID } from "node:crypto";
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
@@ -23,15 +26,15 @@ function table(name: "semester_registrations") {
 }
 
 async function getStudentContextFromDB(userId: string) {
-	const student = await prisma.student.findUnique({
-		where: { userId },
-		include: { program: true },
-	});
+	const [student, semester] = await Promise.all([
+		prisma.student.findUnique({
+			where: { userId },
+			include: { program: true },
+		}),
+		prisma.semester.findFirst({ where: { phase: { not: "CLOSED" } } }),
+	]);
 	if (!student || student.isDeleted)
 		throw new AppError(404, "Student profile not found");
-	const semester = await prisma.semester.findFirst({
-		where: { phase: { not: "CLOSED" } },
-	});
 	if (!semester) throw new AppError(404, "No current semester");
 	return { student, semester };
 }
@@ -73,13 +76,11 @@ async function lockRegistrationIntoDB(
 		await tx.$executeRaw(
 			Prisma.sql`INSERT INTO ${registrationsTable} (id, "studentId", "semesterId", "paymentDeadline", "updatedAt") VALUES (gen_random_uuid()::text, ${studentId}, ${semesterId}, ${paymentDeadline}, now()) ON CONFLICT ("studentId", "semesterId") DO NOTHING`,
 		);
-	const rows = await tx.$queryRaw<{ id: string }[]>(
-		Prisma.sql`SELECT id FROM ${registrationsTable} WHERE "studentId" = ${studentId} AND "semesterId" = ${semesterId} FOR UPDATE`,
+	const rows = await tx.$queryRaw<SemesterRegistration[]>(
+		Prisma.sql`SELECT * FROM ${registrationsTable} WHERE "studentId" = ${studentId} AND "semesterId" = ${semesterId} FOR UPDATE`,
 	);
 	if (!rows[0]) throw new AppError(404, "Semester registration not found");
-	const registration = await tx.semesterRegistration.findUniqueOrThrow({
-		where: { id: rows[0].id },
-	});
+	const registration = rows[0];
 	if (registration.status === "DISCARDED")
 		throw new AppError(
 			403,
@@ -94,6 +95,10 @@ const scheduleInclude = {
 	timeSlot: true,
 	offering: { include: { course: true } },
 } satisfies Prisma.SectionInclude;
+
+// Concurrent seat contenders may queue behind row locks over the hosted connection.
+// Keep default isolation; allow that queue to drain rather than abort correct writes.
+const registrationTransactionOptions = { maxWait: 60000, timeout: 60000 };
 
 async function checkRegistrationRateLimitFromDB(userId: string) {
 	const student = await prisma.student.findUnique({
@@ -151,217 +156,212 @@ const selectSectionIntoDB = async (
 				window.endsAt.getTime() + semester.paymentDeadlineDays * 86400000,
 			)
 		: undefined;
-	const result = await prisma.$transaction(
-		async (tx) => {
-			const registration = await lockRegistrationIntoDB(
-				tx,
-				student.id,
-				semester.id,
-				paymentDeadline,
-			);
-			const section = await tx.section.findFirst({
-				where: { id: sectionId, offering: { semesterId: semester.id } },
-				include: scheduleInclude,
+	const result = await prisma.$transaction(async (tx) => {
+		const registration = await lockRegistrationIntoDB(
+			tx,
+			student.id,
+			semester.id,
+			paymentDeadline,
+		);
+		const section = await tx.section.findFirst({
+			where: { id: sectionId, offering: { semesterId: semester.id } },
+			include: scheduleInclude,
+		});
+		if (!section?.timeSlot || !section.dayPattern)
+			throw new AppError(404, "Scheduled section not found in this semester");
+		if (section.status !== "OPEN")
+			throw new AppError(409, "This section is closed", {
+				code: "SECTION_CLOSED",
 			});
-			if (!section?.timeSlot || !section.dayPattern)
-				throw new AppError(404, "Scheduled section not found in this semester");
-			if (section.status !== "OPEN")
-				throw new AppError(409, "This section is closed", {
-					code: "SECTION_CLOSED",
-				});
-			const enrolled = await tx.enrollment.findMany({
+		const enrolled = await tx.enrollment.findMany({
+			where: {
+				studentId: student.id,
+				semesterId: semester.id,
+				status: "ENROLLED",
+			},
+			include: { section: { include: scheduleInclude } },
+		});
+		const sameCourse = enrolled.find(
+			(row) => row.offeringId === section.offeringId,
+		);
+		if (sameCourse?.sectionId === sectionId)
+			return {
+				statusCode: 200,
+				data: { enrollment: sameCourse, registration },
+				seat: null,
+			};
+		if (sameCourse)
+			throw new AppError(
+				409,
+				`You already have ${section.offering.course.code} (section ${sameCourse.section.sectionNo})`,
+				{ code: "ALREADY_HAS_COURSE", sectionId: sameCourse.sectionId },
+			);
+		const sectionDays = section.dayPattern.days;
+		const sectionTime = section.timeSlot;
+		const conflict = enrolled.find(
+			(row) =>
+				row.section.timeSlot &&
+				row.section.dayPattern?.days.some((day) => sectionDays.includes(day)) &&
+				overlaps(sectionTime, row.section.timeSlot),
+		);
+		if (conflict && !bypass.has("TIME_CLASH"))
+			throw new AppError(
+				409,
+				`Clashes with ${conflict.section.offering.course.code} section ${conflict.section.sectionNo}`,
+				{
+					code: "TIME_CLASH",
+					sectionId: conflict.sectionId,
+					courseCode: conflict.section.offering.course.code,
+				},
+			);
+		if (
+			!bypass.has("CREDIT_LIMIT") &&
+			registration.totalCredits
+				.plus(section.offering.course.credits)
+				.gt(semester.maxCredits)
+		)
+			throw new AppError(
+				409,
+				`You have ${registration.totalCredits} of ${semester.maxCredits} credits; ${section.offering.course.code} needs ${section.offering.course.credits}`,
+				{ code: "CREDIT_LIMIT" },
+			);
+		const prerequisites = await tx.coursePrerequisite.findMany({
+			where: { courseId: section.offering.courseId },
+			include: { prerequisite: { select: { code: true } } },
+		});
+		if (prerequisites.length && !bypass.has("PREREQUISITE")) {
+			const results = await tx.courseResult.findMany({
 				where: {
 					studentId: student.id,
-					semesterId: semester.id,
-					status: "ENROLLED",
+					courseId: { in: prerequisites.map((row) => row.prerequisiteId) },
 				},
-				include: { section: { include: scheduleInclude } },
+				select: { courseId: true, gradePoint: true },
 			});
-			const sameCourse = enrolled.find(
-				(row) => row.offeringId === section.offeringId,
-			);
-			if (sameCourse?.sectionId === sectionId)
-				return {
-					statusCode: 200,
-					data: { enrollment: sameCourse, registration },
-					seat: null,
-				};
-			if (sameCourse)
-				throw new AppError(
-					409,
-					`You already have ${section.offering.course.code} (section ${sameCourse.section.sectionNo})`,
-					{ code: "ALREADY_HAS_COURSE", sectionId: sameCourse.sectionId },
+			const missing = prerequisites.filter((prerequisite) => {
+				const minimum = getGradePoint(prerequisite.minGrade);
+				return (
+					!minimum ||
+					!results.some(
+						(row) =>
+							row.courseId === prerequisite.prerequisiteId &&
+							row.gradePoint.gte(minimum),
+					)
 				);
-			const sectionDays = section.dayPattern.days;
-			const sectionTime = section.timeSlot;
-			const conflict = enrolled.find(
-				(row) =>
-					row.section.timeSlot &&
-					row.section.dayPattern?.days.some((day) =>
-						sectionDays.includes(day),
-					) &&
-					overlaps(sectionTime, row.section.timeSlot),
-			);
-			if (conflict && !bypass.has("TIME_CLASH"))
+			});
+			if (missing.length)
 				throw new AppError(
 					409,
-					`Clashes with ${conflict.section.offering.course.code} section ${conflict.section.sectionNo}`,
+					`${section.offering.course.code} needs ${missing.map((row) => `${row.prerequisite.code} with at least ${row.minGrade}`).join(", ")}`,
 					{
-						code: "TIME_CLASH",
-						sectionId: conflict.sectionId,
-						courseCode: conflict.section.offering.course.code,
+						code: "PREREQUISITE_MISSING",
+						prerequisites: missing.map((row) => ({
+							courseId: row.prerequisiteId,
+							code: row.prerequisite.code,
+							minGrade: row.minGrade,
+						})),
 					},
 				);
-			if (
-				!bypass.has("CREDIT_LIMIT") &&
-				registration.totalCredits
-					.plus(section.offering.course.credits)
-					.gt(semester.maxCredits)
-			)
-				throw new AppError(
-					409,
-					`You have ${registration.totalCredits} of ${semester.maxCredits} credits; ${section.offering.course.code} needs ${section.offering.course.credits}`,
-					{ code: "CREDIT_LIMIT" },
-				);
-			const prerequisites = await tx.coursePrerequisite.findMany({
-				where: { courseId: section.offering.courseId },
-				include: { prerequisite: { select: { code: true } } },
+		}
+		if (bypass.has("CAPACITY"))
+			await tx.section.update({
+				where: { id: sectionId },
+				data: { capacity: { increment: 1 } },
 			});
-			if (prerequisites.length && !bypass.has("PREREQUISITE")) {
-				const results = await tx.courseResult.findMany({
-					where: {
-						studentId: student.id,
-						courseId: { in: prerequisites.map((row) => row.prerequisiteId) },
-					},
-					select: { courseId: true, gradePoint: true },
-				});
-				const missing = prerequisites.filter((prerequisite) => {
-					const minimum = getGradePoint(prerequisite.minGrade);
-					return (
-						!minimum ||
-						!results.some(
-							(row) =>
-								row.courseId === prerequisite.prerequisiteId &&
-								row.gradePoint.gte(minimum),
-						)
-					);
-				});
-				if (missing.length)
-					throw new AppError(
-						409,
-						`${section.offering.course.code} needs ${missing.map((row) => `${row.prerequisite.code} with at least ${row.minGrade}`).join(", ")}`,
-						{
-							code: "PREREQUISITE_MISSING",
-							prerequisites: missing.map((row) => ({
-								courseId: row.prerequisiteId,
-								code: row.prerequisite.code,
-								minGrade: row.minGrade,
-							})),
-						},
-					);
-			}
-			if (bypass.has("CAPACITY"))
-				await tx.section.update({
-					where: { id: sectionId },
-					data: { capacity: { increment: 1 } },
-				});
-			const taken = await tx.section.updateMany({
+		const taken = await tx.section.updateMany({
+			where: {
+				id: sectionId,
+				status: "OPEN",
+				enrolledCount: { lt: tx.section.fields.capacity },
+			},
+			data: { enrolledCount: { increment: 1 } },
+		});
+		if (!taken.count) {
+			const alternatives = await tx.section.findMany({
 				where: {
-					id: sectionId,
+					offeringId: section.offeringId,
+					id: { not: sectionId },
 					status: "OPEN",
 					enrolledCount: { lt: tx.section.fields.capacity },
 				},
-				data: { enrolledCount: { increment: 1 } },
+				select: {
+					id: true,
+					sectionNo: true,
+					enrolledCount: true,
+					capacity: true,
+				},
+				orderBy: { sectionNo: "asc" },
 			});
-			if (!taken.count) {
-				const alternatives = await tx.section.findMany({
-					where: {
-						offeringId: section.offeringId,
-						id: { not: sectionId },
-						status: "OPEN",
-						enrolledCount: { lt: tx.section.fields.capacity },
-					},
-					select: {
-						id: true,
-						sectionNo: true,
-						enrolledCount: true,
-						capacity: true,
-					},
-					orderBy: { sectionNo: "asc" },
-				});
-				throw new AppError(409, "This section has reached full capacity", {
-					code: "SECTION_FULL",
-					alternatives,
-				});
-			}
-			const enrollment = await tx.enrollment.upsert({
-				where: { unique_student_section: { studentId: student.id, sectionId } },
-				create: {
+			throw new AppError(409, "This section has reached full capacity", {
+				code: "SECTION_FULL",
+				alternatives,
+			});
+		}
+		const enrollment = await tx.enrollment.upsert({
+			where: { unique_student_section: { studentId: student.id, sectionId } },
+			create: {
+				studentId: student.id,
+				semesterId: semester.id,
+				registrationId: registration.id,
+				sectionId,
+				offeringId: section.offeringId,
+				credits: section.offering.course.credits,
+			},
+			update: {
+				status: "ENROLLED",
+				credits: section.offering.course.credits,
+				enrolledAt: new Date(),
+				droppedAt: null,
+				grade: null,
+				gradeSubmittedAt: null,
+			},
+		});
+		const totals = registrationTotals({
+			credits: [
+				...enrolled.map((row) => row.credits),
+				section.offering.course.credits,
+			],
+			perCreditFee: student.program.perCreditFee,
+			semesterFee: student.program.semesterFee,
+			paidAmount: registration.paidAmount,
+			minPaymentPercent: semester.minPaymentPercent,
+		});
+		const updatedRegistration = await tx.semesterRegistration.update({
+			where: { id: registration.id },
+			data: totals,
+		});
+		const seat = await tx.section.findUniqueOrThrow({
+			where: { id: sectionId },
+			select: { id: true, enrolledCount: true, capacity: true },
+		});
+		if (manual)
+			await createAuditLogIntoDB(tx, {
+				actorId: manual.actorId,
+				action: "MANUAL_ENROLL",
+				entity: "Enrollment",
+				entityId: enrollment.id,
+				reason: manual.reason,
+				before: {
+					totalCredits: registration.totalCredits.toString(),
+					totalFee: registration.totalFee.toString(),
+					enrolledCount: seat.enrolledCount - 1,
+					capacity: seat.capacity - (bypass.has("CAPACITY") ? 1 : 0),
+				},
+				after: {
 					studentId: student.id,
-					semesterId: semester.id,
-					registrationId: registration.id,
 					sectionId,
-					offeringId: section.offeringId,
-					credits: section.offering.course.credits,
-				},
-				update: {
-					status: "ENROLLED",
-					credits: section.offering.course.credits,
-					enrolledAt: new Date(),
-					droppedAt: null,
-					grade: null,
-					gradeSubmittedAt: null,
+					bypass: manual.bypass,
+					enrolledCount: seat.enrolledCount,
+					capacity: seat.capacity,
+					totalCredits: updatedRegistration.totalCredits.toString(),
+					totalFee: updatedRegistration.totalFee.toString(),
 				},
 			});
-			const totals = registrationTotals({
-				credits: [
-					...enrolled.map((row) => row.credits),
-					section.offering.course.credits,
-				],
-				perCreditFee: student.program.perCreditFee,
-				semesterFee: student.program.semesterFee,
-				paidAmount: registration.paidAmount,
-				minPaymentPercent: semester.minPaymentPercent,
-			});
-			const updatedRegistration = await tx.semesterRegistration.update({
-				where: { id: registration.id },
-				data: totals,
-			});
-			const seat = await tx.section.findUniqueOrThrow({
-				where: { id: sectionId },
-				select: { id: true, enrolledCount: true, capacity: true },
-			});
-			if (manual)
-				await createAuditLogIntoDB(tx, {
-					actorId: manual.actorId,
-					action: "MANUAL_ENROLL",
-					entity: "Enrollment",
-					entityId: enrollment.id,
-					reason: manual.reason,
-					before: {
-						totalCredits: registration.totalCredits.toString(),
-						totalFee: registration.totalFee.toString(),
-						enrolledCount: seat.enrolledCount - 1,
-						capacity: seat.capacity - (bypass.has("CAPACITY") ? 1 : 0),
-					},
-					after: {
-						studentId: student.id,
-						sectionId,
-						bypass: manual.bypass,
-						enrolledCount: seat.enrolledCount,
-						capacity: seat.capacity,
-						totalCredits: updatedRegistration.totalCredits.toString(),
-						totalFee: updatedRegistration.totalFee.toString(),
-					},
-				});
-			return {
-				statusCode: 201,
-				data: { enrollment, registration: updatedRegistration },
-				seat,
-			};
-		},
-		{ maxWait: 60000, timeout: 60000 },
-	);
+		return {
+			statusCode: 201,
+			data: { enrollment, registration: updatedRegistration },
+			seat,
+		};
+	}, registrationTransactionOptions);
 	if (result.seat)
 		await publishSeatEvent(semester.id, {
 			sectionId,
@@ -390,77 +390,74 @@ const unselectSectionIntoDB = async (
 		);
 	if (!manual)
 		await getOpenWindowFromDB(student.id, student.batchId, semester.id);
-	const result = await prisma.$transaction(
-		async (tx) => {
-			const registration = await lockRegistrationIntoDB(
-				tx,
-				student.id,
-				semester.id,
-			);
-			const enrollment = await tx.enrollment.findFirst({
-				where: {
-					studentId: student.id,
-					sectionId,
-					semesterId: semester.id,
-					status: "ENROLLED",
+	const result = await prisma.$transaction(async (tx) => {
+		const registration = await lockRegistrationIntoDB(
+			tx,
+			student.id,
+			semester.id,
+		);
+		const enrollment = await tx.enrollment.findFirst({
+			where: {
+				studentId: student.id,
+				sectionId,
+				semesterId: semester.id,
+				status: "ENROLLED",
+			},
+		});
+		if (!enrollment) throw new AppError(404, "Enrolled section not found");
+		const dropped = await tx.enrollment.update({
+			where: { id: enrollment.id },
+			data: { status: "DROPPED", droppedAt: new Date() },
+		});
+		const released = await tx.section.updateMany({
+			where: { id: sectionId, enrolledCount: { gt: 0 } },
+			data: { enrolledCount: { decrement: 1 } },
+		});
+		if (!released.count)
+			throw new AppError(409, "Section count changed; try again");
+		const remaining = await tx.enrollment.findMany({
+			where: { registrationId: registration.id, status: "ENROLLED" },
+			select: { credits: true },
+		});
+		const totals = registrationTotals({
+			credits: remaining.map((row) => row.credits),
+			perCreditFee: student.program.perCreditFee,
+			semesterFee: student.program.semesterFee,
+			paidAmount: registration.paidAmount,
+			minPaymentPercent: semester.minPaymentPercent,
+		});
+		const updatedRegistration = await tx.semesterRegistration.update({
+			where: { id: registration.id },
+			data: totals,
+		});
+		const seat = await tx.section.findUniqueOrThrow({
+			where: { id: sectionId },
+			select: { enrolledCount: true, capacity: true },
+		});
+		if (manual)
+			await createAuditLogIntoDB(tx, {
+				actorId: manual.actorId,
+				action: "MANUAL_UNENROLL",
+				entity: "Enrollment",
+				entityId: enrollment.id,
+				reason: manual.reason,
+				before: {
+					enrolledCount: seat.enrolledCount + 1,
+					totalCredits: registration.totalCredits.toString(),
+					totalFee: registration.totalFee.toString(),
+				},
+				after: {
+					status: "DROPPED",
+					enrolledCount: seat.enrolledCount,
+					totalCredits: updatedRegistration.totalCredits.toString(),
+					totalFee: updatedRegistration.totalFee.toString(),
 				},
 			});
-			if (!enrollment) throw new AppError(404, "Enrolled section not found");
-			const dropped = await tx.enrollment.update({
-				where: { id: enrollment.id },
-				data: { status: "DROPPED", droppedAt: new Date() },
-			});
-			const released = await tx.section.updateMany({
-				where: { id: sectionId, enrolledCount: { gt: 0 } },
-				data: { enrolledCount: { decrement: 1 } },
-			});
-			if (!released.count)
-				throw new AppError(409, "Section count changed; try again");
-			const remaining = await tx.enrollment.findMany({
-				where: { registrationId: registration.id, status: "ENROLLED" },
-				select: { credits: true },
-			});
-			const totals = registrationTotals({
-				credits: remaining.map((row) => row.credits),
-				perCreditFee: student.program.perCreditFee,
-				semesterFee: student.program.semesterFee,
-				paidAmount: registration.paidAmount,
-				minPaymentPercent: semester.minPaymentPercent,
-			});
-			const updatedRegistration = await tx.semesterRegistration.update({
-				where: { id: registration.id },
-				data: totals,
-			});
-			const seat = await tx.section.findUniqueOrThrow({
-				where: { id: sectionId },
-				select: { enrolledCount: true, capacity: true },
-			});
-			if (manual)
-				await createAuditLogIntoDB(tx, {
-					actorId: manual.actorId,
-					action: "MANUAL_UNENROLL",
-					entity: "Enrollment",
-					entityId: enrollment.id,
-					reason: manual.reason,
-					before: {
-						enrolledCount: seat.enrolledCount + 1,
-						totalCredits: registration.totalCredits.toString(),
-						totalFee: registration.totalFee.toString(),
-					},
-					after: {
-						status: "DROPPED",
-						enrolledCount: seat.enrolledCount,
-						totalCredits: updatedRegistration.totalCredits.toString(),
-						totalFee: updatedRegistration.totalFee.toString(),
-					},
-				});
-			return {
-				data: { enrollment: dropped, registration: updatedRegistration },
-				seat,
-			};
-		},
-		{ maxWait: 60000, timeout: 60000 },
-	);
+		return {
+			data: { enrollment: dropped, registration: updatedRegistration },
+			seat,
+		};
+	}, registrationTransactionOptions);
 	await publishSeatEvent(semester.id, { sectionId, ...result.seat });
 	return result.data;
 };
@@ -479,155 +476,150 @@ const switchSectionIntoDB = async (
 			{ code: "PHASE_NOT_ALLOWED" },
 		);
 	await getOpenWindowFromDB(student.id, student.batchId, semester.id);
-	const result = await prisma.$transaction(
-		async (tx) => {
-			const registration = await lockRegistrationIntoDB(
-				tx,
-				student.id,
-				semester.id,
+	const result = await prisma.$transaction(async (tx) => {
+		const registration = await lockRegistrationIntoDB(
+			tx,
+			student.id,
+			semester.id,
+		);
+		const enrollment = await tx.enrollment.findFirst({
+			where: {
+				studentId: student.id,
+				sectionId: fromSectionId,
+				semesterId: semester.id,
+				status: "ENROLLED",
+			},
+		});
+		const sections = await tx.section.findMany({
+			where: {
+				id: { in: [fromSectionId, toSectionId] },
+				offering: { semesterId: semester.id },
+			},
+			include: scheduleInclude,
+		});
+		const from = sections.find((row) => row.id === fromSectionId);
+		const to = sections.find((row) => row.id === toSectionId);
+		if (
+			!enrollment ||
+			!from ||
+			!to ||
+			from.offeringId !== to.offeringId ||
+			!to.timeSlot ||
+			!to.dayPattern
+		)
+			throw new AppError(
+				404,
+				"Enrolled source and scheduled target must belong to the same course offering",
 			);
-			const enrollment = await tx.enrollment.findFirst({
-				where: {
-					studentId: student.id,
-					sectionId: fromSectionId,
-					semesterId: semester.id,
-					status: "ENROLLED",
-				},
+		if (to.status !== "OPEN")
+			throw new AppError(409, "This section is closed", {
+				code: "SECTION_CLOSED",
 			});
-			const sections = await tx.section.findMany({
-				where: {
-					id: { in: [fromSectionId, toSectionId] },
-					offering: { semesterId: semester.id },
+		const otherEnrollments = await tx.enrollment.findMany({
+			where: {
+				studentId: student.id,
+				semesterId: semester.id,
+				status: "ENROLLED",
+				sectionId: { not: fromSectionId },
+			},
+			include: { section: { include: scheduleInclude } },
+		});
+		const targetDays = to.dayPattern.days;
+		const targetTime = to.timeSlot;
+		const conflict = otherEnrollments.find(
+			(row) =>
+				row.section.dayPattern?.days.some((day) => targetDays.includes(day)) &&
+				row.section.timeSlot &&
+				overlaps(targetTime, row.section.timeSlot),
+		);
+		if (conflict)
+			throw new AppError(
+				409,
+				`Clashes with ${conflict.section.offering.course.code} section ${conflict.section.sectionNo}`,
+				{
+					code: "TIME_CLASH",
+					sectionId: conflict.sectionId,
+					courseCode: conflict.section.offering.course.code,
 				},
-				include: scheduleInclude,
-			});
-			const from = sections.find((row) => row.id === fromSectionId);
-			const to = sections.find((row) => row.id === toSectionId);
-			if (
-				!enrollment ||
-				!from ||
-				!to ||
-				from.offeringId !== to.offeringId ||
-				!to.timeSlot ||
-				!to.dayPattern
-			)
-				throw new AppError(
-					404,
-					"Enrolled source and scheduled target must belong to the same course offering",
-				);
-			if (to.status !== "OPEN")
-				throw new AppError(409, "This section is closed", {
-					code: "SECTION_CLOSED",
-				});
-			const otherEnrollments = await tx.enrollment.findMany({
-				where: {
-					studentId: student.id,
-					semesterId: semester.id,
-					status: "ENROLLED",
-					sectionId: { not: fromSectionId },
-				},
-				include: { section: { include: scheduleInclude } },
-			});
-			const targetDays = to.dayPattern.days;
-			const targetTime = to.timeSlot;
-			const conflict = otherEnrollments.find(
-				(row) =>
-					row.section.dayPattern?.days.some((day) =>
-						targetDays.includes(day),
-					) &&
-					row.section.timeSlot &&
-					overlaps(targetTime, row.section.timeSlot),
 			);
-			if (conflict)
-				throw new AppError(
-					409,
-					`Clashes with ${conflict.section.offering.course.code} section ${conflict.section.sectionNo}`,
-					{
-						code: "TIME_CLASH",
-						sectionId: conflict.sectionId,
-						courseCode: conflict.section.offering.course.code,
+		// Every switch takes section locks in the same order, even for opposite moves.
+		for (const id of [fromSectionId, toSectionId].sort()) {
+			if (id === toSectionId) {
+				const taken = await tx.section.updateMany({
+					where: {
+						id,
+						status: "OPEN",
+						enrolledCount: { lt: tx.section.fields.capacity },
 					},
-				);
-			// Every switch takes section locks in the same order, even for opposite moves.
-			for (const id of [fromSectionId, toSectionId].sort()) {
-				if (id === toSectionId) {
-					const taken = await tx.section.updateMany({
+					data: { enrolledCount: { increment: 1 } },
+				});
+				if (!taken.count) {
+					const alternatives = await tx.section.findMany({
 						where: {
-							id,
+							offeringId: to.offeringId,
+							id: { not: toSectionId },
 							status: "OPEN",
 							enrolledCount: { lt: tx.section.fields.capacity },
 						},
-						data: { enrolledCount: { increment: 1 } },
+						select: {
+							id: true,
+							sectionNo: true,
+							enrolledCount: true,
+							capacity: true,
+						},
+						orderBy: { sectionNo: "asc" },
 					});
-					if (!taken.count) {
-						const alternatives = await tx.section.findMany({
-							where: {
-								offeringId: to.offeringId,
-								id: { not: toSectionId },
-								status: "OPEN",
-								enrolledCount: { lt: tx.section.fields.capacity },
-							},
-							select: {
-								id: true,
-								sectionNo: true,
-								enrolledCount: true,
-								capacity: true,
-							},
-							orderBy: { sectionNo: "asc" },
-						});
-						throw new AppError(409, "This section has reached full capacity", {
-							code: "SECTION_FULL",
-							alternatives,
-						});
-					}
-				} else {
-					const released = await tx.section.updateMany({
-						where: { id, enrolledCount: { gt: 0 } },
-						data: { enrolledCount: { decrement: 1 } },
+					throw new AppError(409, "This section has reached full capacity", {
+						code: "SECTION_FULL",
+						alternatives,
 					});
-					if (!released.count)
-						throw new AppError(409, "Section count changed; try again");
 				}
+			} else {
+				const released = await tx.section.updateMany({
+					where: { id, enrolledCount: { gt: 0 } },
+					data: { enrolledCount: { decrement: 1 } },
+				});
+				if (!released.count)
+					throw new AppError(409, "Section count changed; try again");
 			}
-			const dropped = await tx.enrollment.update({
-				where: { id: enrollment.id },
-				data: { status: "DROPPED", droppedAt: new Date() },
-			});
-			const selected = await tx.enrollment.upsert({
-				where: {
-					unique_student_section: {
-						studentId: student.id,
-						sectionId: toSectionId,
-					},
-				},
-				create: {
+		}
+		const dropped = await tx.enrollment.update({
+			where: { id: enrollment.id },
+			data: { status: "DROPPED", droppedAt: new Date() },
+		});
+		const selected = await tx.enrollment.upsert({
+			where: {
+				unique_student_section: {
 					studentId: student.id,
-					semesterId: semester.id,
-					registrationId: registration.id,
 					sectionId: toSectionId,
-					offeringId: to.offeringId,
-					credits: enrollment.credits,
 				},
-				update: {
-					status: "ENROLLED",
-					enrolledAt: new Date(),
-					droppedAt: null,
-					credits: enrollment.credits,
-					grade: null,
-					gradeSubmittedAt: null,
-				},
-			});
-			const seats = await tx.section.findMany({
-				where: { id: { in: [fromSectionId, toSectionId] } },
-				select: { id: true, enrolledCount: true, capacity: true },
-			});
-			return {
-				data: { fromEnrollment: dropped, enrollment: selected, registration },
-				seats,
-			};
-		},
-		{ maxWait: 60000, timeout: 60000 },
-	);
+			},
+			create: {
+				studentId: student.id,
+				semesterId: semester.id,
+				registrationId: registration.id,
+				sectionId: toSectionId,
+				offeringId: to.offeringId,
+				credits: enrollment.credits,
+			},
+			update: {
+				status: "ENROLLED",
+				enrolledAt: new Date(),
+				droppedAt: null,
+				credits: enrollment.credits,
+				grade: null,
+				gradeSubmittedAt: null,
+			},
+		});
+		const seats = await tx.section.findMany({
+			where: { id: { in: [fromSectionId, toSectionId] } },
+			select: { id: true, enrolledCount: true, capacity: true },
+		});
+		return {
+			data: { fromEnrollment: dropped, enrollment: selected, registration },
+			seats,
+		};
+	}, registrationTransactionOptions);
 	await Promise.all(
 		result.seats.map((seat) =>
 			publishSeatEvent(semester.id, {
