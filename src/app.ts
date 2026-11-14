@@ -83,6 +83,7 @@ import {
 	adminSeatPlanRoutes,
 	seatPlanRoutes,
 } from "./app/module/seatPlan/seatPlan.route";
+import { adminGradeRoutes, gradeRoutes } from "./app/module/grade/grade.route";
 import { bkashRoutes } from "./app/module/payment/providers/bkash/bkash.route";
 
 const app: Application = express();
@@ -150,6 +151,8 @@ app.use("/api/exam-routines", examRoutineRoutes);
 app.use("/api/admin/exam-routines", adminExamRoutineRoutes);
 app.use("/api/seat-plans", seatPlanRoutes);
 app.use("/api/admin/seat-plans", adminSeatPlanRoutes);
+app.use("/api/grades", gradeRoutes);
+app.use("/api/admin/grades", adminGradeRoutes);
 app.use("/api/payments/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin/payments", adminPaymentRoutes);
