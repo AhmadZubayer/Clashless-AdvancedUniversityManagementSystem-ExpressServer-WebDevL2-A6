@@ -75,7 +75,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] `utils/grade.ts` and `utils/time.ts`
 - [x] Test setup from 9.1–9.4: `vitest.config.ts`, `tests/` folders, `.env.test.example`, `.env.test` and `tests/load/tokens.json` added to `.gitignore`; a smoke test (`GET /` answers 200) passes
 - [x] README: install, configure, run, seed and test
-- [ ] The skill's verify steps all pass (validate, migrate, generate, format, lint, type check, seed, dev, `/docs`)
+- [x] The skill's verify steps all pass (validate, migrate, generate, format, lint, type check, seed, dev, `/docs`)
 - [ ] Definition of done (10.3) → commit → push
 
 ### F1 — Auth (7 points)
