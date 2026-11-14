@@ -1,5 +1,6 @@
 import { Queue, Worker, type ConnectionOptions } from "bullmq";
 import config from "../config";
+import { logger } from "./logger";
 
 export type JobHandler = (data: Record<string, unknown>) => Promise<unknown>;
 const handlers = new Map<string, JobHandler>();
@@ -50,11 +51,19 @@ export async function enqueueJob(
 export function startQueueWorkers() {
 	if (config.node_env === "test") return;
 	for (const [name, handler] of handlers) {
-		if (!workers.has(name))
-			workers.set(
-				name,
-				new Worker(name, (job) => handler(job.data), { connection, prefix }),
+		if (!workers.has(name)) {
+			const worker = new Worker(name, (job) => handler(job.data), {
+				connection,
+				prefix,
+			});
+			worker.on("error", () =>
+				logger.error({ queue: name }, "Worker connection failed"),
 			);
+			worker.on("failed", () =>
+				logger.error({ queue: name }, "Background job failed"),
+			);
+			workers.set(name, worker);
+		}
 	}
 }
 

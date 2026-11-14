@@ -39,9 +39,7 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | Work | Completed on | By | Tests | Notes |
 |---|---|---|---|---|
 | Planning documents: requirement.md, AGENTS.md, progress.md, CLAUDE.md, GEMINI.md | 14 Nov 2026 | Claude Code | — | Not a feature (0 points). Nothing is scaffolded yet |
-
 | F0 Project setup | 14 Nov 2026 | Codex | 1 | All setup checks and manual HTTP pass; demo seed rerun verified |
-
 | F1 Auth | 14 Nov 2026 | Codex | 15 (16 total) | All auth flows, Swagger, static checks and manual HTTP pass |
 
 ## 🔄 In progress
@@ -49,11 +47,10 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 ### F2 — User management
 Started: 14 Nov 2026 11:00 Asia/Dhaka by Codex
 Handoff notes:
-- Done: F0/F1 complete and pushed; 16 tests green.
-- Half-done: profile update endpoint implemented with safe image replacement and role-profile updates; staff/student creation implemented with role checks, transactional profiles and audit logs, generated passwords and welcome/invite emails; CSV parser/import implemented: per-row validation and duplicate reporting, 500-row createMany chunks, serializable collision retries and queued emails. List/detail/status/delete implemented with role/self-management rules, guarded writes, soft-deleted profiles and audit logs. Revoked token versions are checked before BLOCKED status for the required 401. All 11 user tests and Swagger next.
-- Next step: profile updates, then account creation and CSV import.
-- Traps: guard must check revoked tokenVersion before BLOCKED status for T-USER-07's required 401.
-
+- Done: all endpoints, Swagger, required tests and manual flow; 27 total tests pass; static checks/build clean.
+- Half-done: none; completion record and push next.
+- Next step: finish F2 then begin F3 Academic setup.
+- Traps: shared test schema/prefix, real external calls mocked; F3 replaces test-only department route in auth tests.
 
 ## ⏭️ Next
 
@@ -103,7 +100,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Create admins (Super Admin rule), teachers and students; welcome and invite emails
 - [x] CSV import with the per-row report
 - [x] List, detail, block/unblock (permission rules, `tokenVersion`), soft delete; audit rows
-- [ ] Tests T-USER-01 … T-USER-11
+- [x] Tests T-USER-01 … T-USER-11
 - [ ] Definition of done → commit → push
 
 ### F3 — Academic setup (6 points)
@@ -222,6 +219,9 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 
 ## Handoff notes (newest first)
 
+- **14 Nov 2026, Codex, F2:** User management implemented with 11 required tests; full suite 27 passed. Type check, lint/format (no diagnostics), build clean. Manual HTTP flow created and activated a synthetic student, fetched detail, blocked account (old token 401), soft-deleted it, filtered users and verified Swagger import docs; manual mail delivery was stubbed locally. CSV handles quoting/BOM/newlines, validates each row, reports duplicate/invalid rows, inserts chunks of 500 under serializable retries and queues emails. Worker payloads are removed after completion/final failure and errors log no payloads. Cloudinary helper now supplies url/publicId aliases while retaining native fields. F3 should replace auth tests' temporary department guard fixture with real route. No outstanding user questions.
+
+
 - **14 Nov 2026, Codex, F1:** All auth behavior and Swagger implemented. Full suite: 16 passed (15 auth IDs plus smoke), final normalization test passed separately. Static type/lint/format checks clean. Manual HTTP demo-admin login/me/refresh/logout returned 200, replayed refresh returned 401, removed registration returned 404; Swagger includes activation and omits self-registration. Tests mock all outgoing services. F3 should replace the T-AUTH-12/13 test-only department guard route with the actual production endpoint when available. No user questions pending.
 
 
@@ -250,6 +250,8 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 - 14 Nov 2026, F0: HTTP welcome and Swagger UI returned 200; Swagger init includes login; seeded Super Admin login returned 200. SMTP verify succeeded. Normal bootstrap succeeded with database, Redis and Nodemailer connected; welcome and docs returned 200.
 
 - 14 Nov 2026, F1: manual demo-admin login, role profile, token refresh and logout passed; old refresh rejected (401), self-register removed (404), Swagger paths verified.
+
+- 14 Nov 2026, F2: manual HTTP create/activate/detail/block/delete/list and Swagger passed; blocking revoked old token (401); email delivery stubbed, synthetic student soft-deleted.
 
 ## Environment notes (never write secrets here)
 
