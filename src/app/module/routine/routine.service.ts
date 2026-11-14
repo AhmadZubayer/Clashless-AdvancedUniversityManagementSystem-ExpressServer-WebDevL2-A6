@@ -1,11 +1,15 @@
 import { Prisma } from "../../../generated/prisma/client";
-import { generateRoutine } from "../../engine/routineGenerator";
+import { generateRoutine, scoreRoutine } from "../../engine/routineGenerator";
 import type { IRoutineGenerationInput } from "../../engine/routineGenerator";
 import { validateRoutine } from "../../engine/routineValidator";
 import { enqueueJob } from "../../lib/queue";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
-import type { IGenerateRoutine } from "./routine.interface";
+import type {
+	IGenerateRoutine,
+	IRoutineListQuery,
+	IRoutineViewQuery,
+} from "./routine.interface";
 import "../../jobs/routine";
 
 const transactionOptions = {
@@ -248,7 +252,150 @@ const processRoutineJobIntoDB = async (jobId: string) => {
 	}
 };
 
+const routineInclude = {
+	semester: true,
+	entries: {
+		include: {
+			room: true,
+			dayPattern: true,
+			timeSlot: true,
+			section: {
+				include: {
+					faculty: { select: { id: true, name: true, email: true } },
+					offering: { include: { course: true } },
+				},
+			},
+		},
+		orderBy: [
+			{ section: { offering: { course: { code: "asc" } } } },
+			{ section: { sectionNo: "asc" } },
+		],
+	},
+} satisfies Prisma.RoutineInclude;
+
+const getAllRoutinesFromDB = async (query: IRoutineListQuery) => {
+	if (
+		!(await prisma.semester.findUnique({
+			where: { id: query.semesterId },
+			select: { id: true },
+		}))
+	)
+		throw new AppError(404, "Semester not found");
+	const where: Prisma.RoutineWhereInput = {
+		semesterId: query.semesterId,
+		...(query.searchTerm
+			? {
+					semester: {
+						OR: [
+							{ name: { contains: query.searchTerm, mode: "insensitive" } },
+							{ code: { contains: query.searchTerm, mode: "insensitive" } },
+						],
+					},
+				}
+			: {}),
+	};
+	const [rows, total, sections] = await prisma.$transaction([
+		prisma.routine.findMany({
+			where,
+			skip: (query.page - 1) * query.limit,
+			take: query.limit,
+			orderBy: { [query.sortBy]: query.sortOrder },
+			include: { entries: { select: { sectionId: true } } },
+		}),
+		prisma.routine.count({ where }),
+		prisma.section.findMany({
+			where: {
+				offering: { semesterId: query.semesterId },
+				status: { not: "CANCELLED" },
+			},
+			select: { id: true },
+		}),
+	]);
+	const data = rows.map(({ entries, ...row }) => {
+		const placed = new Set(entries.map((entry) => entry.sectionId));
+		return {
+			...row,
+			entryCount: entries.length,
+			unplacedCount: sections.filter((section) => !placed.has(section.id))
+				.length,
+		};
+	});
+	return {
+		data,
+		meta: {
+			page: query.page,
+			limit: query.limit,
+			total,
+			totalPages: Math.ceil(total / query.limit),
+		},
+	};
+};
+
+const getRoutineByIdFromDB = async (id: string, query: IRoutineViewQuery) => {
+	const routine = await prisma.routine.findUnique({
+		where: { id },
+		include: routineInclude,
+	});
+	if (!routine) throw new AppError(404, "Routine not found");
+	let courseIds: Set<string> | undefined;
+	if (query.programId)
+		courseIds = new Set(
+			(
+				await prisma.curriculumCourse.findMany({
+					where: {
+						programId: query.programId,
+						...(query.term ? { term: query.term } : {}),
+					},
+					select: { courseId: true },
+				})
+			).map((row) => row.courseId),
+		);
+	const entries = routine.entries.filter(
+		(entry) =>
+			(!query.facultyId || entry.section.facultyId === query.facultyId) &&
+			(!query.roomId || entry.roomId === query.roomId) &&
+			(!courseIds || courseIds.has(entry.section.offering.courseId)),
+	);
+	return { ...routine, view: query.view, entries };
+};
+
+const getRoutineReportFromDB = async (id: string) => {
+	const routine = await prisma.routine.findUnique({
+		where: { id },
+		include: { entries: true },
+	});
+	if (!routine) throw new AppError(404, "Routine not found");
+	const input = await prisma.$transaction(
+		(tx) => loadRoutineInputFromDB(tx, routine.semesterId),
+		transactionOptions,
+	);
+	const validation = validateRoutine({ ...input, entries: routine.entries });
+	const score = scoreRoutine(input, routine.entries);
+	const placed = new Set(routine.entries.map((entry) => entry.sectionId));
+	const saved = routine.report as {
+		unplaced?: { sectionId: string; reason: string }[];
+	} | null;
+	const unplaced = input.sections
+		.filter((section) => !placed.has(section.id))
+		.map((section) => ({
+			sectionId: section.id,
+			reason:
+				saved?.unplaced?.find((row) => row.sectionId === section.id)?.reason ??
+				"Section is not placed in this version",
+		}));
+	return {
+		routineId: id,
+		score: score.total,
+		softRules: score.breakdown,
+		unplaced,
+		validation,
+	};
+};
+
 export const routineService = {
+	getAllRoutinesFromDB,
+	getRoutineByIdFromDB,
+	getRoutineReportFromDB,
 	loadRoutineInputFromDB,
 	requestRoutineGenerationIntoDB,
 	processRoutineJobIntoDB,

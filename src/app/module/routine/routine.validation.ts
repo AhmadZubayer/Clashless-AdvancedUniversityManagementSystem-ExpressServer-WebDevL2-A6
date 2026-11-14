@@ -3,4 +3,38 @@ const generateSchema = z.object({
 	semesterId: z.uuid(),
 	keepPinnedFrom: z.uuid().optional(),
 });
-export const routineValidation = { generateSchema };
+const idSchema = z.object({ id: z.uuid() });
+const listQuerySchema = z.object({
+	semesterId: z.uuid(),
+	page: z.coerce.number().int().min(1).default(1),
+	limit: z.coerce.number().int().min(1).max(100).default(10),
+	sortBy: z.enum(["createdAt", "version"]).default("createdAt"),
+	sortOrder: z.enum(["asc", "desc"]).default("desc"),
+	searchTerm: z.string().trim().optional(),
+});
+const viewQuerySchema = z
+	.object({
+		view: z.enum(["section", "faculty", "room", "program"]).default("section"),
+		facultyId: z.uuid().optional(),
+		roomId: z.uuid().optional(),
+		programId: z.uuid().optional(),
+		term: z.coerce.number().int().min(1).optional(),
+	})
+	.refine(
+		(query) => query.view !== "faculty" || !!query.facultyId,
+		"Faculty view requires facultyId",
+	)
+	.refine(
+		(query) => query.view !== "room" || !!query.roomId,
+		"Room view requires roomId",
+	)
+	.refine(
+		(query) => query.view !== "program" || (!!query.programId && !!query.term),
+		"Program view requires programId and term",
+	);
+export const routineValidation = {
+	generateSchema,
+	idSchema,
+	listQuerySchema,
+	viewQuerySchema,
+};

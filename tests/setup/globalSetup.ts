@@ -13,11 +13,24 @@ export default async function globalSetup() {
 			"Refusing to initialize tests outside isolated schema and Redis prefix",
 		);
 	// Never reset the supplied development database. Apply migrations to the test schema only.
-	execFileSync(
-		process.execPath,
-		["node_modules/prisma/build/index.js", "migrate", "deploy"],
-		{ stdio: "pipe", timeout: 120000 },
-	);
+	// Hosted PostgreSQL occasionally rejects the schema-engine's first connection.
+	// Deploy is idempotent; retry setup without exposing CLI connection diagnostics.
+	for (let attempt = 1; attempt <= 3; attempt++) {
+		try {
+			execFileSync(
+				process.execPath,
+				["node_modules/prisma/build/index.js", "migrate", "deploy"],
+				{ stdio: "pipe", timeout: 120000 },
+			);
+			break;
+		} catch {
+			if (attempt === 3)
+				throw new Error(
+					"Test schema migration failed after three attempts; check database availability",
+				);
+			await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+		}
+	}
 	try {
 		await redisClient.connect();
 		for await (const keys of redisClient.scanIterator({

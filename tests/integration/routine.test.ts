@@ -138,3 +138,58 @@ it("F6 generation and job polling enforce role, phase and pinned source scope", 
 		data: { phase: "PLANNING" },
 	});
 });
+
+it("F6 lists versions, filters views and reports fresh hard-rule violations", async () => {
+	const list = await request(app)
+		.get(`/api/admin/routines?semesterId=${semesterId}`)
+		.set("Authorization", authorization());
+	expect(list.status).toBe(200);
+	expect(list.body.data[0]).toMatchObject({
+		id: routineId,
+		version: 1,
+		status: "DRAFT",
+		score: 0,
+		entryCount: 1,
+		unplacedCount: 0,
+	});
+	expect(list.body.meta.total).toBe(1);
+	const view = await request(app)
+		.get(
+			`/api/admin/routines/${routineId}?view=faculty&facultyId=${teacher.faculty!.id}`,
+		)
+		.set("Authorization", authorization());
+	expect(view.status).toBe(200);
+	expect(view.body.data.entries).toHaveLength(1);
+	expect(view.body.data.entries[0].section.faculty).not.toHaveProperty("user");
+	const filtered = await request(app)
+		.get(
+			`/api/admin/routines/${routineId}?view=room&roomId=${crypto.randomUUID()}`,
+		)
+		.set("Authorization", authorization());
+	expect(filtered.status).toBe(200);
+	expect(filtered.body.data.entries).toEqual([]);
+	const invalid = await request(app)
+		.get(`/api/admin/routines/${routineId}?view=program`)
+		.set("Authorization", authorization());
+	expect(invalid.status).toBe(400);
+	const first = await request(app)
+		.get(`/api/admin/routines/${routineId}/report`)
+		.set("Authorization", authorization());
+	expect(first.status).toBe(200);
+	expect(first.body.data).toMatchObject({
+		score: 0,
+		unplaced: [],
+		validation: { ok: true, violations: [] },
+	});
+	const roomId = view.body.data.entries[0].roomId;
+	await prisma.room.update({ where: { id: roomId }, data: { capacity: 20 } });
+	const stale = await request(app)
+		.get(`/api/admin/routines/${routineId}/report`)
+		.set("Authorization", authorization());
+	expect(stale.status).toBe(200);
+	expect(stale.body.data.validation.ok).toBe(false);
+	expect(stale.body.data.validation.violations[0].code).toBe(
+		"ROOM_INCOMPATIBLE",
+	);
+	await prisma.room.update({ where: { id: roomId }, data: { capacity: 40 } });
+});

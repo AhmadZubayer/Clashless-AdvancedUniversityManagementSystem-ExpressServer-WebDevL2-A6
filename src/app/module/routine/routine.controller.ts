@@ -16,4 +16,43 @@ const generateRoutine = catchAsync(async (req: Request, res: Response) => {
 		data,
 	});
 });
-export const routineController = { generateRoutine };
+const getAllRoutines = catchAsync(async (_req: Request, res: Response) => {
+	const result = await routineService.getAllRoutinesFromDB(
+		res.locals.validatedQuery,
+	);
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "Routine versions retrieved",
+		...result,
+	});
+});
+const getRoutineById = catchAsync(async (_req: Request, res: Response) => {
+	const data = await routineService.getRoutineByIdFromDB(
+		res.locals.validatedParams.id,
+		res.locals.validatedQuery,
+	);
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "Routine retrieved",
+		data,
+	});
+});
+const getRoutineReport = catchAsync(async (_req: Request, res: Response) => {
+	const data = await routineService.getRoutineReportFromDB(
+		res.locals.validatedParams.id,
+	);
+	sendResponse(res, {
+		success: true,
+		statusCode: 200,
+		message: "Routine report retrieved",
+		data,
+	});
+});
+export const routineController = {
+	generateRoutine,
+	getAllRoutines,
+	getRoutineById,
+	getRoutineReport,
+};

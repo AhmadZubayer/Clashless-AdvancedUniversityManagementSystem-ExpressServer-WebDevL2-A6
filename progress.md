@@ -52,8 +52,8 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 12:51 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F5 complete and pushed; all 70 tests, static/build/manual checks pass. Pure routineValidator and T-ROUT-05 already implemented in F5.
-- Half-done: generator, worker, generation request and job polling implemented. T-ROUT-07/08 and role/phase/source guards passed (3 integration tests). Version list/view/report next.
-- Next step: version list/view/report, draft editing/publish, weekly grids/PDFs and remaining integration tests. Worker progresses 0–100, persists draft/version and job success atomically, and records safe failure messages.
+- Half-done: generator, worker, generation request and job polling implemented. T-ROUT-07/08 and role/phase/source guards passed (3 integration tests). Version list/view/report implemented and verified; 4 routine integration tests pass.
+- Next step: draft move/swap/pin and publication, then weekly grids/PDFs and remaining tests. Fresh reports validate against current resources; idempotent test migrations now retry three times for intermittent hosted schema-engine failures.
 - Traps: pinned entries never move; repair may move one unpinned blocker only; use occupancy maps and seeded local search; never change teacher assignments.
 
 ## ⏭️ Next
@@ -142,7 +142,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] `engine/routineValidator.ts` with unit tests (T-ROUT-05)
 - [x] `engine/routineGenerator.ts`: candidates, ordering, greedy placement, repair, seeded local search, penalty (T-ROUT-01 … T-ROUT-04, T-ROUT-06)
 - [x] BullMQ `routine` worker and the `job` module (`GET /api/admin/jobs/:id`)
-- [ ] Generate, list versions, view, report
+- [x] Generate, list versions, view, report
 - [ ] Move, swap, pin
 - [ ] Publish (copies onto sections, archives the old version)
 - [ ] Published routine, `/api/routines/me`, PDF exports
@@ -297,6 +297,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 
