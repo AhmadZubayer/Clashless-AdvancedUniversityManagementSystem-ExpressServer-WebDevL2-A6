@@ -15,6 +15,10 @@ import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { authRoutes } from "./app/module/auth/auth.route";
 import {
+	facultyPreferenceRoutes,
+	adminFacultyPreferenceRoutes,
+} from "./app/module/facultyPreference/facultyPreference.route";
+import {
 	sectionRoutes,
 	adminSectionRoutes,
 } from "./app/module/section/section.route";
@@ -109,6 +113,8 @@ app.use("/api/offerings", offeringRoutes);
 app.use("/api/admin/offerings", adminOfferingRoutes);
 app.use("/api/sections", sectionRoutes);
 app.use("/api/admin/sections", adminSectionRoutes);
+app.use("/api/faculty-preferences", facultyPreferenceRoutes);
+app.use("/api/admin/faculty-preferences", adminFacultyPreferenceRoutes);
 app.use("/api/payments/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
 

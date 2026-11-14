@@ -338,6 +338,87 @@ it("T-SEC-04 capacity cannot be reduced below enrolledCount", async () => {
 	).toBe(40);
 });
 
+it("T-SEC-10 preferences cannot change after even a draft routine version exists", async () => {
+	const fixture = await scheduledWorld();
+	await prisma.routine.update({
+		where: { id: fixture.routine.id },
+		data: { status: "DRAFT" },
+	});
+	const response = await request(app)
+		.put("/api/faculty-preferences/me")
+		.set("Authorization", `Bearer ${tokenFor(fixture.teacher)}`)
+		.send({
+			semesterId: fixture.semester.id,
+			items: [{ day: "SUN", timeSlotId: fixture.slot.id, kind: "PREFERRED" }],
+		});
+	expect(response.status).toBe(409);
+	expect(
+		await prisma.facultySlotPreference.count({
+			where: { semesterId: fixture.semester.id },
+		}),
+	).toBe(0);
+});
+
+it("F5 teacher preferences replace, scope, validate and clear before generation", async () => {
+	const fixture = await scheduledWorld();
+	await prisma.routine.delete({ where: { id: fixture.routine.id } });
+	const teacherToken = `Bearer ${tokenFor(fixture.teacher)}`;
+	const items = [
+		{ day: "SUN", timeSlotId: fixture.slot.id, kind: "PREFERRED" },
+		{ day: "TUE", timeSlotId: fixture.nextSlot.id, kind: "UNAVAILABLE" },
+	];
+	const save = await request(app)
+		.put("/api/faculty-preferences/me")
+		.set("Authorization", teacherToken)
+		.send({ semesterId: fixture.semester.id, items });
+	expect(save.status).toBe(200);
+	expect(save.body.data).toHaveLength(2);
+	const other = await request(app)
+		.get(
+			`/api/faculty-preferences/me?semesterId=${fixture.semester.id}&facultyId=${fixture.teacher.faculty!.id}`,
+		)
+		.set("Authorization", `Bearer ${tokenFor(fixture.otherTeacher)}`);
+	expect(other.status).toBe(200);
+	expect(other.body.data).toHaveLength(0);
+	const own = await request(app)
+		.get(`/api/faculty-preferences/me?semesterId=${fixture.semester.id}`)
+		.set("Authorization", teacherToken);
+	expect(own.body.meta.total).toBe(2);
+	const all = await request(app)
+		.get(
+			`/api/admin/faculty-preferences?semesterId=${fixture.semester.id}&facultyId=${fixture.teacher.faculty!.id}`,
+		)
+		.set("Authorization", authorization());
+	expect(all.status).toBe(200);
+	expect(all.body.meta.total).toBe(2);
+	const duplicate = await request(app)
+		.put("/api/faculty-preferences/me")
+		.set("Authorization", teacherToken)
+		.send({ semesterId: fixture.semester.id, items: [items[0], items[0]] });
+	expect(duplicate.status).toBe(400);
+	expect(
+		await prisma.facultySlotPreference.count({
+			where: { semesterId: fixture.semester.id },
+		}),
+	).toBe(2);
+	const clear = await request(app)
+		.put("/api/faculty-preferences/me")
+		.set("Authorization", teacherToken)
+		.send({ semesterId: fixture.semester.id, items: [] });
+	expect(clear.status).toBe(200);
+	expect(clear.body.data).toEqual([]);
+	await prisma.semester.update({
+		where: { id: fixture.semester.id },
+		data: { phase: "REGISTRATION" },
+	});
+	const locked = await request(app)
+		.put("/api/faculty-preferences/me")
+		.set("Authorization", teacherToken)
+		.send({ semesterId: fixture.semester.id, items });
+	expect(locked.status).toBe(409);
+	expect(locked.body.errorDetails.code).toBe("PHASE_NOT_ALLOWED");
+});
+
 it("T-SEC-08 another teacher cannot open a section class list", async () => {
 	const fixture = await scheduledWorld();
 	const response = await request(app)
