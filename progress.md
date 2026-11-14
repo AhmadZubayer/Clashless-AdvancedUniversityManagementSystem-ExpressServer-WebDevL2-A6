@@ -1,7 +1,7 @@
 # Clashless — Progress
 
-> ## Overall: 13% complete (13 of 100 points)
-> **In progress:** F2 User management · **Next:** F3 Academic setup
+> ## Overall: 18% complete (18 of 100 points)
+> **In progress:** nothing · **Next:** F3 Academic setup
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -16,8 +16,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 |---|---|---:|---|---|---|
 | F0 | Project setup | 6 | ✅ Completed | — | 5, 9.1–9.4, 10.2 |
 | F1 | Auth | 7 | ✅ Completed | F0 | 6.3 |
-| F2 | User management | 5 | 🔄 In progress | F1 | 6.4 |
-| F3 | Academic setup | 6 | ⬜ Not started | F1 | 6.5 |
+| F2 | User management | 5 | ✅ Completed | F1 | 6.4 |
+| F3 | Academic setup | 6 | ⏭️ Next | F1 | 6.5 |
 | F4 | Semesters and registration windows | 4 | ⬜ Not started | F3 | 6.6 |
 | F5 | Offerings, sections and teacher preferences | 6 | ⬜ Not started | F2, F4 | 6.7 |
 | F6 | Class routine | 14 | ⬜ Not started | F5 | 6.8 |
@@ -41,20 +41,15 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | Planning documents: requirement.md, AGENTS.md, progress.md, CLAUDE.md, GEMINI.md | 14 Nov 2026 | Claude Code | — | Not a feature (0 points). Nothing is scaffolded yet |
 | F0 Project setup | 14 Nov 2026 | Codex | 1 | All setup checks and manual HTTP pass; demo seed rerun verified |
 | F1 Auth | 14 Nov 2026 | Codex | 15 (16 total) | All auth flows, Swagger, static checks and manual HTTP pass |
+| F2 User management | 14 Nov 2026 | Codex | 11 (27 total) | Endpoints, Swagger, static checks, build and manual pass |
 
 ## 🔄 In progress
 
-### F2 — User management
-Started: 14 Nov 2026 11:00 Asia/Dhaka by Codex
-Handoff notes:
-- Done: all endpoints, Swagger, required tests and manual flow; 27 total tests pass; static checks/build clean.
-- Half-done: none; completion record and push next.
-- Next step: finish F2 then begin F3 Academic setup.
-- Traps: shared test schema/prefix, real external calls mocked; F3 replaces test-only department route in auth tests.
+_Nothing is in progress._
 
 ## ⏭️ Next
 
-1. **F2 User management**: implement requirement.md 6.4.
+1. **F3 Academic setup**: implement requirement.md 6.5.
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -101,7 +96,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] CSV import with the per-row report
 - [x] List, detail, block/unblock (permission rules, `tokenVersion`), soft delete; audit rows
 - [x] Tests T-USER-01 … T-USER-11
-- [ ] Definition of done → commit → push
+- [x] Definition of done → commit → push
 
 ### F3 — Academic setup (6 points)
 
