@@ -1,5 +1,5 @@
 ﻿import request from "supertest";
-import { beforeAll, expect, it } from "vitest";
+import { beforeAll, beforeEach, expect, it } from "vitest";
 import app from "../../src/app";
 import { prisma } from "../../src/app/lib/prisma";
 import { tokenFor } from "../helpers/auth";
@@ -264,7 +264,7 @@ async function enroll(
 }
 
 it("T-SEC-03 bulk assignment rejects 15 credits against a 12-credit limit without partial writes", async () => {
-	const fixture = await scheduledWorld();
+	const fixture = preparedWorld;
 	const sections = [fixture.section];
 	for (let index = 2; index <= 5; index++)
 		sections.push(
@@ -291,11 +291,7 @@ it("T-SEC-03 bulk assignment rejects 15 credits against a 12-credit limit withou
 });
 
 it("F5 bulk teacher swaps use final loads and mine returns only current assigned sections", async () => {
-	await prisma.semester.updateMany({
-		where: { phase: { not: "CLOSED" } },
-		data: { phase: "CLOSED" },
-	});
-	const fixture = await scheduledWorld();
+	const fixture = preparedWorld;
 	const response = await request(app)
 		.put("/api/admin/sections/faculty-assignments")
 		.set("Authorization", authorization())
@@ -321,9 +317,8 @@ it("F5 bulk teacher swaps use final loads and mine returns only current assigned
 });
 
 it("T-SEC-04 capacity cannot be reduced below enrolledCount", async () => {
-	const fixture = await scheduledWorld();
-	await enroll(fixture);
-	await enroll(fixture);
+	const fixture = preparedWorld;
+
 	const response = await request(app)
 		.patch(`/api/admin/sections/${fixture.section.id}`)
 		.set("Authorization", authorization())
@@ -339,7 +334,7 @@ it("T-SEC-04 capacity cannot be reduced below enrolledCount", async () => {
 });
 
 it("T-SEC-10 preferences cannot change after even a draft routine version exists", async () => {
-	const fixture = await scheduledWorld();
+	const fixture = preparedWorld;
 	await prisma.routine.update({
 		where: { id: fixture.routine.id },
 		data: { status: "DRAFT" },
@@ -360,7 +355,7 @@ it("T-SEC-10 preferences cannot change after even a draft routine version exists
 });
 
 it("F5 teacher preferences replace, scope, validate and clear before generation", async () => {
-	const fixture = await scheduledWorld();
+	const fixture = preparedWorld;
 	await prisma.routine.delete({ where: { id: fixture.routine.id } });
 	const teacherToken = `Bearer ${tokenFor(fixture.teacher)}`;
 	const items = [
@@ -420,7 +415,7 @@ it("F5 teacher preferences replace, scope, validate and clear before generation"
 });
 
 it("T-SEC-08 another teacher cannot open a section class list", async () => {
-	const fixture = await scheduledWorld();
+	const fixture = preparedWorld;
 	const response = await request(app)
 		.get(`/api/sections/${fixture.section.id}/students`)
 		.set("Authorization", `Bearer ${tokenFor(fixture.otherTeacher)}`);
@@ -428,12 +423,8 @@ it("T-SEC-08 another teacher cannot open a section class list", async () => {
 });
 
 it("T-SEC-09 CSV has one row per ENROLLED student ordered by university ID; JSON and PDF work", async () => {
-	const fixture = await scheduledWorld();
-	const users = [
-		(await enroll(fixture)).user,
-		(await enroll(fixture)).user,
-		(await enroll(fixture)).user,
-	];
+	const fixture = preparedWorld;
+	const users = preparedEnrollments.map((row) => row.user);
 	await prisma.student.update({
 		where: { id: users[0].student!.id },
 		data: { name: 'A, "quoted" student' },
@@ -484,7 +475,7 @@ it("T-SEC-09 CSV has one row per ENROLLED student ordered by university ID; JSON
 });
 
 it("T-SEC-05 an extra section cannot double-book a published room", async () => {
-	const fixture = await scheduledWorld();
+	const fixture = preparedWorld;
 	const response = await request(app)
 		.post("/api/admin/sections")
 		.set("Authorization", authorization())
@@ -503,8 +494,8 @@ it("T-SEC-05 an extra section cannot double-book a published room", async () => 
 });
 
 it("T-SEC-06 student clash prevents rescheduling and lists the affected student", async () => {
-	const fixture = await scheduledWorld();
-	const { user } = await enroll(fixture, true);
+	const fixture = preparedWorld;
+	const { user } = preparedEnrollments[0];
 	const response = await request(app)
 		.patch(`/api/admin/sections/${fixture.section.id}/schedule`)
 		.set("Authorization", authorization())
@@ -529,12 +520,8 @@ it("T-SEC-06 student clash prevents rescheduling and lists the affected student"
 });
 
 it("T-SEC-07 cancellation reduces three bills, preserves credit and notifies students", async () => {
-	const fixture = await scheduledWorld();
-	const students = [
-		await enroll(fixture, true),
-		await enroll(fixture),
-		await enroll(fixture),
-	];
+	const fixture = preparedWorld;
+	const students = preparedEnrollments;
 	const response = await request(app)
 		.post(`/api/admin/sections/${fixture.section.id}/cancel`)
 		.set("Authorization", authorization())
@@ -576,8 +563,8 @@ it("T-SEC-07 cancellation reduces three bills, preserves credit and notifies stu
 });
 
 it("F5 extra section uses N+1 and rescheduling updates both records and emails students", async () => {
-	const fixture = await scheduledWorld();
-	const { user } = await enroll(fixture);
+	const fixture = preparedWorld;
+	const { user } = preparedEnrollments[0];
 	const extra = await request(app)
 		.post("/api/admin/sections")
 		.set("Authorization", authorization())
@@ -618,4 +605,44 @@ it("F5 extra section uses N+1 and rescheduling updates both records and emails s
 			})
 		).roomId,
 	).toBe(fixture.otherRoom.id);
+});
+
+let preparedWorld: Awaited<ReturnType<typeof scheduledWorld>>;
+let preparedEnrollments: Awaited<ReturnType<typeof enroll>>[];
+beforeEach(async ({ task }) => {
+	const name = task.name;
+	if (
+		name.startsWith("T-SEC-01") ||
+		name.startsWith("T-SEC-02") ||
+		name.startsWith("F5 offering removal")
+	)
+		return;
+	if (name.startsWith("F5 bulk teacher swaps"))
+		await prisma.semester.updateMany({
+			where: { phase: { not: "CLOSED" } },
+			data: { phase: "CLOSED" },
+		});
+	preparedWorld = await scheduledWorld();
+	preparedEnrollments = [];
+	if (name.startsWith("T-SEC-04"))
+		preparedEnrollments = [
+			await enroll(preparedWorld),
+			await enroll(preparedWorld),
+		];
+	else if (name.startsWith("T-SEC-06"))
+		preparedEnrollments = [await enroll(preparedWorld, true)];
+	else if (name.startsWith("T-SEC-07"))
+		preparedEnrollments = [
+			await enroll(preparedWorld, true),
+			await enroll(preparedWorld),
+			await enroll(preparedWorld),
+		];
+	else if (name.startsWith("T-SEC-09"))
+		preparedEnrollments = [
+			await enroll(preparedWorld),
+			await enroll(preparedWorld),
+			await enroll(preparedWorld),
+		];
+	else if (name.startsWith("F5 extra section"))
+		preparedEnrollments = [await enroll(preparedWorld)];
 });

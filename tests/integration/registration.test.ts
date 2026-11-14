@@ -1,12 +1,13 @@
 ﻿import { randomUUID } from "node:crypto";
 import request from "supertest";
-import { beforeAll, beforeEach, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
 import app from "../../src/app";
 import { prisma } from "../../src/app/lib/prisma";
 import { redisClient, redisKey } from "../../src/app/lib/redis";
 import { tokenFor } from "../helpers/auth";
 import { createAcademicWorld, createStudent } from "../helpers/factory";
 
+let testServer: ReturnType<typeof app.listen>;
 let world: Awaited<ReturnType<typeof createAcademicWorld>>;
 let student: Awaited<ReturnType<typeof createStudent>>;
 let semesterId: string;
@@ -30,6 +31,8 @@ beforeEach(async () => {
 		);
 });
 beforeAll(async () => {
+	testServer = app.listen(0);
+	await new Promise<void>((resolve) => testServer.once("listening", resolve));
 	world = await createAcademicWorld();
 	student = await createStudent({ batch: world.batch, program: world.program });
 	const semester = await prisma.semester.create({
@@ -105,7 +108,7 @@ it("T-REG-01 selections before and after the batch window are forbidden", async 
 		where: { id: windowId },
 		data: { startsAt: new Date(Date.now() + 100000) },
 	});
-	const before = await request(app)
+	const before = await request(testServer)
 		.post(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", authorization());
 	expect(before.status).toBe(403);
@@ -117,7 +120,7 @@ it("T-REG-01 selections before and after the batch window are forbidden", async 
 			endsAt: new Date(Date.now() - 1000),
 		},
 	});
-	const after = await request(app)
+	const after = await request(testServer)
 		.post(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", authorization());
 	expect(after.status).toBe(403);
@@ -132,7 +135,7 @@ it("T-REG-02 selections require REGISTRATION phase", async () => {
 		where: { id: semesterId },
 		data: { phase: "PLANNING" },
 	});
-	const response = await request(app)
+	const response = await request(testServer)
 		.post(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", authorization());
 	expect(response.status).toBe(409);
@@ -143,7 +146,7 @@ it("T-REG-02 selections require REGISTRATION phase", async () => {
 	});
 });
 it("T-REG-03 first select creates a bill with exact credits, fee and batch-relative deadline", async () => {
-	const response = await request(app)
+	const response = await request(testServer)
 		.post(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", authorization());
 	expect(response.status).toBe(201);
@@ -157,7 +160,7 @@ it("T-REG-03 first select creates a bill with exact credits, fee and batch-relat
 			windowEnd.getTime() + 12 * 86400000,
 		).toISOString(),
 	});
-	const repeated = await request(app)
+	const repeated = await request(testServer)
 		.post(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", authorization());
 	expect(repeated.status).toBe(200);
@@ -167,7 +170,7 @@ it("T-REG-03 first select creates a bill with exact credits, fee and batch-relat
 	).toBe(1);
 });
 it("T-REG-04 another section of the same course is rejected", async () => {
-	const response = await request(app)
+	const response = await request(testServer)
 		.post(`/api/registrations/sections/${alternativeId}`)
 		.set("Authorization", authorization());
 	expect(response.status).toBe(409);
@@ -183,7 +186,7 @@ it("T-REG-13 unselect drops the enrollment and removes the semester fee without 
 		where: { id: bill.id },
 		data: { paidAmount: 10000 },
 	});
-	const response = await request(app)
+	const response = await request(testServer)
 		.delete(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", authorization());
 	expect(response.status).toBe(200);
@@ -201,7 +204,7 @@ it("T-REG-13 unselect drops the enrollment and removes the semester fee without 
 	).toBe(0);
 });
 it("T-REG-14 selecting again reuses the original dropped enrollment", async () => {
-	const response = await request(app)
+	const response = await request(testServer)
 		.post(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", authorization());
 	expect(response.status).toBe(201);
@@ -226,11 +229,11 @@ it("T-REG-15 switching to a full section retains the source enrollment and count
 		where: { id: alternativeId },
 		data: { capacity: 1 },
 	});
-	const fill = await request(app)
+	const fill = await request(testServer)
 		.post(`/api/registrations/sections/${alternativeId}`)
 		.set("Authorization", `Bearer ${tokenFor(targetStudent)}`);
 	expect(fill.status).toBe(201);
-	const response = await request(app)
+	const response = await request(testServer)
 		.post("/api/registrations/switch")
 		.set("Authorization", authorization())
 		.send({ fromSectionId: sectionId, toSectionId: alternativeId });
@@ -249,11 +252,11 @@ it("T-REG-15 switching to a full section retains the source enrollment and count
 	).toBe(1);
 });
 it("T-REG-16 switching to an available section changes both counts and preserves billing", async () => {
-	const release = await request(app)
+	const release = await request(testServer)
 		.delete(`/api/registrations/sections/${alternativeId}`)
 		.set("Authorization", `Bearer ${tokenFor(targetStudent)}`);
 	expect(release.status).toBe(200);
-	const response = await request(app)
+	const response = await request(testServer)
 		.post("/api/registrations/switch")
 		.set("Authorization", authorization())
 		.send({ fromSectionId: sectionId, toSectionId: alternativeId });
@@ -282,54 +285,30 @@ it("T-REG-16 switching to an available section changes both counts and preserves
 	).toBe(1);
 });
 it("F7 opposite switches do not deadlock and both complete when capacity allows", async () => {
-	await prisma.section.update({
-		where: { id: alternativeId },
-		data: { capacity: 4 },
-	});
-	const left = await createStudent({
-		batch: world.batch,
-		program: world.program,
-	});
-	const right = await createStudent({
-		batch: world.batch,
-		program: world.program,
-	});
-	for (const [user, id] of [
-		[left, sectionId],
-		[right, alternativeId],
-	] as const)
-		expect(
-			(
-				await request(app)
-					.post(`/api/registrations/sections/${id}`)
-					.set("Authorization", `Bearer ${tokenFor(user)}`)
-			).status,
-		).toBe(201);
+	const { left, right, ids } = oppositeFixture;
 	const responses = await Promise.all([
-		request(app)
+		request(testServer)
 			.post("/api/registrations/switch")
 			.set("Authorization", `Bearer ${tokenFor(left)}`)
-			.send({ fromSectionId: sectionId, toSectionId: alternativeId }),
-		request(app)
+			.send({ fromSectionId: ids[0], toSectionId: ids[1] }),
+		request(testServer)
 			.post("/api/registrations/switch")
 			.set("Authorization", `Bearer ${tokenFor(right)}`)
-			.send({ fromSectionId: alternativeId, toSectionId: sectionId }),
+			.send({ fromSectionId: ids[1], toSectionId: ids[0] }),
 	]);
 	expect(responses.map((response) => response.status)).toEqual([200, 200]);
-	expect(
-		(await prisma.section.findUniqueOrThrow({ where: { id: sectionId } }))
-			.enrolledCount,
-	).toBe(1);
-	expect(
-		(await prisma.section.findUniqueOrThrow({ where: { id: alternativeId } }))
-			.enrolledCount,
-	).toBe(2);
+	expect(responses[0].body.data.enrollment.sectionId).toBe(ids[1]);
+	expect(responses[1].body.data.enrollment.sectionId).toBe(ids[0]);
+	for (const id of ids)
+		expect(
+			(await prisma.section.findUniqueOrThrow({ where: { id } })).enrolledCount,
+		).toBe(1);
 });
 it("T-REG-11 parallel selections by one student serialize the credit-limit check", async () => {
 	const { user, sections, registration } = parallelFixture;
 	const responses = await Promise.all(
 		sections.slice(2).map((section) =>
-			request(app)
+			request(testServer)
 				.post(`/api/registrations/sections/${section.id}`)
 				.set("Authorization", `Bearer ${tokenFor(user)}`),
 		),
@@ -361,7 +340,7 @@ it("T-REG-10 one hundred students race for exactly forty seats", async () => {
 	const { users, section } = raceFixture;
 	const responses = await Promise.all(
 		users.map((user) =>
-			request(app)
+			request(testServer)
 				.post(`/api/registrations/sections/${section.id}`)
 				.set("Authorization", `Bearer ${tokenFor(user)}`),
 		),
@@ -394,12 +373,12 @@ it("T-REG-12 the same idempotency key returns the original response unchanged fo
 	});
 	const key = randomUUID();
 	const auth = `Bearer ${tokenFor(user)}`;
-	const first = await request(app)
+	const first = await request(testServer)
 		.post(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", auth)
 		.set("Idempotency-Key", key);
 	expect(first.status).toBe(201);
-	const second = await request(app)
+	const second = await request(testServer)
 		.post(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", auth)
 		.set("Idempotency-Key", key);
@@ -412,7 +391,7 @@ it("T-REG-12 the same idempotency key returns the original response unchanged fo
 		where: { id: semesterId },
 		data: { phase: "PLANNING" },
 	});
-	const replay = await request(app)
+	const replay = await request(testServer)
 		.post(`/api/registrations/sections/${alternativeId}`)
 		.set("Authorization", auth)
 		.set("Idempotency-Key", key);
@@ -440,7 +419,7 @@ it("F7 simultaneous first requests with one idempotency key share one response a
 	});
 	const responses = await Promise.all(
 		Array.from({ length: 5 }, () =>
-			request(app)
+			request(testServer)
 				.post(`/api/registrations/sections/${sectionId}`)
 				.set("Authorization", `Bearer ${tokenFor(user)}`)
 				.set("Idempotency-Key", key),
@@ -466,7 +445,7 @@ it("T-REG-17 the eleventh registration request within ten seconds is rate limite
 	// Valid cached retries still count, as the rate guard precedes idempotency.
 	const responses = await Promise.all(
 		Array.from({ length: 10 }, () =>
-			request(app)
+			request(testServer)
 				.post(`/api/registrations/sections/${readSectionId}`)
 				.set("Authorization", `Bearer ${tokenFor(user)}`)
 				.set("Idempotency-Key", rateIdempotencyKey),
@@ -477,7 +456,7 @@ it("T-REG-17 the eleventh registration request within ten seconds is rate limite
 			(response) => response.status === 201 || response.status === 200,
 		),
 	).toBe(true);
-	const last = await request(app)
+	const last = await request(testServer)
 		.post(`/api/registrations/sections/${readSectionId}`)
 		.set("Authorization", `Bearer ${tokenFor(user)}`)
 		.set("Idempotency-Key", rateIdempotencyKey);
@@ -560,7 +539,7 @@ it("F7 registration page is empty before the first selection", async () => {
 		batch: world.batch,
 		program: world.program,
 	});
-	const response = await request(app)
+	const response = await request(testServer)
 		.get("/api/registrations/me")
 		.set("Authorization", `Bearer ${tokenFor(user)}`);
 	expect(response.status, response.body.message).toBe(200);
@@ -571,7 +550,7 @@ it("F7 registration page is empty before the first selection", async () => {
 	});
 });
 it("F7 registration page shows minimum payment, max credits and only enrolled sections", async () => {
-	const response = await request(app)
+	const response = await request(testServer)
 		.get("/api/registrations/me")
 		.set("Authorization", `Bearer ${tokenFor(readStudent)}`);
 	expect(response.status, response.body.message).toBe(200);
@@ -591,7 +570,7 @@ it("T-REG-21 catalog flags reflect own courses, clashes and prerequisites while 
 	const auth = `Bearer ${tokenFor(readStudent)}`;
 	const cacheKey = redisKey(`catalog:${semesterId}`);
 	await redisClient.del(cacheKey);
-	const catalog = await request(app)
+	const catalog = await request(testServer)
 		.get("/api/registrations/offerings?limit=100")
 		.set("Authorization", auth);
 	expect(catalog.status).toBe(200);
@@ -619,7 +598,7 @@ it("T-REG-21 catalog flags reflect own courses, clashes and prerequisites while 
 		where: { id: clashingSectionId },
 		data: { capacity: 1, enrolledCount: 1 },
 	});
-	const live = await request(app)
+	const live = await request(testServer)
 		.get("/api/registrations/offerings?searchTerm=F7-CLASH")
 		.set("Authorization", auth);
 	expect(live.status).toBe(200);
@@ -660,7 +639,7 @@ it("T-REG-20 the seat stream receives another student's selection and unsubscrib
 		expect(response.headers.get("cache-control")).toContain("no-cache");
 		if (!response.body) throw new Error("Missing event stream body");
 		reader = response.body.getReader();
-		const selected = await request(app)
+		const selected = await request(testServer)
 			.post(`/api/registrations/sections/${sectionId}`)
 			.set("Authorization", `Bearer ${tokenFor(selector)}`);
 		expect(selected.status).toBe(201);
@@ -829,7 +808,7 @@ beforeAll(async () => {
 });
 const rateIdempotencyKey = randomUUID();
 beforeAll(async () => {
-	const prime = await request(app)
+	const prime = await request(testServer)
 		.post(`/api/registrations/sections/${readSectionId}`)
 		.set("Authorization", `Bearer ${tokenFor(readStudent)}`)
 		.set("Idempotency-Key", rateIdempotencyKey);
@@ -914,7 +893,7 @@ beforeAll(async () => {
 });
 
 it("T-REG-05 overlapping days and times reject selection and name the held course", async () => {
-	const response = await request(app)
+	const response = await request(testServer)
 		.post(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", `Bearer ${tokenFor(readStudent)}`);
 	expect(response.status).toBe(409);
@@ -923,7 +902,7 @@ it("T-REG-05 overlapping days and times reject selection and name the held cours
 });
 it("T-REG-06 selecting three more credits from thirteen rejects the sixteen-credit total", async () => {
 	const target = parallelFixture.sections[4];
-	const response = await request(app)
+	const response = await request(testServer)
 		.post(`/api/registrations/sections/${target.id}`)
 		.set("Authorization", `Bearer ${tokenFor(creditStudent)}`);
 	expect(response.status).toBe(409);
@@ -937,7 +916,7 @@ it("T-REG-06 selecting three more credits from thirteen rejects the sixteen-cred
 	).toBe("13");
 });
 it("T-REG-07 a missing prerequisite rejects selection with the required course", async () => {
-	const response = await request(app)
+	const response = await request(testServer)
 		.post(`/api/registrations/sections/${clashingSectionId}`)
 		.set("Authorization", `Bearer ${tokenFor(guardStudent)}`);
 	expect(response.status).toBe(409);
@@ -950,7 +929,7 @@ it("T-REG-08 closed sections cannot be selected", async () => {
 		where: { id: target.id },
 		data: { status: "CLOSED" },
 	});
-	const response = await request(app)
+	const response = await request(testServer)
 		.post(`/api/registrations/sections/${target.id}`)
 		.set("Authorization", `Bearer ${tokenFor(guardStudent)}`);
 	expect(response.status).toBe(409);
@@ -975,7 +954,7 @@ it("T-REG-09 the forty-first student gets SECTION_FULL and an open alternative",
 			timeSlotId: full.timeSlotId,
 		},
 	});
-	const response = await request(app)
+	const response = await request(testServer)
 		.post(`/api/registrations/sections/${full.id}`)
 		.set("Authorization", `Bearer ${tokenFor(guardStudent)}`);
 	expect(response.status).toBe(409);
@@ -1003,9 +982,68 @@ it("T-REG-18 discarded registrations cannot select a section", async () => {
 		},
 		update: { status: "DISCARDED" },
 	});
-	const response = await request(app)
+	const response = await request(testServer)
 		.post(`/api/registrations/sections/${sectionId}`)
 		.set("Authorization", `Bearer ${tokenFor(guardStudent)}`);
 	expect(response.status).toBe(403);
 	expect(response.body.errorDetails.code).toBe("REGISTRATION_DISCARDED");
+});
+
+let oppositeFixture: {
+	left: Awaited<ReturnType<typeof createStudent>>;
+	right: Awaited<ReturnType<typeof createStudent>>;
+	ids: string[];
+};
+beforeAll(async () => {
+	const left = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const right = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const original = await prisma.section.findUniqueOrThrow({
+		where: { id: sectionId },
+	});
+	const course = await prisma.course.create({
+		data: {
+			code: "F7-OPPOSITE",
+			title: "Opposite switches",
+			credits: 3,
+			type: "THEORY",
+			departmentId: world.department.id,
+		},
+	});
+	const offering = await prisma.courseOffering.create({
+		data: { semesterId, courseId: course.id },
+	});
+	const ids = [randomUUID(), randomUUID()];
+	await prisma.section.createMany({
+		data: ids.map((id, index) => ({
+			id,
+			offeringId: offering.id,
+			sectionNo: index + 1,
+			capacity: 4,
+			roomId: original.roomId,
+			timeSlotId: original.timeSlotId,
+			dayPatternId: original.dayPatternId,
+		})),
+	});
+	for (const [user, id] of [
+		[left, ids[0]],
+		[right, ids[1]],
+	] as const) {
+		const selected = await request(testServer)
+			.post(`/api/registrations/sections/${id}`)
+			.set("Authorization", `Bearer ${tokenFor(user)}`);
+		expect(selected.status).toBe(201);
+	}
+	oppositeFixture = { left, right, ids };
+});
+afterAll(async () => {
+	testServer.closeAllConnections();
+	await new Promise<void>((resolve, reject) =>
+		testServer.close((error) => (error ? reject(error) : resolve())),
+	);
 });
