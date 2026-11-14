@@ -1,7 +1,7 @@
 ﻿# Clashless — Progress
 
-> ## Overall: 34% complete (34 of 100 points)
-> **In progress:** F6 Class routine · **Next:** F7 Registration
+> ## Overall: 48% complete (48 of 100 points)
+> **In progress:** None · **Next:** F7 Registration
 > **Last updated:** 14 Nov 2026 by Codex
 
 **How the percentage works:** each feature below has points, and all points add up to 100. Overall % = the sum of the points of every ✅ Completed feature. A feature that's in progress counts 0 until it meets the definition of done (requirement.md 10.3). Whenever you change this file, update the three lines in the box above.
@@ -20,8 +20,8 @@ Read [AGENTS.md](AGENTS.md) first. The work itself is defined in [requirement.md
 | F3 | Academic setup | 6 | ✅ Completed | F1 | 6.5 |
 | F4 | Semesters and registration windows | 4 | ✅ Completed | F3 | 6.6 |
 | F5 | Offerings, sections and teacher preferences | 6 | ✅ Completed | F2, F4 | 6.7 |
-| F6 | Class routine | 14 | 🔄 In progress | F5 | 6.8 |
-| F7 | Registration | 14 | ⬜ Not started | F6 | 6.9 |
+| F6 | Class routine | 14 | ✅ Completed | F5 | 6.8 |
+| F7 | Registration | 14 | ⏭️ Next | F6 | 6.9 |
 | F8 | Payments and the discard job | 8 | ⬜ Not started | F7 | 6.10, 7 |
 | F9 | Exam routine | 7 | ⬜ Not started | F7 | 6.11 |
 | F10 | Seat plan and invigilators | 10 | ⬜ Not started | F9 | 6.12 |
@@ -45,20 +45,15 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 | F3 Academic setup | 14 Nov 2026 | Codex | 11 (39 total) | All 26 endpoints, Swagger, static checks, build and manual pass |
 | F4 Semesters and registration windows | 14 Nov 2026 | Codex | 14 (53 total) | 9 required IDs plus 5 gate/boundary checks; all 10 endpoints/docs and manual pass |
 | F5 Offerings, sections and teacher preferences | 14 Nov 2026 | Codex | 17 (70 total) | All 13 endpoints/docs, 10 required test IDs, boundary/unit checks and manual pass |
+| F6 Class routine | 14 Nov 2026 | Codex | 18 (88 total) | All 13 endpoints/docs; actual demo 264/264 placed in 552 ms; real BullMQ/manual/PDF pass |
 
 ## 🔄 In progress
 
-### F6 — Class routine
-Started: 14 Nov 2026 12:51 Asia/Dhaka by Codex
-Handoff notes:
-- Done: F0–F5 complete and pushed; all 70 tests, static/build/manual checks pass. Pure routineValidator and T-ROUT-05 already implemented in F5.
-- Half-done: generator, worker, generation request and job polling implemented. T-ROUT-07/08 and role/phase/source guards passed (3 integration tests). Version list/view/report implemented and verified; 10 routine integration tests and 11 unit tests pass, including T-ROUT-13 teacher grid and T-ROUT-14 portable actual-demo performance. All F6 endpoints/docs implemented.
-- Next step: complete and push F6. Full suite: 88 passed in 217.55 seconds; all static/build/manual/PDF checks pass. Build/static checks and real BullMQ/manual HTTP pass succeeded. Weekly grids, student enrollment scope, all published filters and teacher-restricted exports pass. Master PDF is 38 weekly room pages; page 1 visually inspected clean. Publication validates current complete coverage, bulk-copies schedules in one parameterized SQL update and archives the previous version atomically. Draft edits validate and recompute scores atomically; valid swaps and exact pin preservation pass. Fresh reports validate against current resources; idempotent test migrations now retry three times for intermittent hosted schema-engine failures.
-- Traps: pinned entries never move; repair may move one unpinned blocker only; use occupancy maps and seeded local search; never change teacher assignments.
+None.
 
 ## ⏭️ Next
 
-1. **F6 Class routine**: implement requirement.md 6.8; reuse the pure routineValidator and its T-ROUT-05 unit test from F5.
+1. **F7 Registration**: implement requirement.md 6.9 in checklist order, preserving the exact locking/guarded-seat flow.
 2. Then the remaining features in status-board order, each once everything in its *Needs* column is ✅.
 
 ---
@@ -147,7 +142,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 - [x] Publish (copies onto sections, archives the old version)
 - [x] Published routine, `/api/routines/me`, PDF exports
 - [x] Tests T-ROUT-07 … T-ROUT-14
-- [ ] Definition of done → commit → push
+- [x] Definition of done → commit → push
 
 ### F7 — Registration (14 points)
 
@@ -222,6 +217,8 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ---
 
 ## Handoff notes (newest first)
+
+- **14 Nov 2026, Codex, F6 complete:** All 13 endpoints and Swagger implemented. Full suite 88 passed in 217.55 seconds; type check, lint, format and build pass. Real BullMQ/manual HTTP generated and published all 264 demo sections, checked report/versions/teacher grid/PDF and every Swagger method. Master and teacher PDF pages visually inspected clean. Demo now has published version 2, version 1 archived; semester remains PLANNING. Routine generation is deterministic with occupancy maps, one-blocker repair, pins and bounded improvement; demo placed in 552 ms, score 0. Portable anonymized demo fixture supports T-ROUT-14. Unit project runs without external services; integration migration setup retries idempotently up to three times. Queue bootstrap accepts optional queue names for focused real-worker runs; manual run started only routine workers, which were stopped afterward. No env/schema changes. Next F7: exact raw insert/FOR UPDATE registration locks, guarded seat updates, Redis idempotency/rate limit, then unselect/switch/browse/SSE/admin flows. Reuse Decimal registrationTotals and routine time helpers.
 
 - **14 Nov 2026, Codex, F6 generator:** Pure generator uses seeded random search, room/teacher/day occupancy maps, hardest-first candidates, greedy added penalty, one-unpinned-blocker repair, immutable pins, full hard validation and soft score breakdown. T-ROUT-01 through 06 pass (10 unit tests including shared validator). Read-only actual demo performance: all 264 sections placed across 38 rooms and 72 teachers in 552 ms, score 0, no hard violations. Unit tests now run independently of database/Redis using Vitest projects; integration setup remains isolated and health passed after a transient migrate setup error. No env changes. A quota-related automatic approval review failure interrupted one check; user continued and checks resumed. Next: routine worker/job module, versions/report, editing/publish, weekly grids and PDFs.
 
@@ -299,6 +296,7 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+
 
 
 
