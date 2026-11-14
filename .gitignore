@@ -1,0 +1,10 @@
+node_modules/
+dist/
+generated/
+logs/
+.env
+.env.production
+/generated/prisma
+.agents
+.claude
+.windsurf
