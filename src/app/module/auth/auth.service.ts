@@ -33,12 +33,14 @@ const createAuthTokens = (user: {
 	name: string;
 	email: string;
 	role: UserRole;
+	tokenVersion: number;
 }) => {
 	const jwtPayload = {
 		id: user.id,
 		name: user.name,
 		email: user.email,
 		role: user.role,
+		tokenVersion: user.tokenVersion,
 	};
 
 	const accessToken = jwtUtils.createToken(
@@ -130,7 +132,7 @@ const refreshToken = async (token: string) => {
 		config.jwt_refresh_secret,
 	);
 
-	if (!verifiedRefreshToken.success || !verifiedRefreshToken.data) {
+	if (!verifiedRefreshToken.success || typeof verifiedRefreshToken.data !== "object" || typeof verifiedRefreshToken.data.id !== "string" || !Number.isInteger(verifiedRefreshToken.data.tokenVersion)) {
 		throw new AppError(httpStatus.UNAUTHORIZED, "Invalid refresh token");
 	}
 
@@ -140,7 +142,7 @@ const refreshToken = async (token: string) => {
 		where: { id: data.id },
 	});
 
-	if (!user || user.isDeleted || user.status !== UserStatus.ACTIVE) {
+	if (!user || user.isDeleted || user.status !== UserStatus.ACTIVE || user.tokenVersion !== data.tokenVersion) {
 		throw new AppError(
 			httpStatus.UNAUTHORIZED,
 			"User is inactive or not found",

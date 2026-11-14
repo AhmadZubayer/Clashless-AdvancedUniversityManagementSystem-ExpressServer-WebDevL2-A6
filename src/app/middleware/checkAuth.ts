@@ -75,6 +75,10 @@ export const auth = (...requiredRoles: UserRole[]) => {
 			);
 		}
 
+		if (!Number.isInteger(decoded.tokenVersion) || decoded.tokenVersion !== user.tokenVersion) {
+			throw new AppError(httpStatus.UNAUTHORIZED, "Session has expired. Please log in again.");
+		}
+
 		if (requiredRoles.length && !requiredRoles.includes(user.role)) {
 			throw new AppError(
 				httpStatus.FORBIDDEN,
