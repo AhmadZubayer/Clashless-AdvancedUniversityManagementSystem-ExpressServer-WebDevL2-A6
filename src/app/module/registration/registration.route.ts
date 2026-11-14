@@ -9,6 +9,11 @@ import { registrationValidation } from "./registration.validation";
 export const registrationRoutes = Router();
 export const adminRegistrationRoutes = Router();
 registrationRoutes.get(
+	"/seats/stream",
+	auth(UserRole.STUDENT, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+	registrationController.streamSeats,
+);
+registrationRoutes.get(
 	"/me",
 	auth(UserRole.STUDENT),
 	registrationController.getMyRegistration,

@@ -731,3 +731,70 @@ it("T-REG-21 catalog flags reflect own courses, clashes and prerequisites while 
 	expect(ttl).toBeGreaterThan(0);
 	expect(ttl).toBeLessThanOrEqual(30);
 });
+
+it("T-REG-20 the seat stream receives another student's selection and unsubscribes on disconnect", async () => {
+	const selector = await createStudent({
+		batch: world.batch,
+		program: world.program,
+	});
+	const channel = redisKey(`seats:${semesterId}`);
+	const baseline = (await redisClient.pubSubNumSub(channel))[channel];
+	const server = app.listen(0);
+	await new Promise<void>((resolve) => server.once("listening", resolve));
+	const address = server.address();
+	if (!address || typeof address === "string")
+		throw new Error("Test listener address unavailable");
+	const abort = new AbortController();
+	const timeout = setTimeout(() => abort.abort(), 25000);
+	let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+	try {
+		const response = await fetch(
+			`http://localhost:${address.port}/api/registrations/seats/stream`,
+			{ headers: { Authorization: authorization() }, signal: abort.signal },
+		);
+		expect(response.status).toBe(200);
+		expect(response.headers.get("content-type")).toContain("text/event-stream");
+		expect(response.headers.get("cache-control")).toContain("no-cache");
+		if (!response.body) throw new Error("Missing event stream body");
+		reader = response.body.getReader();
+		const selected = await request(app)
+			.post(`/api/registrations/sections/${sectionId}`)
+			.set("Authorization", `Bearer ${tokenFor(selector)}`);
+		expect(selected.status).toBe(201);
+		const current = await prisma.section.findUniqueOrThrow({
+			where: { id: sectionId },
+		});
+		const decoder = new TextDecoder();
+		let buffer = "";
+		let event:
+			| { sectionId: string; enrolledCount: number; capacity: number }
+			| undefined;
+		while (!event) {
+			const part = await reader.read();
+			if (part.done)
+				throw new Error("Event stream ended before the selection event");
+			buffer += decoder.decode(part.value, { stream: true });
+			const match = /data: (\{[^\n]*\})/.exec(buffer);
+			if (match) event = JSON.parse(match[1]);
+		}
+		expect(event).toEqual({
+			sectionId,
+			enrolledCount: current.enrolledCount,
+			capacity: current.capacity,
+		});
+	} finally {
+		clearTimeout(timeout);
+		abort.abort();
+		await reader?.cancel().catch(() => {});
+		server.closeAllConnections();
+		await new Promise<void>((resolve, reject) =>
+			server.close((error) => (error ? reject(error) : resolve())),
+		);
+	}
+	let count = (await redisClient.pubSubNumSub(channel))[channel];
+	for (let attempt = 0; attempt < 10 && count !== baseline; attempt++) {
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		count = (await redisClient.pubSubNumSub(channel))[channel];
+	}
+	expect(count).toBe(baseline);
+});

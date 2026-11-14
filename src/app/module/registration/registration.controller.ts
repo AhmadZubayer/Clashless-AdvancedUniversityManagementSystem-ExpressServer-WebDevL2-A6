@@ -1,4 +1,6 @@
 import type { Request, Response } from "express";
+import { logger } from "../../lib/logger";
+import { subscribeSeatEvents, type ISeatEvent } from "../../lib/seatEvents";
 import { AppError } from "../../utils/AppError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
@@ -70,7 +72,52 @@ const getRegistrationOfferings = catchAsync(
 		});
 	},
 );
+const streamSeats = catchAsync(async (_req: Request, res: Response) => {
+	const semester = await registrationService.getSeatStreamSemesterFromDB();
+	if (res.destroyed) return;
+	let closed = false;
+	let ready = false;
+	let stop: (() => Promise<void>) | undefined;
+	let heartbeat: ReturnType<typeof setInterval> | undefined;
+	const pending: ISeatEvent[] = [];
+	const cleanup = () => {
+		if (heartbeat) clearInterval(heartbeat);
+		const unsubscribe = stop;
+		stop = undefined;
+		if (unsubscribe)
+			void unsubscribe().catch(() =>
+				logger.error("Seat stream cleanup failed"),
+			);
+	};
+	res.once("close", () => {
+		closed = true;
+		cleanup();
+	});
+	stop = await subscribeSeatEvents(semester.id, (event) => {
+		if (closed) return;
+		if (!ready) pending.push(event);
+		else res.write(`data: ${JSON.stringify(event)}\n\n`);
+	});
+	if (closed) {
+		cleanup();
+		return;
+	}
+	res.status(200).set({
+		"Content-Type": "text/event-stream",
+		"Cache-Control": "no-cache, no-transform",
+		Connection: "keep-alive",
+		"X-Accel-Buffering": "no",
+	});
+	res.flushHeaders();
+	ready = true;
+	res.write(": connected\n\n");
+	for (const event of pending) res.write(`data: ${JSON.stringify(event)}\n\n`);
+	heartbeat = setInterval(() => {
+		if (!closed) res.write(": heartbeat\n\n");
+	}, 25000);
+});
 export const registrationController = {
+	streamSeats,
 	getMyRegistration,
 	getRegistrationOfferings,
 	selectSection,

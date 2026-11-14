@@ -1,5 +1,22 @@
 /**
  * @openapi
+ * /api/registrations/seats/stream:
+ *   get:
+ *     tags: [Registration]
+ *     summary: Stream current-semester seat changes to students and admins
+ *     description: Redis pub/sub events carry sectionId, enrolledCount and capacity. Comment heartbeats are sent every 25 seconds; subscriptions close on disconnect.
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Server-Sent Events stream
+ *         content:
+ *           text/event-stream: { schema: { type: string } }
+ *       401: { description: Authentication required }
+ *       403: { description: Student or admin access required }
+ *       404: { description: No current semester }
+ */
+/**
+ * @openapi
  * /api/registrations/me:
  *   get:
  *     tags: [Registration]

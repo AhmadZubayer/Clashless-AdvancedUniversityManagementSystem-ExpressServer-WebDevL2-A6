@@ -21,16 +21,28 @@ export async function subscribeSeatEvents(
 	subscriber.on("error", () =>
 		logger.error("Seat event subscription connection failed"),
 	);
-	await subscriber.connect();
-	await subscriber.subscribe(channelFor(semesterId), (message) => {
-		try {
-			listener(JSON.parse(message));
-		} catch {
-			logger.error("Invalid seat event received");
-		}
-	});
+	try {
+		await subscriber.connect();
+		await subscriber.subscribe(channelFor(semesterId), (message) => {
+			try {
+				listener(JSON.parse(message));
+			} catch {
+				logger.error("Invalid seat event received");
+			}
+		});
+	} catch (error) {
+		if (subscriber.isOpen) subscriber.destroy();
+		throw error;
+	}
+	let stopped = false;
 	return async () => {
-		await subscriber.unsubscribe(channelFor(semesterId));
-		await subscriber.quit();
+		if (stopped) return;
+		stopped = true;
+		try {
+			if (subscriber.isReady)
+				await subscriber.unsubscribe(channelFor(semesterId));
+		} finally {
+			if (subscriber.isOpen) await subscriber.quit();
+		}
 	};
 }

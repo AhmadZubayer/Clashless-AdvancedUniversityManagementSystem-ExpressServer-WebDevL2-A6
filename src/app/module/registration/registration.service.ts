@@ -828,6 +828,14 @@ const getRegistrationOfferingsFromDB = async (
 };
 
 export const registrationService = {
+	getSeatStreamSemesterFromDB: async () => {
+		const semester = await prisma.semester.findFirst({
+			where: { phase: { not: "CLOSED" } },
+			select: { id: true },
+		});
+		if (!semester) throw new AppError(404, "No current semester");
+		return semester;
+	},
 	getMyRegistrationFromDB,
 	getRegistrationOfferingsFromDB,
 	selectSectionWithGuardsIntoDB,
