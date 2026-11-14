@@ -8,6 +8,7 @@ import {
 	createAdmin,
 	createFaculty,
 	createRegistrationWorld,
+	createStudent,
 } from "../helpers/factory";
 
 let admin: Awaited<ReturnType<typeof createAdmin>>;
@@ -16,11 +17,78 @@ beforeAll(async () => {
 });
 const authorization = () => `Bearer ${tokenFor(admin)}`;
 
+it("T-ACAD-10 import two students' results and recompute best-attempt CGPA", async () => {
+	const world = await createAcademicWorld();
+	const first = await createStudent({
+		program: world.program,
+		batch: world.batch,
+	});
+	const second = await createStudent({
+		program: world.program,
+		batch: world.batch,
+	});
+	for (const [code, credits] of [
+		["RESA", 3],
+		["RESB", 1],
+		["RESC", 2],
+	] as const)
+		await prisma.course.create({
+			data: {
+				code,
+				title: code,
+				credits,
+				type: "THEORY",
+				departmentId: world.department.id,
+			},
+		});
+	const id1 = first.student!.universityId;
+	const id2 = second.student!.universityId;
+	const csv = [
+		"universityId,courseCode,grade",
+		`${id1},RESA,B`,
+		`${id1},RESA,B_PLUS`,
+		`${id1},RESA,F`,
+		`${id1},RESB,A`,
+		`${id1},RESC,W`,
+		`${id2},RESA,F`,
+		`${id2},RESB,B`,
+		`${id2},UNKNOWN,A`,
+	].join("\n");
+	const response = await request(app)
+		.post("/api/admin/results/import")
+		.set("Authorization", authorization())
+		.attach("file", Buffer.from(csv), "results.csv");
+	expect(response.status).toBe(200);
+	expect(response.body.data.created).toBe(7);
+	expect(response.body.data.failed).toHaveLength(1);
+	expect(response.body.data.failed[0].row).toBe(9);
+	const updated1 = await prisma.student.findUniqueOrThrow({
+		where: { id: first.student!.id },
+	});
+	const updated2 = await prisma.student.findUniqueOrThrow({
+		where: { id: second.student!.id },
+	});
+	// First: (3.3*3 + 4*1)/4 = 3.475 -> 3.48; W and lower retakes do not count.
+	expect(updated1.cgpa.toString()).toBe("3.48");
+	expect(updated1.earnedCredits.toString()).toBe("4");
+	// Second: (0*3 + 3*1)/4 = 0.75; only the one-credit B was earned.
+	expect(updated2.cgpa.toString()).toBe("0.75");
+	expect(updated2.earnedCredits.toString()).toBe("1");
+	expect(
+		await prisma.courseResult.count({
+			where: {
+				studentId: { in: [updated1.id, updated2.id] },
+				semesterId: null,
+			},
+		}),
+	).toBe(7);
+});
+
 it("T-ACAD-01 department codes are uppercase and unique", async () => {
 	const response = await request(app)
 		.post("/api/admin/departments")
 		.set("Authorization", authorization())
-		.send({ code: "cse", name: "Computer Science" });
+		.send({ code: "cse", name: "Case normalization department" });
 	expect(response.status).toBe(201);
 	expect(response.body.data.code).toBe("CSE");
 	expect(
@@ -32,7 +100,7 @@ it("T-ACAD-01 department codes are uppercase and unique", async () => {
 		).status,
 	).toBe(409);
 	const listed = await request(app)
-		.get("/api/departments?searchTerm=computer&limit=2")
+		.get("/api/departments?searchTerm=Case%20normalization&limit=2")
 		.set("Authorization", authorization());
 	expect(listed.status).toBe(200);
 	expect(listed.body.meta.total).toBe(1);
