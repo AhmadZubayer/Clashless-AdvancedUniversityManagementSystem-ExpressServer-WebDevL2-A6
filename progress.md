@@ -1,4 +1,4 @@
-# Clashless — Progress
+﻿# Clashless — Progress
 
 > ## Overall: 28% complete (28 of 100 points)
 > **In progress:** F5 Offerings, sections and teacher preferences · **Next:** F6 Class routine
@@ -51,8 +51,8 @@ Statuses: ✅ Completed · 🔄 In progress · ⏭️ Next · ⬜ Not started. O
 Started: 14 Nov 2026 12:23 Asia/Dhaka by Codex
 Handoff notes:
 - Done: F0–F4 complete and pushed; all 53 tests and static/build checks pass.
-- Half-done: offering create/list/delete and Swagger implemented. Creation and deletion enforce PLANNING; numbered sections are created atomically; enrollment history is preserved. Section management next.
-- Next step: offerings, section management and schedule guards, faculty assignment, class list exports and preferences in checklist order.
+- Half-done: offering create/list/delete and Swagger implemented. Creation and deletion enforce PLANNING; numbered sections are created atomically; enrollment history is preserved. Section management and its four Swagger endpoints now implemented; focused suite 11 passed (8 integration, 3 validator).
+- Next step: bulk faculty assignment and mine, class list exports and preferences in checklist order.
 - Traps: cancellation must retain overpaid credit and recalculate Decimal bills; schedule changes must protect teacher and student clashes, and published routine entries must stay consistent.
 
 
@@ -130,7 +130,7 @@ Tick a box as soon as it's done and commit (AGENTS.md section 4). Test IDs refer
 ### F5 — Offerings, sections and teacher preferences (6 points)
 
 - [x] Offerings: create with N sections, list, delete
-- [ ] Sections: extra section, update, reschedule, cancel
+- [x] Sections: extra section, update, reschedule, cancel
 - [ ] Bulk teacher assignment (load check, all or nothing); `GET /api/sections/mine`
 - [ ] Class list as JSON, CSV and PDF
 - [ ] Teacher slot preferences
@@ -290,3 +290,4 @@ One line per feature after its manual pass (requirement.md 9.5): date, feature, 
 | Redis (dev / test) | Supplied replacement service; prefixed test keys; no shared FLUSHDB |
 | Redis eviction policy | Provider reports volatile-lru; BullMQ recommends noeviction. No provider configuration changed; review in F13 |
 | k6 installed | _not checked yet_ |
+

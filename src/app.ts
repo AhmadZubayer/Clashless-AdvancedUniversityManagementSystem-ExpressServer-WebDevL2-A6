@@ -15,6 +15,10 @@ import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { authRoutes } from "./app/module/auth/auth.route";
 import {
+	sectionRoutes,
+	adminSectionRoutes,
+} from "./app/module/section/section.route";
+import {
 	offeringRoutes,
 	adminOfferingRoutes,
 } from "./app/module/offering/offering.route";
@@ -103,6 +107,8 @@ app.use("/api/registration-windows", registrationWindowRoutes);
 app.use("/api/admin/registration-windows", adminRegistrationWindowRoutes);
 app.use("/api/offerings", offeringRoutes);
 app.use("/api/admin/offerings", adminOfferingRoutes);
+app.use("/api/sections", sectionRoutes);
+app.use("/api/admin/sections", adminSectionRoutes);
 app.use("/api/payments/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
 
